@@ -4,32 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stop Losing Money on Scattered Real Estate Marketing — AdScade</title>
-<meta name="description" content="AdScade builds and runs the entire buyer lead funnel for Indian real estate businesses — landing page, video, Meta ads and automated WhatsApp qualification. Book a free audit call.">
+<meta name="description" content="AdScade builds and runs the entire buyer lead funnel for Indian real estate businesses — landing page, video, Meta ads and automated WhatsApp qualification. Book an audit call.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://adscade.in/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — AdScade">
-<meta property="og:description" content="One team builds and owns your entire buyer funnel — so every lead that reaches you is ready to talk. Book a free audit call.">
+<meta property="og:description" content="One team builds and owns your entire buyer funnel — so the leads that reach you already have their budget, location and timeline on record.">
 <meta property="og:image" content="assets/asim-ahmed.jpg">
 <meta property="og:locale" content="en_IN">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#05100A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,500&display=swap" rel="stylesheet">
 <style>
 /* ─── tokens ─────────────────────────────────────────────────────────── */
 :root{
   --ink:#05100A; --ink-warm:#0F0D08; --forest:#1A3322;
   --cream:#EAE0C8; --cream-dim:#A9A290;
   --gold:#E0B865; --gold-deep:#C9A04A;
-  /* clay is a *surface* colour — as text on any of our dark grounds it sits at 3.3:1.
+  /* clay is a *surface* colour — as text on our dark grounds it sits at 3.3:1.
      --clay-text is the same hue lifted until it clears AA everywhere (min 6.5:1). */
   --clay:#D25242; --clay-text:#E8A395; --leak:#D98A76;
   --hair:1px solid rgba(201,160,74,.22);
   --t-micro:.66rem; --t-label:.72rem; --t-small:.84rem;
-  --t-body:1rem; --t-lead:1.18rem; --t-h3:1.6rem;
-  --t-h2:clamp(2rem,4.5vw,3.2rem); --t-h1:clamp(2.6rem,7vw,5.4rem);
+  --t-body:1rem; --t-lead:1.18rem; --t-h5:1.22rem; --t-h4:1.32rem; --t-h3:1.6rem;
+  --t-h2:clamp(2rem,4.5vw,3.2rem); --t-h1:clamp(2.15rem,6.2vw,5.4rem);
   --col:min(1120px,92vw);
   --pad:clamp(4.5rem,9vw,7.5rem);
   --serif:"Instrument Serif",Georgia,serif;
@@ -61,8 +61,11 @@ a{color:var(--gold);text-underline-offset:3px}
   line-height:1.08;letter-spacing:-.01em;margin:0 0 1.2rem;
 }
 .h2 em{font-style:italic;color:var(--gold)}
+.h2--center{text-align:center;margin-inline:auto}
 .h3{font-family:var(--serif);font-weight:400;font-size:var(--t-h3);line-height:1.2;margin:0 0 .6rem}
 .lead{font-size:var(--t-lead);line-height:1.55;color:rgba(234,224,200,.86);max-width:62ch;margin:0 0 1.4rem}
+.lead--center{text-align:center;margin-inline:auto}
+.lead--sm{font-size:var(--t-small);margin:0}
 .dim{color:var(--cream-dim)}
 .card{background:var(--forest);border:var(--hair);border-radius:14px}
 
@@ -74,6 +77,7 @@ a{color:var(--gold);text-underline-offset:3px}
   background:var(--gold);color:#1A1204;border:1px solid var(--gold);
   padding:1.05rem 1.9rem;border-radius:999px;cursor:pointer;
   text-decoration:none;transition:transform .18s ease,background .18s ease;
+  min-height:52px;
 }
 .cta:hover{background:#EFCB80;transform:translateY(-2px)}
 .cta--ghost{background:transparent;color:var(--gold);border-color:var(--gold-deep)}
@@ -81,42 +85,20 @@ a{color:var(--gold);text-underline-offset:3px}
 .cta--wide{width:100%}
 .cta-note{font-size:var(--t-small);color:var(--cream-dim);margin:.75rem 0 0}
 
-/* ─── ticker ─────────────────────────────────────────────────────────── */
-.ticker{
-  background:var(--ink-warm);border-bottom:var(--hair);
-  overflow:hidden;white-space:nowrap;padding:.7rem 0;
+/* ─── brand bar ──────────────────────────────────────────────────────── */
+.brandbar{
+  border-bottom:var(--hair);padding-block:.9rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
 }
-.ticker__track{display:inline-flex;gap:2.6rem;animation:slide 42s linear infinite;padding-right:2.6rem}
-.ticker__item{
-  font-size:var(--t-micro);font-weight:700;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--cream-dim);
+.brandbar__name{font-family:var(--serif);font-size:1.3rem;letter-spacing:.02em;margin:0}
+.brandbar__tag{
+  font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--cream-dim);margin:0;
 }
-.ticker__item::after{content:"·";margin-left:2.6rem;color:var(--gold-deep)}
-@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-/* ─── credibility strip ──────────────────────────────────────────────── */
-.creds{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;
-  padding-block:1.6rem;border-bottom:var(--hair);align-items:center;
-}
-.cred{display:flex;align-items:center;gap:.85rem;justify-content:center}
-.cred__face{
-  width:48px;height:48px;border-radius:50%;object-fit:cover;
-  border:2px solid var(--gold-deep);flex:none;
-}
-.cred__mark{
-  width:44px;height:44px;border-radius:10px;flex:none;
-  background-color:var(--gold);
-  background-image:linear-gradient(150deg,var(--gold),var(--gold-deep));
-  color:#1A1204;font-family:var(--serif);font-size:1.15rem;
-  display:grid;place-items:center;letter-spacing:.02em;
-}
-.cred__k{font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);display:block}
-.cred__v{font-size:var(--t-small);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:block}
-.cred__v--sub{font-weight:400;text-transform:none;letter-spacing:0;color:var(--cream-dim)}
+.brandbar__tag b{color:var(--gold);font-weight:700}
 
 /* ─── hero ───────────────────────────────────────────────────────────── */
-.hero{padding-block:clamp(3rem,6vw,5rem) var(--pad);text-align:center;position:relative}
+.hero{padding-block:clamp(2rem,5vw,4rem) var(--pad);text-align:center;position:relative}
 .hero::before{
   content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
   background:
@@ -127,65 +109,52 @@ a{color:var(--gold);text-underline-offset:3px}
 }
 .hero>*{position:relative;z-index:1}
 .hero__kicker{
-  font-size:var(--t-label);font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--cream-dim);margin:0 0 1.5rem;
+  font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cream-dim);margin:0 0 1.1rem;
 }
 .hero__kicker b{color:var(--gold);font-weight:700}
 .hero__title{
   font-family:var(--serif);font-weight:400;font-size:var(--t-h1);
-  line-height:1.02;letter-spacing:-.02em;margin:0 auto 1.5rem;max-width:16ch;
+  line-height:1.02;letter-spacing:-.02em;margin:0 auto 1.1rem;max-width:16ch;
 }
 .hero__title .u{
   background:linear-gradient(transparent 72%,rgba(210,82,66,.85) 72%,rgba(210,82,66,.85) 88%,transparent 88%);
 }
 .hero__title em{font-style:italic;color:var(--gold)}
 .hero__sub{
-  font-size:var(--t-lead);line-height:1.55;color:rgba(234,224,200,.84);
-  max-width:64ch;margin:0 auto 1.8rem;
+  font-size:var(--t-lead);line-height:1.5;color:rgba(234,224,200,.86);
+  max-width:62ch;margin:0 auto 1.6rem;
 }
 .hero__sub b{color:var(--cream);font-weight:600}
-.pill{
-  display:inline-flex;align-items:center;gap:.5rem;
-  background:var(--clay);color:#fff;font-size:var(--t-micro);font-weight:800;
-  letter-spacing:.14em;text-transform:uppercase;padding:.45rem 1rem;border-radius:999px;
-  margin-bottom:1.5rem;
-}
-.pill__dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1.8s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 .notice{
   border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.09);
-  border-radius:10px;padding:1rem 1.3rem;max-width:60ch;margin:0 auto;
-  font-size:var(--t-small);color:rgba(234,224,200,.86);
+  border-radius:10px;padding:1rem 1.3rem;max-width:64ch;margin:0 auto;
+  font-size:var(--t-small);color:rgba(234,224,200,.88);text-align:left;
 }
 .notice b{color:var(--clay-text)}
 
 /* ─── VSL + booking rail ─────────────────────────────────────────────── */
 .stage{
-  display:grid;grid-template-columns:1.55fr 1fr;gap:1.6rem;
-  align-items:start;margin-top:clamp(2.5rem,5vw,4rem);text-align:left;
+  display:grid;grid-template-columns:1.55fr 1fr;gap:1.4rem;
+  align-items:start;margin-bottom:1.8rem;text-align:left;
 }
 .vsl{overflow:hidden;position:relative}
-.vsl__frame{
-  aspect-ratio:16/9;position:relative;
-  background:
-    radial-gradient(ellipse at 50% 45%,rgba(26,51,34,1),var(--ink-warm) 75%);
-  display:grid;place-items:center;
-}
-.vsl__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.14;filter:grayscale(1)}
-.vsl__body{position:relative;text-align:center;padding:1.5rem}
+.vsl__frame{aspect-ratio:16/9;position:relative;display:grid;place-items:center;background:var(--ink-warm)}
+.vsl__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.vsl__body{position:relative;text-align:center;padding:1.2rem}
 .vsl__play{
-  width:74px;height:74px;border-radius:50%;margin:0 auto 1.1rem;
-  border:1px solid var(--gold-deep);background:rgba(224,184,101,.12);
+  width:66px;height:66px;border-radius:50%;margin:0 auto .9rem;
+  border:1px solid var(--gold-deep);background:rgba(15,13,8,.82);
   display:grid;place-items:center;cursor:pointer;color:var(--gold);
   transition:background .2s ease,transform .2s ease;
 }
 .vsl__play:hover{background:rgba(224,184,101,.24);transform:scale(1.06)}
-.vsl__play svg{width:22px;height:22px;margin-left:4px}
+.vsl__play svg{width:20px;height:20px;margin-left:3px}
 .vsl__label{
   font-size:var(--t-label);font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--gold);margin:0 0 .4rem;
+  text-transform:uppercase;color:var(--gold);margin:0 0 .35rem;
 }
-.vsl__hint{font-size:var(--t-small);color:var(--cream-dim);margin:0;max-width:34ch;margin-inline:auto}
+.vsl__hint{font-size:var(--t-small);color:var(--cream);margin:0 auto;max-width:36ch}
 .vsl__bar{
   display:flex;justify-content:space-between;align-items:center;gap:1rem;
   padding:.85rem 1.2rem;border-top:var(--hair);
@@ -193,11 +162,16 @@ a{color:var(--gold);text-underline-offset:3px}
 }
 .vsl__bar span{display:flex;align-items:center;gap:.45rem}
 .vsl__dot{width:5px;height:5px;border-radius:50%;background:var(--gold-deep)}
+/* revealed in place by the play control — never a jump to somewhere else */
+.vsl__agenda{display:none;padding:1.2rem 1.4rem;border-top:var(--hair);text-align:left}
+.vsl__agenda.on{display:block}
+.vsl__agenda ol{margin:0;padding-left:1.1rem;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.88)}
+.vsl__agenda li{margin-bottom:.45rem}
 
-.rail{padding:1.6rem;position:sticky;top:1.2rem}
+.rail{padding:1.5rem}
 .rail__k{font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 1rem}
 .rail__list{list-style:none;margin:0 0 1.4rem;padding:0;display:grid;gap:.85rem}
-.rail__list li{display:flex;gap:.7rem;font-size:var(--t-small);line-height:1.45;color:rgba(234,224,200,.88)}
+.rail__list li{display:flex;gap:.7rem;font-size:var(--t-small);line-height:1.45;color:rgba(234,224,200,.9)}
 .rail__list svg{width:15px;height:15px;flex:none;margin-top:.25rem;color:var(--gold)}
 .rail__meta{
   border-top:var(--hair);padding-top:1.1rem;margin-top:1.3rem;
@@ -205,6 +179,17 @@ a{color:var(--gold);text-underline-offset:3px}
   text-transform:uppercase;font-weight:700;color:var(--cream-dim);
 }
 .rail__meta b{color:var(--cream);font-weight:700}
+
+/* ─── trust strip ────────────────────────────────────────────────────── */
+.trust{
+  display:flex;flex-wrap:wrap;gap:.7rem 2rem;justify-content:center;
+  border-top:var(--hair);border-bottom:var(--hair);padding-block:1.1rem;
+}
+.trust span{
+  font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--cream-dim);display:flex;align-items:center;gap:.5rem;
+}
+.trust b{color:var(--cream);font-weight:700}
 
 /* ─── signature: the leak diagram ────────────────────────────────────── */
 .leak{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,4rem);align-items:start}
@@ -215,14 +200,14 @@ a{color:var(--gold);text-underline-offset:3px}
   position:relative;border:1px solid rgba(201,160,74,.3);
   background:linear-gradient(90deg,rgba(26,51,34,.9),rgba(26,51,34,.4));
   padding:1rem 1.2rem;margin:0 auto .8rem 0;
-  display:flex;justify-content:space-between;align-items:baseline;gap:1rem;
+  display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;
 }
 .leak__stage:nth-child(1){width:70%}
 .leak__stage:nth-child(2){width:57%}
 .leak__stage:nth-child(3){width:44%}
 .leak__stage:nth-child(4){width:31%;border-color:var(--gold);background:rgba(224,184,101,.12)}
-.leak__name{font-size:var(--t-small);font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
-.leak__val{font-family:var(--serif);font-size:1.15rem;color:var(--gold);white-space:nowrap}
+.leak__name{font-size:var(--t-small);font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.leak__val{font-family:var(--serif);font-size:var(--t-h5);color:var(--gold);white-space:nowrap}
 .leak__drip{
   position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
   font-family:var(--serif);font-size:.92rem;color:var(--leak);white-space:nowrap;
@@ -230,6 +215,7 @@ a{color:var(--gold);text-underline-offset:3px}
 }
 .leak__stage:nth-child(2) .leak__drip{animation-delay:.6s}
 .leak__stage:nth-child(3) .leak__drip{animation-delay:1.2s}
+.leak__stage:nth-child(4) .leak__drip{color:var(--gold);animation:none;opacity:1}
 /* never fades to nothing — the labels are content, the motion is only emphasis */
 @keyframes drip{
   0%,100%{opacity:.5;transform:translateY(-50%)}
@@ -249,18 +235,32 @@ a{color:var(--gold);text-underline-offset:3px}
   font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;
   color:var(--gold);margin:0 0 .7rem;
 }
-.tile p{margin:0;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.82)}
+.tile p{margin:0;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.86)}
 
-/* comparison */
-.cmp{display:grid;grid-template-columns:1fr 1fr;gap:0;border:var(--hair);border-radius:14px;overflow:hidden}
+/* comparison — pairs stay together so mobile can label them */
+.cmp{border:var(--hair);border-radius:14px;overflow:hidden}
 .cmp__head{
   padding:1.1rem 1.4rem;font-size:var(--t-label);font-weight:800;
   letter-spacing:.14em;text-transform:uppercase;
 }
-.cmp__head--old{background:rgba(142,59,46,.22);color:#E8A395}
+.cmp__head--old{background:rgba(142,59,46,.28);color:var(--clay-text)}
 .cmp__head--new{background:rgba(224,184,101,.16);color:var(--gold)}
+.cmp__grid{display:grid;grid-template-columns:1fr 1fr}
+.cmp__pair{display:contents}
 .cmp__cell{padding:1.1rem 1.4rem;border-top:var(--hair);font-size:var(--t-small);line-height:1.5}
-.cmp__cell--old{color:var(--cream-dim)}
+.cmp__cell--old{color:var(--cream-dim);background:rgba(142,59,46,.09)}
+.cmp__cell b{display:none}
+
+/* sample report — the proof artefact */
+.report{max-width:720px;margin-inline:auto;padding:1.6rem}
+.report__head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;border-bottom:var(--hair);padding-bottom:.9rem;margin-bottom:1.1rem}
+.report__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0}
+.report__wk{font-size:var(--t-micro);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-dim);margin:0}
+.report__rows{display:grid;gap:.55rem;margin:0 0 1.1rem}
+.report__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:.7rem .9rem;border:var(--hair);border-radius:4px}
+.report__row span{font-size:var(--t-small);color:rgba(234,224,200,.88)}
+.report__row b{font-family:var(--serif);font-size:var(--t-h5);color:var(--gold);font-weight:400}
+.report__foot{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
 
 /* timeline */
 .tl{display:grid;gap:0;border-left:1px solid rgba(201,160,74,.3);padding-left:1.8rem}
@@ -272,80 +272,103 @@ a{color:var(--gold);text-underline-offset:3px}
 }
 .tl__wk{font-size:var(--t-micro);font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.35rem}
 
-/* founder */
-.founder{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(2rem,5vw,3.5rem);align-items:center}
-.founder__img{border-radius:14px;border:1px solid rgba(201,160,74,.3);aspect-ratio:4/5;object-fit:cover;object-position:center 20%;width:100%}
+/* founder — its own band, deliberately away from the video */
+.founder{display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(1.8rem,5vw,3.5rem);align-items:center}
+.founder__img{border-radius:14px;border:1px solid rgba(201,160,74,.3);aspect-ratio:4/5;object-fit:cover;object-position:center 18%;width:100%}
 .founder__quote{
-  font-family:var(--accent-serif);font-size:1.32rem;line-height:1.45;
+  font-family:var(--accent-serif);font-size:var(--t-h4);line-height:1.45;
   color:var(--cream);border-left:2px solid var(--gold-deep);padding-left:1.3rem;margin:1.6rem 0 0;
 }
 
 /* guarantee */
-.guarantee{border:1px solid var(--gold-deep);border-radius:14px;padding:clamp(1.8rem,4vw,3rem);background:rgba(224,184,101,.06);text-align:center}
-.guarantee__terms{font-size:var(--t-small);color:var(--cream-dim);max-width:60ch;margin:1.4rem auto 0;border-top:var(--hair);padding-top:1.2rem}
+.guarantee{border:1px solid var(--gold-deep);border-radius:14px;padding:clamp(1.6rem,4vw,3rem);background:rgba(224,184,101,.06);text-align:center}
+.guarantee__terms{font-size:var(--t-small);color:var(--cream-dim);max-width:62ch;margin:1.4rem auto 0;border-top:var(--hair);padding-top:1.2rem;text-align:left}
+
+/* price strip */
+.price{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(201,160,74,.22);border:var(--hair);border-radius:14px;overflow:hidden;margin-top:2rem}
+.price__cell{background:var(--ink);padding:1.3rem 1.4rem}
+.price__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 .5rem}
+.price__v{font-family:var(--serif);font-size:var(--t-h4);margin:0 0 .3rem}
+.price__n{font-size:var(--t-small);color:var(--cream-dim);margin:0}
 
 /* ─── form ───────────────────────────────────────────────────────────── */
 .form-band{background:var(--ink-warm)}
-.form{max-width:660px;margin-inline:auto;padding:clamp(1.6rem,4vw,2.6rem)}
-.form__prog{display:flex;gap:.4rem;margin-bottom:1.8rem}
+.form{max-width:660px;margin-inline:auto;padding:clamp(1.4rem,4vw,2.6rem)}
+.form__prog{display:flex;gap:.4rem;margin-bottom:1.6rem}
 .form__prog i{flex:1;height:3px;background:rgba(201,160,74,.2);border-radius:2px;transition:background .3s ease}
 .form__prog i.on{background:var(--gold)}
 .step{display:none}
 .step.on{display:block;animation:fade .3s ease}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .step__n{font-size:var(--t-micro);font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 .6rem}
-.q{font-family:var(--serif);font-size:1.5rem;line-height:1.2;margin:0 0 1.3rem}
-.opts{display:grid;gap:.6rem;margin-bottom:1.6rem}
+.q{font-family:var(--serif);font-weight:400;font-size:var(--t-h3);line-height:1.18;margin:0 0 1.3rem}
+.opts{display:grid;gap:.6rem;margin-bottom:1.4rem}
 .opt{
-  display:flex;align-items:center;gap:.8rem;padding:.95rem 1.15rem;
+  display:flex;align-items:center;gap:.8rem;padding:1rem 1.15rem;
   border:1px solid rgba(201,160,74,.25);border-radius:4px;cursor:pointer;
   font-size:var(--t-small);line-height:1.4;transition:border-color .18s ease,background .18s ease;
+  min-height:52px;
 }
 .opt:hover{border-color:var(--gold-deep);background:rgba(224,184,101,.06)}
-.opt input{accent-color:var(--gold);width:16px;height:16px;flex:none;margin:0}
+.opt input{accent-color:var(--gold);width:18px;height:18px;flex:none;margin:0}
 .opt:has(input:checked){border-color:var(--gold);background:rgba(224,184,101,.12)}
 .field{margin-bottom:1.1rem}
 .field label{display:block;font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-dim);margin-bottom:.5rem}
-.field input,.field select{
-  width:100%;padding:.9rem 1rem;background:rgba(5,16,10,.7);
+.field input{
+  width:100%;padding:.95rem 1rem;background:rgba(5,16,10,.7);
   border:1px solid rgba(201,160,74,.28);border-radius:4px;
-  color:var(--cream);font-family:var(--sans);font-size:var(--t-body);
+  color:var(--cream);font-family:var(--sans);font-size:var(--t-body);min-height:52px;
 }
-.field input::placeholder{color:rgba(169,162,144,.6)}
-.field input:focus,.field select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(224,184,101,.16)}
-.field .err{display:none;color:var(--clay-text);font-size:var(--t-small);margin-top:.4rem;letter-spacing:0;text-transform:none;font-weight:400}
-.field.invalid .err{display:block}
+.field input::placeholder{color:rgba(169,162,144,.7)}
+.field input:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(224,184,101,.16)}
+.err{display:none;color:var(--clay-text);font-size:var(--t-small);margin-top:.4rem;letter-spacing:0;text-transform:none;font-weight:400}
+.field.invalid .err,.errbox.invalid .err{display:block}
 .field.invalid input{border-color:var(--clay)}
-.consent{display:flex;gap:.75rem;align-items:flex-start;font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:1.3rem 0}
-.consent input{accent-color:var(--gold);width:17px;height:17px;flex:none;margin-top:.15rem}
-.nav{display:flex;gap:.8rem;align-items:center;margin-top:.5rem}
-.back{background:none;border:none;color:var(--cream-dim);font-family:var(--sans);font-size:var(--t-small);cursor:pointer;padding:.6rem .2rem;text-decoration:underline}
+.consent{display:flex;gap:.75rem;align-items:flex-start;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.86);margin:1.3rem 0}
+.consent input{accent-color:var(--gold);width:20px;height:20px;flex:none;margin-top:.15rem}
+.nav{display:flex;gap:.5rem;align-items:center;margin-top:.5rem;flex-wrap:wrap}
+.back{
+  background:none;border:none;color:var(--cream-dim);font-family:var(--sans);
+  font-size:var(--t-small);cursor:pointer;padding:.95rem 1rem;text-decoration:underline;
+  min-height:52px;
+}
+.back:hover{color:var(--cream)}
 .done{display:none;text-align:center;padding:1.5rem 0}
 .done.on{display:block}
 .done__tick{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;margin:0 auto 1.3rem}
 .done__tick svg{width:26px;height:26px}
-.disqualify{display:none;border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.08);border-radius:10px;padding:1.2rem 1.4rem;margin-top:1.2rem;font-size:var(--t-small);color:rgba(234,224,200,.86)}
-.disqualify.on{display:block}
+/* disqualification lives inside the step that triggered it — never trailing the submit button */
+.dq{display:none;border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.09);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.3rem;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.88)}
+.dq.on{display:block}
+.dq b{color:var(--clay-text)}
+.alt-exit{
+  display:inline-block;margin-top:.9rem;background:none;border:1px solid var(--gold-deep);
+  color:var(--gold);font-family:var(--sans);font-size:var(--t-small);font-weight:700;
+  padding:.8rem 1.2rem;border-radius:999px;cursor:pointer;min-height:48px;
+}
+.alt-exit:hover{background:rgba(224,184,101,.1)}
 
 /* ─── faq ────────────────────────────────────────────────────────────── */
 .faq{border-top:var(--hair)}
 .faq__q{
   width:100%;background:none;border:none;border-bottom:var(--hair);
-  color:var(--cream);font-family:var(--serif);font-size:1.22rem;text-align:left;
+  color:var(--cream);font-family:var(--serif);font-size:var(--t-h5);text-align:left;
   padding:1.35rem 2.5rem 1.35rem 0;cursor:pointer;position:relative;line-height:1.3;
 }
 .faq__q::after{content:"+";position:absolute;right:.4rem;top:1.25rem;color:var(--gold);font-family:var(--sans);font-size:1.3rem;transition:transform .2s ease}
 .faq__q[aria-expanded="true"]::after{transform:rotate(45deg)}
-.faq__a{display:none;padding:0 0 1.5rem;font-size:var(--t-small);line-height:1.65;color:rgba(234,224,200,.82);max-width:72ch;border-bottom:var(--hair)}
-.faq__a.on{display:block}
+.faq__a{padding:0 0 1.5rem;font-size:var(--t-small);line-height:1.65;color:rgba(234,224,200,.86);max-width:72ch;border-bottom:var(--hair)}
+.faq__a[hidden]{display:none}
+.faq__a p{margin:0}
 
 /* ─── footer ─────────────────────────────────────────────────────────── */
 .foot{background:var(--ink-warm);border-top:var(--hair);padding-block:3.5rem 2.5rem;font-size:var(--t-small)}
 .foot__top{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:2rem;padding-bottom:2rem;border-bottom:var(--hair)}
-.foot__brand{font-family:var(--serif);font-size:1.6rem;color:var(--cream);margin:0 0 .5rem}
+.foot__brand{font-family:var(--serif);font-size:var(--t-h3);color:var(--cream);margin:0 0 .5rem}
 .foot__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 .8rem}
-.foot__list{list-style:none;margin:0;padding:0;display:grid;gap:.5rem;color:var(--cream-dim)}
-.foot__list a{color:var(--cream-dim);text-decoration:underline}
+.foot__list{list-style:none;margin:0;padding:0;display:grid;gap:.2rem;color:var(--cream-dim)}
+.foot__list li{padding-block:.15rem}
+.foot__list a{color:var(--cream-dim);text-decoration:underline;display:inline-block;padding-block:.7rem}
 .foot__list a:hover{color:var(--gold)}
 .foot__legal{padding-top:1.6rem;color:var(--cream-dim);font-size:var(--t-micro);line-height:1.7;max-width:90ch}
 
@@ -354,102 +377,89 @@ a{color:var(--gold);text-underline-offset:3px}
   display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;
   padding:.7rem 4vw calc(.7rem + env(safe-area-inset-bottom));
   background:rgba(5,16,10,.96);border-top:var(--hair);backdrop-filter:blur(8px);
+  transition:transform .25s ease;
 }
+.dock.hide{transform:translateY(110%)}
 
 /* ─── responsive ─────────────────────────────────────────────────────── */
 @media(max-width:900px){
-  .stage,.leak,.founder,.grid--2,.grid--3,.foot__top{grid-template-columns:1fr}
-  .rail{position:static}
-  .creds{grid-template-columns:1fr;gap:1rem}
-  .cred{justify-content:flex-start}
-  .founder__img{max-width:280px}
-  .leak__stage:nth-child(n){width:100%}
-  .leak__drip{position:static;transform:none;display:block;margin-top:.4rem;animation:none;opacity:1}
-  .leak__stage{flex-wrap:wrap}
+  /* the reading sizes carry almost all the prose — lift them on the device that
+     carries almost all the traffic */
+  :root{--t-small:.94rem;--t-micro:.72rem;--t-lead:1.1rem}
+  .stage,.leak,.founder,.grid--2,.grid--3,.foot__top,.price{grid-template-columns:1fr}
+  .price{gap:1px}
+  .founder__img{max-width:260px}
+  .leak__stage:nth-child(1){width:100%}
+  .leak__stage:nth-child(2){width:86%}
+  .leak__stage:nth-child(3){width:70%}
+  .leak__stage:nth-child(4){width:52%}
+  /* force the loss label onto its own line — a flex item needs a basis, not display:block */
+  .leak__drip{position:static;transform:none;flex-basis:100%;width:100%;margin-top:.35rem;animation:none;opacity:1}
+  .founder{gap:1.6rem}
 }
 @media(max-width:560px){
-  .cmp{grid-template-columns:1fr}
-  .cmp__head--new{border-top:var(--hair)}
+  :root{--pad:3rem}
+  .grid{gap:.8rem}
   .dock{display:block}
-  body{padding-bottom:5rem}
-  .hero{padding-top:2rem}
+  body{padding-bottom:calc(5.5rem + env(safe-area-inset-bottom))}
+  .hero{padding-top:1.4rem}
+  .cmp__grid{grid-template-columns:1fr}
+  .cmp__head{display:none}
+  .cmp__pair{display:block;border-top:var(--hair)}
+  .cmp__cell{border-top:none;padding-block:.9rem}
+  .cmp__cell--old{background:rgba(142,59,46,.09)}
+  /* headers scroll away on a phone, so each pair carries its own label */
+  .cmp__cell b{
+    display:block;font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;
+    text-transform:uppercase;margin-bottom:.3rem;
+  }
+  .cmp__cell--old b{color:var(--clay-text)}
+  .cmp__cell--new b{color:var(--gold)}
+  .trust{gap:.5rem 1.2rem}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
-  .ticker__track{animation:none}
   .leak__drip{opacity:1}
 }
 </style>
 </head>
 <body>
 
-<!-- ═══ ticker ═══════════════════════════════════════════════════════ -->
-<div class="ticker" aria-hidden="true">
-  <div class="ticker__track">
-    <span class="ticker__item">Built for Indian real estate businesses</span>
-    <span class="ticker__item">Landing page · Video · Meta ads · WhatsApp qualification</span>
-    <span class="ticker__item">Funnel live in 3 weeks</span>
-    <span class="ticker__item">Weekly CPQL reporting</span>
-    <span class="ticker__item">Free audit call · No obligation</span>
-    <span class="ticker__item">Built for Indian real estate businesses</span>
-    <span class="ticker__item">Landing page · Video · Meta ads · WhatsApp qualification</span>
-    <span class="ticker__item">Funnel live in 3 weeks</span>
-    <span class="ticker__item">Weekly CPQL reporting</span>
-    <span class="ticker__item">Free audit call · No obligation</span>
-  </div>
-</div>
-
-<!-- ═══ credibility strip ════════════════════════════════════════════ -->
+<!-- ═══ brand bar ════════════════════════════════════════════════════ -->
 <div class="wrap">
-  <div class="creds">
-    <div class="cred">
-      <img class="cred__face" src="assets/asim-ahmed.jpg" alt="Aasim Ahmed, founder of AdScade" width="48" height="48">
-      <span>
-        <span class="cred__k">Founder, AdScade</span>
-        <span class="cred__v">Aasim Ahmed</span>
-      </span>
-    </div>
-    <div class="cred">
-      <span class="cred__mark" aria-hidden="true">AS</span>
-      <span>
-        <span class="cred__k">One team, whole funnel</span>
-        <span class="cred__v">Strategy → Ads → Qualified lead</span>
-      </span>
-    </div>
-    <div class="cred">
-      <span>
-        <span class="cred__k">We work only with</span>
-        <span class="cred__v">Real estate businesses</span>
-        <span class="cred__v cred__v--sub">Brokers · Channel partners · Developers</span>
-      </span>
-    </div>
+  <div class="brandbar">
+    <p class="brandbar__name">AdScade</p>
+    <p class="brandbar__tag">We work only with <b>real estate businesses</b></p>
   </div>
 </div>
 
 <!-- ═══ hero ═════════════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="wrap">
-    <p class="hero__kicker">For brokers spending on ads &amp; portals — <b>without knowing their cost per qualified lead</b></p>
-    <span class="pill"><i class="pill__dot"></i>Free audit call</span>
+    <p class="hero__kicker">For brokers already spending on ads &amp; portals</p>
     <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
-    <p class="hero__sub">We build and manage your entire buyer lead funnel — <b>landing page, video, Meta ads, and automated qualification</b> — so every lead that reaches you is ready to talk.</p>
-
-    <div class="notice">
-      <b>Please note:</b> this is for real estate businesses with an active project or live inventory and a working ad budget. If you have nothing to sell yet, the audit won't be useful to you.
-    </div>
+    <p class="hero__sub">We build and manage your entire buyer lead funnel — <b>landing page, video, Meta ads, and automated qualification</b> — so the leads that reach you already have their budget, location and timeline on record.</p>
 
     <!-- VSL + booking rail -->
     <div class="stage">
       <div class="card vsl">
         <div class="vsl__frame">
-          <img class="vsl__poster" src="assets/asim-ahmed.jpg" alt="" aria-hidden="true" width="732" height="412" decoding="async">
+          <img class="vsl__poster" width="1280" height="720" alt="" aria-hidden="true" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231A3322'/%3E%3Cstop offset='1' stop-color='%230F0D08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='320' height='180' fill='url(%23g)'/%3E%3Cg stroke='%23C9A04A' stroke-opacity='.14'%3E%3Cpath d='M0 45h320M0 90h320M0 135h320M80 0v180M160 0v180M240 0v180'/%3E%3C/g%3E%3Cg fill='none' stroke='%23E0B865' stroke-opacity='.45'%3E%3Crect x='96' y='48' width='128' height='16'/%3E%3Crect x='109' y='74' width='102' height='16'/%3E%3Crect x='122' y='100' width='76' height='16'/%3E%3Crect x='135' y='126' width='50' height='16'/%3E%3C/g%3E%3C/svg%3E">
           <div class="vsl__body">
-            <button class="vsl__play" id="play" type="button" aria-label="Play the funnel walkthrough">
+            <button class="vsl__play" id="play" type="button" aria-label="Show what the walkthrough covers" aria-expanded="false" aria-controls="agenda">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
             </button>
-            <p class="vsl__label">Watch first · 6 minutes</p>
-            <p class="vsl__hint">Aasim walks through where the money actually leaks in a real estate funnel — and what a fixed one looks like.</p>
+            <p class="vsl__label">Walkthrough · recording this week</p>
+            <p class="vsl__hint">Aasim walks through where the money actually leaks in a real estate funnel. Roughly 6 minutes, in Hinglish.</p>
           </div>
+        </div>
+        <div class="vsl__agenda" id="agenda">
+          <ol>
+            <li>The four places a broker's funnel loses money, in order</li>
+            <li>Why portal leads and Meta leads behave completely differently</li>
+            <li>What a qualified lead should cost in a Tier-1 versus Tier-2 micro-market</li>
+            <li>The WhatsApp sequence that filters budget, location and timeline before you pick up</li>
+          </ol>
         </div>
         <div class="vsl__bar">
           <span><i class="vsl__dot"></i>Funnel walkthrough</span>
@@ -461,20 +471,33 @@ a{color:var(--gold);text-underline-offset:3px}
         <p class="rail__k">What the audit call covers</p>
         <ul class="rail__list">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Where your current funnel is leaking, stage by stage</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>What your cost per qualified lead should look like in your city</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Whether your inventory and budget can support a funnel at all</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>What a lead that actually books a site visit should cost you in your micro-market</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Whether your inventory and ad budget can support a funnel at all</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Exactly what we'd build, and what it would cost</li>
         </ul>
-        <a class="cta cta--wide" href="#book">Book My Free Audit Call</a>
-        <p class="cta-note">Genuinely free. No deck, no pitch deck theatre — a working session on your numbers.</p>
+        <a class="cta cta--wide" href="#book">Book My Audit Call</a>
+        <p class="cta-note">30 minutes on WhatsApp or Google Meet. No slides, no sales pitch — we open your ad account and work through the numbers together.</p>
         <div class="rail__meta">
-          <span><b>30 minutes</b> · on WhatsApp or Google Meet</span>
-          <span>With <b>Aasim Ahmed</b>, not a sales rep</span>
+          <span>Straight with <b>Aasim Ahmed</b>, not a sales rep</span>
+          <span>We take on <b>four new funnels a month</b></span>
         </div>
       </aside>
     </div>
+
+    <div class="notice">
+      <b>Read this before you book:</b> this is for real estate businesses with an active project or live inventory and a working ad budget. If you have nothing to sell yet, or no budget behind it, the call won't be useful to you — and the questions below will tell you that before you spend time on it.
+    </div>
   </div>
 </header>
+
+<!-- ═══ trust strip ══════════════════════════════════════════════════ -->
+<div class="wrap">
+  <div class="trust">
+    <span>Landing page · Video · <b>Meta ads</b> · WhatsApp qualification</span>
+    <span>Funnel live in <b>three weeks</b></span>
+    <span>Weekly <b>cost-per-qualified-lead</b> reporting</span>
+  </div>
+</div>
 
 <!-- ═══ signature: the leak ══════════════════════════════════════════ -->
 <section class="band band--warm">
@@ -491,21 +514,22 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="leak__stage">
         <span class="leak__name">Ad → click</span>
         <span class="leak__val">100</span>
-        <span class="leak__drip" aria-hidden="true">₹ wrong audience</span>
+        <span class="leak__drip">₹ wrong audience</span>
       </div>
       <div class="leak__stage">
         <span class="leak__name">Landing page</span>
         <span class="leak__val">60</span>
-        <span class="leak__drip" aria-hidden="true">₹ message mismatch</span>
+        <span class="leak__drip">₹ message mismatch</span>
       </div>
       <div class="leak__stage">
         <span class="leak__name">Follow-up</span>
         <span class="leak__val">20</span>
-        <span class="leak__drip" aria-hidden="true">₹ slow response</span>
+        <span class="leak__drip">₹ slow response</span>
       </div>
       <div class="leak__stage">
         <span class="leak__name">Site visit</span>
         <span class="leak__val">4</span>
+        <span class="leak__drip">96 of 100 gone</span>
       </div>
       <p class="leak__cap">Illustrative funnel shape · your real numbers come out of the audit</p>
     </div>
@@ -517,7 +541,7 @@ a{color:var(--gold);text-underline-offset:3px}
   <div class="wrap">
     <p class="eyebrow">Sound familiar?</p>
     <h2 class="h2">Landing page from one freelancer. Video from another.<br>Ads run by someone with <em>no shared strategy.</em></h2>
-    <p class="lead">Nothing built to work together — so even when your ads run, the funnel leaks, and you lose money without knowing exactly why. Most real estate businesses recognise at least three of these.</p>
+    <p class="lead">Nothing built to work together — so even when your ads run, the funnel leaks, and you lose money without knowing exactly why.</p>
     <div class="grid grid--3" style="margin-top:2.5rem">
       <div class="card tile">
         <p class="tile__k">The money leak</p>
@@ -541,7 +565,19 @@ a{color:var(--gold);text-underline-offset:3px}
       </div>
       <div class="card tile">
         <p class="tile__k">Portal leads, shared five ways</p>
-        <p>You pay for the lead. So do four other brokers. By the time you call, he has already been called four times and he is annoyed.</p>
+        <p>You pay 99acres or MagicBricks for the lead. So do four other brokers. By the time you call, he has been called four times already and he is annoyed.</p>
+      </div>
+      <div class="card tile">
+        <p class="tile__k">The unit that won't sell</p>
+        <p>Ninety days on the same inventory. The price is right and the location is right, but the only people seeing it are the ones already walking past the site.</p>
+      </div>
+      <div class="card tile">
+        <p class="tile__k">The empty site visit</p>
+        <p>You block a Sunday, arrange the keys, drive out — and he doesn't show. Nobody confirmed his budget or his timeline before the visit was booked.</p>
+      </div>
+      <div class="card tile">
+        <p class="tile__k">The month the phone doesn't ring</p>
+        <p>Referrals dry up between seasons and there's nothing underneath them. Your pipeline depends on who happens to remember you this month.</p>
       </div>
     </div>
   </div>
@@ -553,23 +589,31 @@ a{color:var(--gold);text-underline-offset:3px}
     <p class="eyebrow">The difference</p>
     <h2 class="h2">Same ad budget. <em>Completely different</em> machine behind it.</h2>
     <div class="cmp" style="margin-top:2.2rem">
-      <div class="cmp__head cmp__head--old">Scattered approach</div>
-      <div class="cmp__head cmp__head--new">Complete Buyer Funnel System</div>
+      <div class="cmp__grid">
+        <div class="cmp__head cmp__head--old">Scattered approach</div>
+        <div class="cmp__head cmp__head--new">Complete Buyer Funnel System</div>
 
-      <div class="cmp__cell cmp__cell--old">Landing page, video and ads from different freelancers</div>
-      <div class="cmp__cell">One team builds and owns the entire funnel</div>
-
-      <div class="cmp__cell cmp__cell--old">No qualification — every lead treated the same</div>
-      <div class="cmp__cell">Built-in qualifying questions filter serious buyers</div>
-
-      <div class="cmp__cell cmp__cell--old">No follow-up after the click</div>
-      <div class="cmp__cell">Automated WhatsApp sequence nurtures every lead</div>
-
-      <div class="cmp__cell cmp__cell--old">Unclear where the funnel is leaking</div>
-      <div class="cmp__cell">Weekly reporting shows drop-off at every stage</div>
-
-      <div class="cmp__cell cmp__cell--old">You pay for clicks, not outcomes</div>
-      <div class="cmp__cell">Reporting anchored on cost per qualified lead</div>
+        <div class="cmp__pair">
+          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>Landing page, video and ads from different freelancers</div>
+          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>One team builds and owns the entire funnel</div>
+        </div>
+        <div class="cmp__pair">
+          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>No qualification — every lead treated the same</div>
+          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>Built-in qualifying questions filter serious buyers</div>
+        </div>
+        <div class="cmp__pair">
+          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>No follow-up after the click</div>
+          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>Automated WhatsApp sequence nurtures every lead</div>
+        </div>
+        <div class="cmp__pair">
+          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>Unclear where the funnel is leaking</div>
+          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>Weekly reporting shows drop-off at every stage</div>
+        </div>
+        <div class="cmp__pair">
+          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>You pay for clicks, and count them as progress</div>
+          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>You count leads that booked a site visit, and what each one cost</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -579,38 +623,62 @@ a{color:var(--gold);text-underline-offset:3px}
   <div class="wrap">
     <p class="eyebrow">The Complete Buyer Funnel System</p>
     <h2 class="h2">One system. Built, managed, and <em>optimised for you.</em></h2>
-    <p class="lead">Six deliverables, one team, one point of contact. Nothing is subcontracted out to someone who has never seen the rest of your funnel.</p>
+    <p class="lead">Six deliverables, one team, one point of contact. Nothing is subcontracted to someone who has never seen the rest of your funnel.</p>
     <div class="grid grid--3" style="margin-top:2.5rem">
       <div class="card tile"><p class="tile__k">Funnel strategy</p><p>Positioning and offer built around your specific property or project — not a template swapped from another client's account.</p></div>
       <div class="card tile"><p class="tile__k">Landing page</p><p>Built with buyer qualification baked in: budget, location, timeline, property type — captured before the lead ever reaches you.</p></div>
       <div class="card tile"><p class="tile__k">Video ad creative</p><p>Shot for your funnel and your project, in the language your buyers actually search in. Not recycled generic footage.</p></div>
       <div class="card tile"><p class="tile__k">Meta ads management</p><p>Facebook and Instagram campaigns built, launched and optimised — with the landing page and creative already matched to them.</p></div>
       <div class="card tile"><p class="tile__k">WhatsApp automation</p><p>An automated follow-up sequence that filters and nurtures every lead, so your team only picks up the phone for people worth calling.</p></div>
-      <div class="card tile"><p class="tile__k">Weekly reporting</p><p>Cost per lead, cost per qualified lead, funnel drop-off by stage, conversion rate. You always know where the money went.</p></div>
+      <div class="card tile"><p class="tile__k">Weekly reporting</p><p>Every Monday: how many leads came in, how many matched your budget and location, how many booked a site visit, and what each of those cost you.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ sample report — proof of the differentiator ══════════════════ -->
+<section class="band band--warm">
+  <div class="wrap">
+    <p class="eyebrow" style="text-align:center">What you actually get</p>
+    <h2 class="h2 h2--center" style="max-width:22ch">Every Monday, in your inbox, in <em>your units.</em></h2>
+    <p class="lead lead--center">Most agencies report clicks and impressions. Those tell you nothing about whether anyone stood in front of the property. This is the shape of what we send.</p>
+
+    <div class="card report">
+      <div class="report__head">
+        <p class="report__k">Weekly funnel report</p>
+        <p class="report__wk">Week 6 · sample layout</p>
+      </div>
+      <div class="report__rows">
+        <div class="report__row"><span>Leads captured</span><b>68</b></div>
+        <div class="report__row"><span>Matched your budget &amp; location</span><b>41</b></div>
+        <div class="report__row"><span>Booked a site visit</span><b>14</b></div>
+        <div class="report__row"><span>Cost per qualified lead</span><b>₹ 1,180</b></div>
+        <div class="report__row"><span>Biggest drop-off this week</span><b>Follow-up</b></div>
+      </div>
+      <p class="report__foot">Illustrative layout, not client data — your numbers replace these from week one</p>
     </div>
   </div>
 </section>
 
 <!-- ═══ timeline ═════════════════════════════════════════════════════ -->
-<section class="band band--warm">
+<section class="band">
   <div class="wrap grid grid--2" style="gap:clamp(2rem,5vw,4rem);align-items:start">
     <div>
       <p class="eyebrow">Delivery</p>
       <h2 class="h2">Live in <em>three weeks.</em></h2>
       <p class="lead">You know exactly what happens and when. No open-ended "we're working on it" months.</p>
-      <a class="cta cta--ghost" href="#book">Book My Free Audit Call</a>
+      <a class="cta cta--ghost" href="#book">Book My Audit Call</a>
     </div>
     <div class="tl">
-      <div class="tl__row"><span class="tl__wk">Week 1</span><h3 class="h3">Strategy &amp; build begins</h3><p class="lead" style="margin:0;font-size:var(--t-small)">Funnel strategy finalised against your inventory and market. Landing page and video production starts.</p></div>
-      <div class="tl__row"><span class="tl__wk">Week 2</span><h3 class="h3">Assets finalised</h3><p class="lead" style="margin:0;font-size:var(--t-small)">Landing page, video creatives and the automated messaging sequence completed and tested end to end.</p></div>
-      <div class="tl__row"><span class="tl__wk">Week 3</span><h3 class="h3">Funnel goes live</h3><p class="lead" style="margin:0;font-size:var(--t-small)">Meta ads launched. Qualified leads start reaching your team through the WhatsApp sequence.</p></div>
-      <div class="tl__row"><span class="tl__wk">Week 4+</span><h3 class="h3">Optimise &amp; scale</h3><p class="lead" style="margin:0;font-size:var(--t-small)">Weekly reporting, funnel optimisation, and scaling spend on whatever is actually converting.</p></div>
+      <div class="tl__row"><span class="tl__wk">Week 1</span><h3 class="h3">Strategy &amp; build begins</h3><p class="lead lead--sm">Funnel strategy finalised against your inventory and market. Landing page and video production starts.</p></div>
+      <div class="tl__row"><span class="tl__wk">Week 2</span><h3 class="h3">Assets finalised</h3><p class="lead lead--sm">Landing page, video creatives and the automated messaging sequence completed and tested end to end.</p></div>
+      <div class="tl__row"><span class="tl__wk">Week 3</span><h3 class="h3">Funnel goes live</h3><p class="lead lead--sm">Meta ads launched. From this day your leads get an automated WhatsApp reply in under a minute, at any hour — which is the speed the deal usually turns on.</p></div>
+      <div class="tl__row"><span class="tl__wk">Week 4+</span><h3 class="h3">Optimise &amp; scale</h3><p class="lead lead--sm">Weekly reporting, funnel optimisation, and scaling spend on whatever is actually converting.</p></div>
     </div>
   </div>
 </section>
 
 <!-- ═══ who this is for ══════════════════════════════════════════════ -->
-<section class="band">
+<section class="band band--warm">
   <div class="wrap">
     <p class="eyebrow">Is this for you?</p>
     <h2 class="h2">Built for brokers who already spend on marketing —<br>and <em>can't tell you what it returns.</em></h2>
@@ -619,34 +687,55 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="card tile"><p class="tile__k">Channel partners</p><p>You carry a builder's inventory and you're competing with every other partner selling the same project. The funnel is your only differentiator.</p></div>
       <div class="card tile"><p class="tile__k">Small developers</p><p>You have one or two active projects and an in-house sales team waiting on leads that are actually in budget and in the right city.</p></div>
     </div>
-    <div class="notice" style="margin-top:2.2rem;max-width:none;text-align:left">
-      <b>This is not for everyone.</b> If you have no ad budget, no active inventory, or you're looking for the cheapest possible vendor rather than a funnel that works — we're a bad fit, and the audit call will tell you that in the first ten minutes rather than after you've paid.
+
+    <div class="price">
+      <div class="price__cell">
+        <p class="price__k">Setup, one-time</p>
+        <p class="price__v">₹20,000 – ₹50,000</p>
+        <p class="price__n">Landing page build, video production, WhatsApp automation</p>
+      </div>
+      <div class="price__cell">
+        <p class="price__k">Monthly retainer</p>
+        <p class="price__v">₹25,000 – ₹50,000</p>
+        <p class="price__n">Ad management, optimisation, weekly reporting</p>
+      </div>
+      <div class="price__cell">
+        <p class="price__k">Ad spend</p>
+        <p class="price__v">Yours, separate</p>
+        <p class="price__n">Paid by you directly to Meta. Never bundled into our fee.</p>
+      </div>
+    </div>
+    <p class="lead lead--sm dim" style="margin-top:1rem">Ranges, not quotes — where you land depends on how much production your funnel needs. The exact number is worked out on the call, not after you've signed.</p>
+
+    <div class="notice" style="margin-top:2.2rem;max-width:none">
+      <b>This is not for everyone.</b> If you have no ad budget, no active inventory, or you're looking for the cheapest possible vendor rather than a funnel that works — we're a bad fit, and the call will tell you that in the first ten minutes rather than after you've paid.
     </div>
   </div>
 </section>
 
-<!-- ═══ founder ══════════════════════════════════════════════════════ -->
-<section class="band band--warm">
+<!-- ═══ founder — deliberately its own section ═══════════════════════ -->
+<section class="band">
   <div class="wrap founder">
-    <img class="founder__img" src="assets/asim-ahmed.jpg" alt="Aasim Ahmed, founder of AdScade" width="480" height="600">
+    <img class="founder__img" src="assets/asim-ahmed.jpg" alt="Aasim Ahmed, founder of AdScade" width="480" height="600" loading="lazy" decoding="async">
     <div>
       <p class="eyebrow">Who you'll be talking to</p>
       <h2 class="h2">Aasim Ahmed<br><em>Founder, AdScade</em></h2>
-      <p class="lead">The audit call is with me, not a sales team reading off a script. I'll be looking at your ad account, your current page and your follow-up — and telling you which of the three is actually costing you money.</p>
+      <p class="lead">The call is with me, not a sales team reading off a script. I'll be looking at your ad account, your current page and your follow-up — and telling you which of the three is actually costing you money.</p>
+      <p class="lead">Part of that is unglamorous: whether your funnel makes you look as organised as you actually are. The broker who loses a serious buyer usually didn't lose on price. He lost because it took him two minutes to find the last message.</p>
       <p class="lead dim">AdScade works only with real estate businesses. Every funnel we build is tailored to how property buyers in India actually search, compare, and decide — which is nothing like how buyers behave in any other category.</p>
-      <blockquote class="founder__quote">"Most brokers don't have a lead problem. They have a handover problem — and nobody has ever shown them where the handover breaks."</blockquote>
+      <blockquote class="founder__quote">"Most brokers don't have a lead problem. They have a leak — and nobody has ever shown them where it is."</blockquote>
     </div>
   </div>
 </section>
 
 <!-- ═══ guarantee ════════════════════════════════════════════════════ -->
-<section class="band">
+<section class="band band--warm">
   <div class="wrap">
     <div class="guarantee">
       <p class="eyebrow">Our guarantee</p>
-      <h2 class="h2" style="max-width:22ch;margin-inline:auto">We build your complete funnel live within <em>three weeks.</em></h2>
-      <p class="lead" style="margin-inline:auto;text-align:center">If it doesn't generate qualified leads within 30 days of launch, we continue optimising at no additional cost until it does.</p>
-      <p class="guarantee__terms"><b>Terms:</b> a "qualified lead" is defined as a submission that meets the agreed budget, location and timeline criteria set during onboarding. The guarantee covers our optimisation work and does not include your ad spend, which remains payable to the ad platform. Results vary based on market conditions, budget and property type.</p>
+      <h2 class="h2 h2--center" style="max-width:26ch">If the funnel isn't producing leads that match your criteria, <em>we keep working on it at no extra charge.</em></h2>
+      <p class="lead lead--center">Your funnel is live within three weeks. If it hasn't generated qualified leads within 30 days of launch, we continue optimising — creative, targeting, page, follow-up — at no additional cost until it does.</p>
+      <p class="guarantee__terms"><b>What that means, precisely.</b> A "qualified lead" is defined as a submission that meets the agreed budget, location and timeline criteria set in writing during onboarding. The commitment covers our optimisation work at no extra charge; it does not cover your ad spend, which stays payable directly to the platform. We don't promise a number of leads, because the honest answer is that it depends on your inventory, your price and your market — and anyone quoting you a number before seeing those is guessing. Results vary based on market conditions, ad budget, and property type.</p>
     </div>
   </div>
 </section>
@@ -655,8 +744,8 @@ a{color:var(--gold);text-underline-offset:3px}
 <section class="band form-band" id="book">
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Book your call</p>
-    <h2 class="h2" style="text-align:center;max-width:20ch;margin-inline:auto">Six questions, then <em>pick your slot.</em></h2>
-    <p class="lead" style="text-align:center;margin-inline:auto">We ask these so the call starts with your numbers instead of twenty minutes of background. If you're not a fit, we'll say so on this page rather than waste your time.</p>
+    <h2 class="h2 h2--center" style="max-width:22ch">Six questions, then we <em>confirm your slot.</em></h2>
+    <p class="lead lead--center">We ask these so the call starts with your numbers instead of twenty minutes of background. If you're not a fit, we'll say so on this page rather than waste your time.</p>
 
     <form class="card form" id="lead-form" novalidate>
       <div class="form__prog" aria-hidden="true">
@@ -664,9 +753,9 @@ a{color:var(--gold);text-underline-offset:3px}
       </div>
 
       <!-- Q1 -->
-      <fieldset class="step on" data-step="0" style="border:none;padding:0;margin:0">
-        <p class="step__n">Question 1 of 7</p>
-        <legend class="q" style="padding:0">What best describes your business?</legend>
+      <div class="step on" data-step="0" role="group" aria-labelledby="q1">
+        <p class="step__n">Question 1 of 6</p>
+        <p class="q" id="q1">What best describes your business?</p>
         <div class="opts">
           <label class="opt"><input type="radio" name="business_type" value="independent_broker" required>Independent broker or agent</label>
           <label class="opt"><input type="radio" name="business_type" value="brokerage_team">Brokerage with a sales team</label>
@@ -675,36 +764,40 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="business_type" value="other">Something else</label>
         </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button></div>
-      </fieldset>
+      </div>
 
       <!-- Q2 -->
-      <fieldset class="step" data-step="1" style="border:none;padding:0;margin:0">
-        <p class="step__n">Question 2 of 7</p>
-        <legend class="q" style="padding:0">Which city or micro-market do you sell in?</legend>
+      <div class="step" data-step="1" role="group" aria-labelledby="q2">
+        <p class="step__n">Question 2 of 6</p>
+        <p class="q" id="q2">Which city or micro-market do you sell in?</p>
         <div class="field">
           <label for="city">City / micro-market</label>
           <input type="text" id="city" name="city" placeholder="e.g. Thane West, Gurugram Sector 79, Hinjewadi" required>
-          <span class="err">Tell us where you operate — pricing and lead costs differ a lot by market.</span>
+          <span class="err">Tell us where you operate — lead costs differ a lot by market.</span>
         </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </fieldset>
+      </div>
 
       <!-- Q3 -->
-      <fieldset class="step" data-step="2" style="border:none;padding:0;margin:0">
-        <p class="step__n">Question 3 of 7</p>
-        <legend class="q" style="padding:0">Do you have active inventory or a project to promote right now?</legend>
+      <div class="step" data-step="2" role="group" aria-labelledby="q3">
+        <p class="step__n">Question 3 of 6</p>
+        <p class="q" id="q3">Do you have active inventory or a project to promote right now?</p>
         <div class="opts">
           <label class="opt"><input type="radio" name="inventory" value="active" required>Yes — actively selling right now</label>
           <label class="opt"><input type="radio" name="inventory" value="launching">Launching within the next 60 days</label>
           <label class="opt"><input type="radio" name="inventory" value="none" data-disqualify="inventory">No active inventory at the moment</label>
         </div>
+        <div class="dq" data-dq="inventory">
+          <b>Straight answer: we'd be a bad fit right now.</b> Without an active project or live inventory there is nothing for a funnel to sell, and we'd be taking your money to build something with no job to do. Come back when you have stock to move.
+          <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
+        </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </fieldset>
+      </div>
 
       <!-- Q4 -->
-      <fieldset class="step" data-step="3" style="border:none;padding:0;margin:0">
-        <p class="step__n">Question 4 of 7</p>
-        <legend class="q" style="padding:0">What do you currently spend a month on marketing — ads, portals and freelancers combined?</legend>
+      <div class="step" data-step="3" role="group" aria-labelledby="q4">
+        <p class="step__n">Question 4 of 6</p>
+        <p class="q" id="q4">What do you spend a month on marketing — ads, portals and freelancers combined?</p>
         <div class="opts">
           <label class="opt"><input type="radio" name="spend" value="none" required data-disqualify="spend">Nothing yet</label>
           <label class="opt"><input type="radio" name="spend" value="under_50k">Under ₹50,000</label>
@@ -712,13 +805,17 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="spend" value="150k_300k">₹1,50,000 – ₹3,00,000</label>
           <label class="opt"><input type="radio" name="spend" value="300k_plus">Over ₹3,00,000</label>
         </div>
+        <div class="dq" data-dq="spend">
+          <b>Straight answer: we'd be a bad fit right now.</b> A funnel needs an ad budget behind it — we build and run the system, but we don't fund the media. With nothing to spend, there's nothing for us to optimise.
+          <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
+        </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </fieldset>
+      </div>
 
       <!-- Q5 -->
-      <fieldset class="step" data-step="4" style="border:none;padding:0;margin:0">
-        <p class="step__n">Question 5 of 7</p>
-        <legend class="q" style="padding:0">How are you getting leads today?</legend>
+      <div class="step" data-step="4" role="group" aria-labelledby="q5">
+        <p class="step__n">Question 5 of 6</p>
+        <p class="q" id="q5">How are you getting leads today?</p>
         <div class="opts">
           <label class="opt"><input type="radio" name="lead_source" value="portals" required>Portals — 99acres, MagicBricks, Housing</label>
           <label class="opt"><input type="radio" name="lead_source" value="self_ads">Meta ads I run myself</label>
@@ -727,24 +824,24 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="lead_source" value="nothing">Nothing consistent right now</label>
         </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </fieldset>
+      </div>
 
       <!-- Q6 -->
-      <fieldset class="step" data-step="5" style="border:none;padding:0;margin:0">
-        <p class="step__n">Question 6 of 7</p>
-        <legend class="q" style="padding:0">Do you know your cost per qualified lead right now?</legend>
+      <div class="step" data-step="5" role="group" aria-labelledby="q6">
+        <p class="step__n">Question 6 of 6</p>
+        <p class="q" id="q6">Do you know what a lead that books a site visit currently costs you?</p>
         <div class="opts">
           <label class="opt"><input type="radio" name="cpql" value="tracked" required>Yes — I track it properly</label>
           <label class="opt"><input type="radio" name="cpql" value="rough">Roughly, but not reliably</label>
           <label class="opt"><input type="radio" name="cpql" value="unknown">No idea</label>
         </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </fieldset>
+      </div>
 
-      <!-- Q7 contact -->
-      <fieldset class="step" data-step="6" style="border:none;padding:0;margin:0">
-        <p class="step__n">Last step</p>
-        <legend class="q" style="padding:0">Where should we send the call link?</legend>
+      <!-- contact -->
+      <div class="step" data-step="6" role="group" aria-labelledby="q7">
+        <p class="step__n">Your details</p>
+        <p class="q" id="q7">Where should we send the call link?</p>
         <div class="field">
           <label for="name">Full name</label>
           <input type="text" id="name" name="name" autocomplete="name" required>
@@ -769,25 +866,21 @@ a{color:var(--gold);text-underline-offset:3px}
           <input type="checkbox" id="consent" name="consent" required>
           <span>I agree to be contacted via phone or WhatsApp regarding this enquiry, and I have read the <a href="privacy.html">Privacy Policy</a>.</span>
         </label>
-        <div class="field" id="consent-err" style="margin-top:-.6rem">
+        <div class="errbox" id="consent-err">
           <span class="err">Please tick the consent box so we're allowed to contact you.</span>
         </div>
-        <button class="cta cta--wide" type="submit">Book My Free Audit Call</button>
-        <p class="cta-note">Free, 30 minutes, no obligation. We'll confirm your slot on WhatsApp within one working day.</p>
-      </fieldset>
-
-      <!-- disqualify -->
-      <div class="disqualify" id="dq">
-        <b>Honest answer: we'd be a bad fit right now.</b>
-        <span id="dq-why"></span>
-        Come back when that changes and the audit will actually be worth your time. You're welcome to finish the form anyway if you'd like us on record.
+        <button class="cta cta--wide" type="submit">Book My Audit Call</button>
+        <div class="errbox" id="submit-err">
+          <span class="err">That didn't send. Check your connection and try again.</span>
+        </div>
+        <p class="cta-note">30 minutes, no obligation. We'll WhatsApp you two slots within one working day.</p>
       </div>
 
       <!-- success -->
-      <div class="done" id="done" role="status" aria-live="polite">
+      <div class="done" id="done" role="status" aria-live="polite" tabindex="-1">
         <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
         <h3 class="h3">Request received.</h3>
-        <p class="lead" style="margin-inline:auto">We'll message you on WhatsApp within one working day with two slots to choose from. Before the call, keep your ad account access handy — the audit is much more useful with real numbers on the screen.</p>
+        <p class="lead lead--center">We'll message you on WhatsApp within one working day with two slots to choose from. Before the call, keep your ad account access handy — the audit is much more useful with real numbers on the screen.</p>
       </div>
     </form>
   </div>
@@ -799,33 +892,33 @@ a{color:var(--gold);text-underline-offset:3px}
     <p class="eyebrow">Common questions</p>
     <h2 class="h2">Before you book.</h2>
     <div class="faq" style="margin-top:2rem">
-      <button class="faq__q" aria-expanded="false">How much does this cost?</button>
-      <div class="faq__a"><p>The Complete Buyer Funnel System runs on a one-time setup fee plus a monthly retainer. Setup is typically ₹20,000–₹50,000 depending on how much production the funnel needs, and the retainer runs ₹25,000–₹50,000 a month. Ad spend is separate and always paid directly by you to the platform — we never bundle it into our fee. Exact numbers for your project are worked out on the audit call.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a1">Why is there a setup fee at all?</button>
+      <div class="faq__a" id="a1" hidden><p>Because there is real production work before a single rupee goes to ads — the landing page is built, the video is shot, the WhatsApp automation is configured, all specifically for your project. The setup fee covers those hours. It also means both sides are committed before we start spending your ad budget.</p></div>
 
-      <button class="faq__q" aria-expanded="false">Why is there a setup fee at all?</button>
-      <div class="faq__a"><p>Because there is real production work before a single rupee goes to ads — the landing page is built, the video is shot, the WhatsApp automation is configured, all specifically for your project. The setup fee covers those hours. It also means both sides are committed before we start spending your ad budget.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a2">How much does the whole thing cost?</button>
+      <div class="faq__a" id="a2" hidden><p>Setup is ₹20,000–₹50,000 depending on how much production the funnel needs, and the retainer runs ₹25,000–₹50,000 a month. Ad spend is separate and always paid directly by you to the platform — we never bundle it into our fee. Exact numbers for your project are worked out on the call.</p></div>
 
-      <button class="faq__q" aria-expanded="false">What exactly counts as a "qualified lead"?</button>
-      <div class="faq__a"><p>A submission that meets the budget, location and timeline criteria you and we agree during onboarding. If you sell 2BHKs in Thane West between ₹80 lakh and ₹1.2 crore, a lead asking about plots in Nashik is not a qualified lead and does not count toward the guarantee.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a3">What exactly counts as a "qualified lead"?</button>
+      <div class="faq__a" id="a3" hidden><p>A submission that meets the budget, location and timeline criteria you and we agree during onboarding. If you sell 2BHKs in Thane West between ₹80 lakh and ₹1.2 crore, a lead asking about plots in Nashik is not a qualified lead and does not count toward the guarantee.</p></div>
 
-      <button class="faq__q" aria-expanded="false">Do I need to already be running ads?</button>
-      <div class="faq__a"><p>You need a budget you're willing to spend, but you don't need to be running ads today — plenty of clients come from portal leads or referrals only. What you do need is active inventory. If you have nothing to sell right now, there's nothing for the funnel to sell, and we'll tell you that on the call.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a4">Do I need to already be running ads?</button>
+      <div class="faq__a" id="a4" hidden><p>You need a budget you're willing to spend, but you don't need to be running ads today — plenty of clients come from portal leads or referrals only. What you do need is active inventory. If you have nothing to sell right now, there's nothing for the funnel to sell, and we'll tell you that on the call.</p></div>
 
-      <button class="faq__q" aria-expanded="false">How is this different from just running ads?</button>
-      <div class="faq__a"><p>Running ads without a proper funnel is pouring water into a leaking bucket. We build the landing page, the video, the qualification and the follow-up as one connected system, then run the ads into it — so when something underperforms, we can see which stage caused it and fix that stage.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a5">How is this different from just running ads?</button>
+      <div class="faq__a" id="a5" hidden><p>Running ads without a proper funnel is pouring water into a leaking bucket. We build the landing page, the video, the qualification and the follow-up as one connected system, then run the ads into it — so when something underperforms, we can see which stage caused it and fix that stage.</p></div>
 
-      <button class="faq__q" aria-expanded="false">I've been burned by an agency before. Why would this be different?</button>
-      <div class="faq__a"><p>A fair question, and the honest answer is that you should judge us on the reporting rather than the promise. From week four you get weekly numbers on cost per lead, cost per qualified lead and drop-off by funnel stage. If the funnel isn't working, you'll see it in the report before you have to ask.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a6">I've been burned by an agency before. Why would this be different?</button>
+      <div class="faq__a" id="a6" hidden><p>A fair question, and the honest answer is that you should judge us on the reporting rather than the promise. From week four you get weekly numbers on how many leads came in, how many matched your criteria, how many booked a site visit, and what each of those cost. If the funnel isn't working, you'll see it in the report before you have to ask.</p></div>
 
-      <button class="faq__q" aria-expanded="false">How long until leads start coming in?</button>
-      <div class="faq__a"><p>The funnel goes live in week three. Leads begin flowing once ads are running, and the first two to three weeks after launch are an optimisation period while the campaigns find the right audience. Anyone promising you leads next week is guessing.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a7">How long until leads start coming in?</button>
+      <div class="faq__a" id="a7" hidden><p>The funnel goes live in week three. Leads begin flowing once ads are running, and the first two to three weeks after launch are an optimisation period while the campaigns find the right audience. Anyone promising you leads next week is guessing.</p></div>
 
-      <button class="faq__q" aria-expanded="false">What happens on the audit call?</button>
-      <div class="faq__a"><p>Thirty minutes, with Aasim. We look at what you're running now, work out where the drop-off is, and tell you what a fixed funnel would look like for your project and what it would cost. If we don't think we can help, we say so — that outcome is common and it is fine.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a8">What happens on the call?</button>
+      <div class="faq__a" id="a8" hidden><p>Thirty minutes, with Aasim. We look at what you're running now, work out where the drop-off is, and tell you what a fixed funnel would look like for your project and what it would cost. If we don't think we can help, we say so — that outcome is common and it is fine.</p></div>
     </div>
 
     <div style="text-align:center;margin-top:3rem">
-      <a class="cta" href="#book">Book My Free Audit Call</a>
+      <a class="cta" href="#book">Book My Audit Call</a>
     </div>
   </div>
 </section>
@@ -842,7 +935,6 @@ a{color:var(--gold);text-underline-offset:3px}
         <p class="foot__k">Contact</p>
         <ul class="foot__list">
           <li><a href="mailto:hello@adscade.in">hello@adscade.in</a></li>
-          <li><a href="tel:+919000000000">+91 90000 00000</a></li>
           <li>Lucknow, Uttar Pradesh, India</li>
         </ul>
       </div>
@@ -855,14 +947,14 @@ a{color:var(--gold);text-underline-offset:3px}
       </div>
     </div>
     <p class="foot__legal">
-      Results vary based on market conditions, ad budget, and property type. Past performance with other clients does not guarantee identical results. The three-week build timeline and the optimisation guarantee described on this page apply from the date of onboarding completion and are subject to timely provision of project details, ad account access and creative approvals by the client. AdScade is an independent marketing services provider and is not affiliated with, endorsed by, or acting on behalf of Meta Platforms, Google LLC, or any property portal.
+      Results vary based on market conditions, ad budget, and property type. Past performance with other clients does not guarantee identical results. The three-week build timeline and the optimisation commitment described on this page apply from the date of onboarding completion and are subject to timely provision of project details, ad account access and creative approvals by the client. AdScade is an independent marketing services provider and is not affiliated with, endorsed by, or acting on behalf of Meta Platforms, Google LLC, or any property portal.
       <br><br>© <span id="yr">2026</span> AdScade. All rights reserved.
     </p>
   </div>
 </footer>
 
 <!-- ═══ sticky mobile dock ═══════════════════════════════════════════ -->
-<div class="dock"><a class="cta cta--wide" href="#book">Book My Free Audit Call</a></div>
+<div class="dock" id="dock"><a class="cta cta--wide" href="#book">Book My Audit Call</a></div>
 
 <script>
 (function(){
@@ -875,14 +967,29 @@ a{color:var(--gold);text-underline-offset:3px}
     btn.addEventListener('click', function(){
       var open = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', String(!open));
-      btn.nextElementSibling.classList.toggle('on', !open);
+      document.getElementById(btn.getAttribute('aria-controls')).hidden = open;
     });
   });
 
-  /* ── VSL placeholder ───────────────────────────────────────────── */
-  document.getElementById('play').addEventListener('click', function(){
-    document.getElementById('book').scrollIntoView({behavior:'smooth'});
+  /* ── VSL: reveal the agenda in place. Never a jump somewhere else. ── */
+  var play = document.getElementById('play');
+  var agenda = document.getElementById('agenda');
+  play.addEventListener('click', function(){
+    var open = play.getAttribute('aria-expanded') === 'true';
+    play.setAttribute('aria-expanded', String(!open));
+    agenda.classList.toggle('on', !open);
   });
+
+  /* ── sticky dock: stand down whenever a real CTA is on screen ───── */
+  var dock = document.getElementById('dock');
+  if ('IntersectionObserver' in window){
+    var live = new Set();
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ e.isIntersecting ? live.add(e.target) : live.delete(e.target); });
+      dock.classList.toggle('hide', live.size > 0);
+    }, {rootMargin:'-10% 0px -10% 0px'});
+    document.querySelectorAll('.rail, #book').forEach(function(el){ io.observe(el); });
+  }
 
   /* ── multi-step form ───────────────────────────────────────────── */
   var form  = document.getElementById('lead-form');
@@ -895,29 +1002,27 @@ a{color:var(--gold);text-underline-offset:3px}
     at = i;
     steps[at].classList.add('on');
     bars.forEach(function(b,n){ b.classList.toggle('on', n <= at); });
-    var first = steps[at].querySelector('input');
-    if (first) first.focus({preventScroll:true});
-    form.scrollIntoView({behavior:'smooth', block:'start'});
+    form.scrollIntoView({behavior:'smooth', block:'nearest'});
+    // Only pull focus on radio steps. On a text step this pops the Android keyboard
+    // mid-scroll, the visual viewport resizes, and the card lands somewhere arbitrary.
+    var radio = steps[at].querySelector('input[type=radio]');
+    if (radio) radio.focus({preventScroll:true});
   }
 
-  var DQ = {
-    inventory: ' Without an active project or live inventory there is nothing for a funnel to sell.',
-    spend:     ' A funnel needs an ad budget behind it — we are not a performance-only agency.'
-  };
-
-  function checkDisqualify(){
-    var picked = form.querySelector('input[data-disqualify]:checked');
-    var box = document.getElementById('dq');
-    box.classList.toggle('on', !!picked);
-    if (picked) document.getElementById('dq-why').textContent = DQ[picked.getAttribute('data-disqualify')] || '';
+  // Disqualifiers render inside the step that caused them, the moment it is answered.
+  function syncDisqualify(){
+    form.querySelectorAll('.dq').forEach(function(box){
+      var key = box.getAttribute('data-dq');
+      var on = !!form.querySelector('input[data-disqualify="' + key + '"]:checked');
+      box.classList.toggle('on', on);
+    });
   }
 
   function validateStep(){
     var step = steps[at];
     var radios = step.querySelector('input[type=radio]');
     if (radios){
-      var name = radios.name;
-      if (!step.querySelector('input[name="'+name+'"]:checked')){
+      if (!step.querySelector('input[name="' + radios.name + '"]:checked')){
         step.querySelector('.opt').style.borderColor = 'var(--clay)';
         return false;
       }
@@ -938,12 +1043,16 @@ a{color:var(--gold);text-underline-offset:3px}
   form.querySelectorAll('[data-next]').forEach(function(b){
     b.addEventListener('click', function(){
       if (!validateStep()) return;
-      checkDisqualify();
       if (at < steps.length - 1) show(at + 1);
     });
   });
   form.querySelectorAll('[data-back]').forEach(function(b){
     b.addEventListener('click', function(){ if (at > 0) show(at - 1); });
+  });
+
+  // "Just take my number" — skip the remaining qualification, go straight to contact.
+  form.querySelectorAll('[data-remind]').forEach(function(b){
+    b.addEventListener('click', function(){ show(steps.length - 1); });
   });
 
   // Clear the error as the user types, NOT on blur. Clearing on blur removes the error
@@ -954,6 +1063,7 @@ a{color:var(--gold);text-underline-offset:3px}
     if (e.target.type === 'radio'){
       var opt = e.target.closest('.opt');
       if (opt) opt.style.borderColor = '';
+      syncDisqualify();
     }
     var f = e.target.closest('.field');
     if (f) f.classList.remove('invalid');
@@ -984,6 +1094,7 @@ a{color:var(--gold);text-underline-offset:3px}
     var cErr = document.getElementById('consent-err');
     if (!consent.checked){ cErr.classList.add('invalid'); consent.focus(); return; }
     cErr.classList.remove('invalid');
+    document.getElementById('submit-err').classList.remove('invalid');
 
     var d = new FormData(form);
     var payload = {
@@ -1008,15 +1119,17 @@ a{color:var(--gold);text-underline-offset:3px}
     try {
       await submitLead(payload);
       steps[at].classList.remove('on');
-      document.getElementById('dq').classList.remove('on');
-      document.getElementById('done').classList.add('on');
+      var done = document.getElementById('done');
+      done.classList.add('on');
       bars.forEach(function(b){ b.classList.add('on'); });
+      dock.classList.add('hide');
+      // The confirmation is the whole point of the tap — put it on screen.
+      done.scrollIntoView({behavior:'smooth', block:'center'});
+      done.focus({preventScroll:true});
     } catch (err){
       btn.disabled = false;
-      btn.textContent = 'Book My Free Audit Call';
-      var f = document.getElementById('consent-err');
-      f.querySelector('.err').textContent = 'That did not send. Check your connection and try again, or WhatsApp us on +91 90000 00000.';
-      f.classList.add('invalid');
+      btn.textContent = 'Book My Audit Call';
+      document.getElementById('submit-err').classList.add('invalid');
     }
   });
 })();

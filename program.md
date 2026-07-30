@@ -14,10 +14,11 @@ file the loop may edit.
 - `docs/source/` — the three client PDFs, extracted (ad scripts, landing page script,
   offer & positioning blueprint)
 - `docs/design-tokens.md` — palette and type extracted from the reference site
-- `tools/score.py` — the harness. **Frozen. Never edit to make a number go up.**
+- `tools/score.mjs` — the harness. **Frozen. Never edit to make a number go up.**
 
-**Metric:** `score` out of **1000**, printed by `uv run --with playwright tools/score.py`
-(or `python3 tools/score.py`). Higher is better.
+**Metric:** `score` out of **1000**, printed by `node tools/score.mjs`. Higher is better.
+`node tools/e2e.mjs` is the companion behavioural test — the harness checks the page is built
+right, e2e checks it actually works. Both must pass before shipping.
 
 **Target:** **1000 / 1000**, reproduced on two consecutive runs.
 
@@ -54,16 +55,25 @@ score**. It generates hypotheses for the next experiment. The number stays untou
 | 7 | Technical quality | 120 | Responsive to 360px, a11y (focus, labels, contrast, reduced motion), meta/OG, page weight |
 | 8 | Convex readiness | 60 | Form submission isolated behind one adapter, schema documented, no hardcoded endpoint |
 
-Full per-criterion breakdown lives in `tools/score.py` — the code is the specification.
+Full per-criterion breakdown lives in `tools/score.mjs` — the code is the specification.
 
 ## Categories 1–8: what "full marks" means
 
-**1. Message match.** The ad end card says `Book My Free Audit Call`. That exact string is
-the only primary CTA text permitted anywhere on the page. The hero headline must be
-`Stop Losing Money on Scattered Real Estate Marketing`, character for character, because
-Demand Gen disapproves on ad↔page mismatch. All five ad angles (money leak, 11 PM follow-up,
-the buyer who walked, freelancer overwhelm, losing to someone faster) must each have a
-recognizable home on the page.
+**1. Message match.** The CTA string is `Book My Audit Call`. That exact string is
+the only primary CTA text permitted anywhere on the page.
+
+> **Spec change, 30 Jul 2026.** This was `Book My Free Audit Call` until the client asked for
+> "free" to be removed from the page. The harness constant changed with it. This is legitimate
+> — the harness enforces whatever the ads say, and the client changed what they say — but it is
+> the one kind of edit that must never happen for any other reason. **The five YouTube end cards
+> still read "Book My Free Audit Call" and must be re-cut**, or Demand Gen will disapprove on
+> ad↔page mismatch.
+
+The hero headline must be `Stop Losing Money on Scattered Real Estate Marketing`, character
+for character, for the same reason. All ten ad angles across both script sets — money leak,
+11 PM follow-up, the buyer who walked, freelancer overwhelm, losing to someone faster, the
+unsold unit, the empty site visit, the off-season silence, shared portal leads, being replaced
+by a listing page — must each have a recognizable home on the page.
 
 **2. VSL architecture.** There is no video yet. Full marks are for building the *slot*
 correctly: a 16:9 container with a poster frame, a play affordance, a duration hint, and a

@@ -88,7 +88,12 @@ const hasAny = (...terms) => terms.some(t => textL.includes(t.toLowerCase()));
 category('Message match & congruency', 150);
 {
   const AD_HEADLINE = 'Stop Losing Money on Scattered Real Estate Marketing';
-  const AD_CTA = 'Book My Free Audit Call';
+  // CHANGED 30 Jul 2026, on client instruction to remove "free" from the page.
+  // This is a specification change, not a tuning of the ruler: the string the harness
+  // enforces is whatever the ad end cards say, and the client is changing what they say.
+  // CONSEQUENCE: all five YouTube end cards currently read "Book My Free Audit Call" and
+  // must be re-cut to match, or Demand Gen will disapprove on ad↔page mismatch.
+  const AD_CTA = 'Book My Audit Call';
 
   const h1 = norm(await page.evaluate(() => document.querySelector('h1')?.innerText || ''));
   check('H1 matches ad headline exactly', 30,
