@@ -49,7 +49,8 @@ const keys=[['role','founder'],['inventory','100_plus'],['price_band','above_150
             ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
 for (let i=0;i<keys.length;i++){ await p.check(`input[name="${keys[i][0]}"][value="${keys[i][1]}"]`); await p.click(`[data-step="${i}"] [data-next]`); }
 await p.fill('#name','A'); await p.fill('#company','B'); await p.fill('#project_city','C');
-await p.fill('#email','a@b.in'); await p.fill('#phone','9876543210'); await p.check('#consent');
+await p.fill('#email','a@b.in'); await p.fill('#phone','9876543210');
+await p.check('input[name="rera"][value="yes"]'); await p.check('#consent');
 await p.click('button[type=submit]'); await p.waitForTimeout(900);
 console.log(' ', t('dock stays hidden over the calendar',
   await p.evaluate(()=>document.getElementById('dock').classList.contains('hide'))),
@@ -72,7 +73,8 @@ const A=[['role','founder'],['inventory','100_plus'],['price_band','above_150'],
         ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
 for (let i=0;i<A.length;i++){ await f.check(`input[name="${A[i][0]}"][value="${A[i][1]}"]`); await f.click(`[data-step="${i}"] [data-next]`); }
 await f.fill('#name','T'); await f.fill('#company','T'); await f.fill('#project_city','Indore');
-await f.fill('#email','t@t.in'); await f.fill('#phone','9876543210'); await f.check('#consent');
+await f.fill('#email','t@t.in'); await f.fill('#phone','9876543210');
+await f.check('input[name="rera"][value="yes"]'); await f.check('#consent');
 await f.click('button[type=submit]'); await f.waitForTimeout(1400);
 const fb = await f.evaluate(()=>({
   shown: document.getElementById('cal-fallback').classList.contains('on'),

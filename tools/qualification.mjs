@@ -21,61 +21,69 @@ async function scenario(name, answers, expected, expectScore) {
 console.log('\n— qualification model —\n');
 
 await scenario('strong developer, everything aligned',
-  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'},
+  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'yes'},
   'qualified', 100);
 
 await scenario('mid developer, marketing lead',
-  {role:'marketing_sales_lead',inventory:'50_99',price_band:'75_150',media_budget:'1_3l',followup:'spreadsheet',bottleneck:'few_site_visits'},
+  {role:'marketing_sales_lead',inventory:'50_99',price_band:'75_150',media_budget:'1_3l',followup:'spreadsheet',bottleneck:'few_site_visits',rera:'yes'},
   'qualified', 90);
 
 await scenario('premium boutique, <20 units — qualifies',
-  {role:'founder',inventory:'1_19',price_band:'above_150',media_budget:'1_3l',followup:'crm',bottleneck:'few_site_visits'},
+  {role:'founder',inventory:'1_19',price_band:'above_150',media_budget:'1_3l',followup:'crm',bottleneck:'few_site_visits',rera:'yes'},
   'qualified', 83);
 
 await scenario('boutique <20 units but mid-price — review only',
-  {role:'founder',inventory:'1_19',price_band:'75_150',media_budget:'1_3l',followup:'crm',bottleneck:'few_site_visits'},
+  {role:'founder',inventory:'1_19',price_band:'75_150',media_budget:'1_3l',followup:'crm',bottleneck:'few_site_visits',rera:'yes'},
   'manual_review', 83);
 
 await scenario('boutique <20 units, premium, no sales team — review',
-  {role:'founder',inventory:'1_19',price_band:'above_150',media_budget:'1_3l',followup:'inconsistent',bottleneck:'few_site_visits'},
+  {role:'founder',inventory:'1_19',price_band:'above_150',media_budget:'1_3l',followup:'inconsistent',bottleneck:'few_site_visits',rera:'yes'},
   'manual_review', 75);
 
 await scenario('budget undecided never auto-qualifies',
-  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'undecided',followup:'crm',bottleneck:'low_quality'},
+  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'undecided',followup:'crm',bottleneck:'low_quality',rera:'yes'},
   'manual_review', 84);
 
-await scenario('mid score, no restriction — manual review',
-  {role:'mandate_partner',inventory:'20_49',price_band:'50_75',media_budget:'ready_1l',followup:'founder_only',bottleneck:'too_few'},
+await scenario('founder-only follow-up caps at manual review',
+  {role:'mandate_partner',inventory:'20_49',price_band:'50_75',media_budget:'ready_1l',followup:'founder_only',bottleneck:'too_few',rera:'yes'},
   'manual_review', 59);
 
+await scenario('RERA pending blocks an otherwise perfect lead',
+  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'no'},
+  'not_current_fit', 100);
+
+await scenario('"mainly exploring" caps at manual review',
+  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'exploring',rera:'yes'},
+  'manual_review', 90);
+
 await scenario('independent broker — restricted',
-  {role:'broker',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'},
+  {role:'broker',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'yes'},
   'not_current_fit');
 
 await scenario('marketing agency — restricted',
-  {role:'agency_other',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'},
+  {role:'agency_other',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'yes'},
   'not_current_fit');
 
 await scenario('no active inventory — restricted',
-  {role:'founder',inventory:'none',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'},
+  {role:'founder',inventory:'none',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'yes'},
   'not_current_fit');
 
 await scenario('will not invest ₹1L — restricted',
-  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'below_1l_not_ready',followup:'crm',bottleneck:'low_quality'},
+  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'below_1l_not_ready',followup:'crm',bottleneck:'low_quality',rera:'yes'},
   'not_current_fit');
 
 await scenario('no follow-up process — restricted',
-  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'none',bottleneck:'low_quality'},
+  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'none',bottleneck:'low_quality',rera:'yes'},
   'not_current_fit');
 
-await scenario('just exploring, weak everything — not a fit',
-  {role:'mandate_partner',inventory:'1_19',price_band:'below_50',media_budget:'ready_1l',followup:'founder_only',bottleneck:'exploring'},
+await scenario('weak everything — not a fit',
+  {role:'mandate_partner',inventory:'1_19',price_band:'below_50',media_budget:'ready_1l',followup:'founder_only',bottleneck:'exploring',rera:'yes'},
   'not_current_fit', 41);
 
 /* ── invariants ── */
 console.log('\n— invariants —\n');
 const maxScore = await p.evaluate(() => window.__adscadeEvaluate(
-  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'}).score);
+  {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'yes'}).score);
 const t = (n,c) => { if(!c) fails++; console.log((c?'  ok  ':'FAIL  ')+n); };
 t(`maximum possible score is 100 (got ${maxScore})`, maxScore === 100);
 t('score never rendered into the DOM', !(await p.evaluate(() =>

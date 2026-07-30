@@ -31,7 +31,7 @@ t('contact step is labelled "Your details", not question 7',
 
 await p.fill('#name','Rajesh Kumar'); await p.fill('#company','Kumar Developers');
 await p.fill('#project_city','Indore'); await p.fill('#email','rajesh@kumardev.in');
-await p.fill('#phone','12345');
+await p.fill('#phone','12345'); await p.check('input[name="rera"][value="yes"]');
 await p.click('button[type=submit]');
 t('invalid phone blocks submit', await p.isVisible('.field.invalid'));
 
@@ -100,7 +100,9 @@ async function runFlow(answers) {
   for (let i = 0; i < keys.length; i++) { await pick(keys[i], answers[keys[i]]); await next(i); }
   await p.fill('#name','Test User'); await p.fill('#company','Test Developers');
   await p.fill('#project_city','Nagpur'); await p.fill('#email','t@test.in');
-  await p.fill('#phone','9876543210'); await p.check('#consent');
+  await p.fill('#phone','9876543210');
+  await p.check(`input[name="rera"][value="${answers.rera || 'yes'}"]`);
+  await p.check('#consent');
   await p.click('button[type=submit]'); await p.waitForTimeout(600);
 }
 
@@ -130,6 +132,11 @@ t('no follow-up process routed away', await p.isVisible('#done-nofit.on'));
 await runFlow({role:'founder',inventory:'1_19',price_band:'above_150',
                media_budget:'1_3l',followup:'crm',bottleneck:'few_site_visits'});
 t('premium boutique under 20 units qualifies', await p.isVisible('#done-qualified.on'));
+
+await runFlow({role:'founder',inventory:'100_plus',price_band:'above_150',
+               media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'no'});
+t('RERA pending never reaches the calendar', await p.isVisible('#done-nofit.on'));
+t('RERA-pending lead is still stored', (await p.evaluate(()=>window.__posted)).length === 1);
 
 /* phone formats common in India must all validate */
 await p.goto(URL); await p.waitForTimeout(300);

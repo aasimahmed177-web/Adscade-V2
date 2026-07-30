@@ -365,6 +365,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .back:hover{color:var(--cream)}
 .done{display:none;text-align:center;padding:1.5rem 0}
 .done.on{display:block}
+.rera{border-top:var(--hair);margin-top:1.4rem;padding-top:1.2rem}
+.rera__q{font-size:var(--t-body);line-height:1.45;margin:0 0 .9rem;color:var(--text)}
+.rera__note{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:.8rem 0 0}
 .opt-tag{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--adscade-muted);font-weight:700;margin-left:.4rem}
 /* Calendly inline embed. Fixed min-height so the panel does not jump when the
    widget finishes loading, and no nested horizontal scroll on a phone. */
@@ -488,7 +491,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <!-- ═══ hero ═════════════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="wrap">
-    <p class="hero__kicker">For regional residential developers</p>","hero eyebrow
+    <p class="hero__kicker">For regional residential developers</p>
     <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
     <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and sales feedback into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified buyer conversations.</p>
 
@@ -860,6 +863,16 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
           <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or +country code" required>
           <span class="err" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
         </div>
+        <div class="rera" role="group" aria-labelledby="rera-q">
+          <p class="rera__q" id="rera-q">Is the project you want to advertise RERA registered or legally exempt from registration?</p>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="rera" value="yes" required>Yes — registered or legally exempt</label>
+            <label class="opt"><input type="radio" name="rera" value="no">No — registration is pending or not yet complete</label>
+          </div>
+          <div class="errbox" data-radio-err><span class="err" role="alert">Please confirm the registration status before we go further.</span></div>
+          <p class="rera__note">Advertising eligibility is subject to the applicable project and platform requirements.</p>
+        </div>
+
         <label class="consent">
           <input type="checkbox" id="consent" name="consent" required>
           <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
@@ -930,6 +943,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 
       <button class="faq__q" aria-expanded="false" aria-controls="a6">What happens after the qualification form?</button>
       <div class="faq__a" id="a6" hidden><p>If the answers indicate a suitable engagement, you go straight to the calendar and choose a slot. If they don't, we say so on the page rather than book a call neither of us needs — and you can still leave your details for later. If you have been burned by an agency before, judge us on the weekly reporting rather than the promise: you will see the drop-off before you have to ask about it.</p></div>
+    </div>
 
     <div class="faq-cta" style="text-align:center;margin-top:2.4rem">
       <a class="cta" href="#book">Book a Fit Call</a>
@@ -1129,13 +1143,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       '1_3l':{s:18,l:'₹1–3 lakh / month'},
       ready_1l:{s:12,l:'Below ₹1 lakh now, ready to invest ₹1 lakh+'},
       below_1l_not_ready:{s:0,l:'Below ₹1 lakh, not ready to increase',restrict:'no_budget'},
-      undecided:{s:4,l:'Budget not decided',forceReview:true}
+      undecided:{s:4,l:'Budget not decided',cap:true}
     }},
     followup: {max:20, opts:{
       crm:{s:20,l:'Dedicated sales team with CRM and stage tracking',team:true},
       spreadsheet:{s:16,l:'Dedicated sales team using spreadsheets',team:true},
       inconsistent:{s:12,l:'Two or three people, tracking inconsistent'},
-      founder_only:{s:5,l:'One person or the founder handles most enquiries'},
+      founder_only:{s:5,l:'One person or the founder handles most enquiries',cap:true},
       none:{s:0,l:'No defined follow-up process',restrict:'no_followup'}
     }},
     bottleneck: {max:10, opts:{
@@ -1144,35 +1158,46 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       no_visibility:{s:10,l:'No visibility after the lead is generated'},
       slow_followup:{s:8,l:'Contact and follow-up too slow or inconsistent'},
       too_few:{s:6,l:'Not generating enough enquiries'},
-      exploring:{s:0,l:'Mainly exploring options'}
+      exploring:{s:0,l:'Mainly exploring options',cap:true}
     }}
   };
   var QUESTION_ORDER = ['role','inventory','price_band','media_budget','followup','bottleneck'];
 
   function evaluate(answers){
-    var score = 0, restriction = null, forceReview = false, labels = {}, team = false;
+    var score = 0, restriction = null, cap = false, labels = {}, team = false;
+    var answered = 0;
+
     QUESTION_ORDER.forEach(function(key){
       var opt = MODEL[key].opts[answers[key]];
+      // Unknown or missing answers contribute nothing and are counted as unanswered —
+      // a partial or tampered submission can never reach the qualifying threshold.
       if (!opt) return;
+      answered++;
       score += opt.s;
       labels[key] = opt.l;
       if (opt.restrict && !restriction) restriction = opt.restrict;
-      if (opt.forceReview) forceReview = true;
+      if (opt.cap)  cap  = true;
       if (opt.team) team = true;
     });
 
+    var complete = answered === QUESTION_ORDER.length;
+    // RERA: the project must be legally advertisable. Anything other than an explicit
+    // "yes" is a hard restriction — this is a legal gate, not a commercial preference.
+    if (!restriction && answers.rera !== 'yes') restriction = 'rera_ineligible';
+
     var outcome;
-    if (restriction) {
+    if (restriction || !complete) {
       outcome = 'not_current_fit';
     } else if (answers.inventory === '1_19') {
-      // Boutique projects only clear on genuine premium economics — high unit value,
-      // real budget, and a dedicated sales team. Otherwise they go to manual review.
+      // Premium low-inventory exception. Every condition is required; removing any one
+      // must drop the submission out of "qualified".
       var premium = answers.price_band === 'above_150';
       var funded  = ['above_3l','1_3l','ready_1l'].indexOf(answers.media_budget) > -1;
-      outcome = (premium && funded && team && score >= 65 && !forceReview)
+      outcome = (premium && funded && team && score >= 65 && !cap)
         ? 'qualified'
         : (score >= 50 ? 'manual_review' : 'not_current_fit');
-    } else if (forceReview) {
+    } else if (cap) {
+      // A manual-review cap can never produce a calendar, whatever the score.
       outcome = score >= 50 ? 'manual_review' : 'not_current_fit';
     } else if (score >= 65) {
       outcome = 'qualified';
@@ -1183,7 +1208,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     }
 
     var band = score >= 65 ? 'high' : score >= 50 ? 'medium' : 'low';
-    return {score: score, band: band, outcome: outcome, restriction: restriction, labels: labels};
+    return {score: score, band: band, outcome: outcome,
+            restriction: restriction, cap: cap, complete: complete, labels: labels};
   }
 
   function show(i){
@@ -1198,15 +1224,26 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 
   function validateStep(){
     var step = steps[at];
-    var radios = step.querySelector('input[type=radio]');
-    if (radios){
-      var box = step.querySelector('[data-radio-err]');
-      var ok = !!step.querySelector('input[name="' + radios.name + '"]:checked');
-      if (box) box.classList.toggle('invalid', !ok);
-      if (!ok) step.querySelector('.opt').style.borderColor = 'var(--error)';
-      return ok;
-    }
     var ok2 = true;
+
+    // Every radio group in the step, not just the first — the contact step carries both
+    // text fields and the RERA confirmation, and an earlier version validated only one.
+    var groups = {};
+    step.querySelectorAll('input[type=radio]').forEach(function(r){ groups[r.name] = true; });
+    Object.keys(groups).forEach(function(nm){
+      var picked = !!step.querySelector('input[name="' + nm + '"]:checked');
+      var holder = step.querySelector('input[name="' + nm + '"]').closest('.opts');
+      var box = holder && holder.parentElement.querySelector('[data-radio-err]');
+      if (box) box.classList.toggle('invalid', !picked);
+      if (!picked){
+        ok2 = false;
+        var first = holder && holder.querySelector('.opt');
+        if (first) first.style.borderColor = 'var(--error)';
+      }
+    });
+    // A pure question step has no text inputs; return as soon as the radios are judged.
+    if (!step.querySelector('input[required]:not([type=radio])')) return ok2;
+
     step.querySelectorAll('input[required]').forEach(function(el){
       if (el.type === 'checkbox') return;
       var f = el.closest('.field');
@@ -1340,6 +1377,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     var d = new FormData(form);
     var answers = {};
     QUESTION_ORDER.forEach(function(k){ answers[k] = d.get(k); });
+    answers.rera = d.get('rera');
     var verdict = evaluate(answers);
 
     var payload = {
@@ -1353,6 +1391,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       email:         (d.get('email') || '').trim(),
       phone:         (d.get('phone') || '').trim(),
       consent:       true,
+      rera:          answers.rera,
       answers:       answers,
       answer_labels: verdict.labels,
       score:         verdict.score,
