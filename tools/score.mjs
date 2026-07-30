@@ -23,7 +23,19 @@ const VERBOSE = args.includes('--verbose');
 /* ── scoring bookkeeping ──────────────────────────────────────────── */
 const cats = [];
 let cur = null;
-function category(name, max) { cur = { name, max, earned: 0, checks: [] }; cats.push(cur); }
+function category(name, max) {
+  if (cur) assertBudget(cur);
+  cur = { name, max, earned: 0, checks: [] };
+  cats.push(cur);
+}
+// A category whose checks do not sum to its stated max is a broken ruler.
+function assertBudget(c) {
+  const sum = c.checks.reduce((s, k) => s + k.max, 0);
+  if (sum !== c.max) {
+    console.error(`HARNESS ERROR: "${c.name}" checks sum to ${sum}, declared max ${c.max}`);
+    process.exit(2);
+  }
+}
 function check(label, max, pass, note = '') {
   const earned = pass === true ? max : pass === false ? 0 : Math.max(0, Math.min(max, Math.round(pass)));
   cur.earned += earned;
@@ -64,7 +76,10 @@ await page.goto('file://' + PAGE, { waitUntil: 'load' });
 await page.waitForTimeout(700);
 
 const html = readFileSync(PAGE, 'utf8');
-const text = norm(await page.evaluate(() => document.body.innerText));
+// textContent, not innerText: innerText applies text-transform (so uppercase CSS would
+// break verbatim string matching) and omits collapsed content (so FAQ answers, which are
+// display:none until opened, would read as absent). Neither is a property of the copy.
+const text = norm(await page.evaluate(() => document.body.textContent));
 const textL = text.toLowerCase();
 const has = (...terms) => terms.every(t => textL.includes(t.toLowerCase()));
 const hasAny = (...terms) => terms.some(t => textL.includes(t.toLowerCase()));
@@ -116,14 +131,14 @@ category('VSL funnel architecture', 150);
   }) : 0;
   check('Video slot is 16:9', 15, Math.abs(ratio - 16 / 9) < 0.06, `ratio=${ratio.toFixed(3)}`);
 
-  check('Poster frame in slot', 15, !!(await page.$('.vsl__poster')));
+  check('Poster frame in slot', 10, !!(await page.$('.vsl__poster')));
 
   const play = await page.$('.vsl__play');
   const playOK = play ? await play.evaluate(el =>
     el.tagName === 'BUTTON' && !!el.getAttribute('aria-label')) : false;
   check('Play affordance is a labelled button', 20, playOK);
 
-  check('Runtime / duration hint shown', 10, /\b\d+\s*(min|minute)/i.test(text));
+  check('Runtime / duration hint shown', 5, /\b\d+\s*(min|minute)/i.test(text));
 
   const foldCTA = await page.evaluate(() => {
     const vh = window.innerHeight;
@@ -144,7 +159,7 @@ category('VSL funnel architecture', 150);
   check('CTA also appears below the video', 20, belowVideo);
 
   const forms = await page.$$('form');
-  check('Exactly one conversion form', 15, forms.length === 1, `${forms.length} forms`);
+  check('Exactly one conversion form', 10, forms.length === 1, `${forms.length} forms`);
 
   const leaks = await page.$$eval('a[href]', as => as
     .map(a => a.getAttribute('href'))
@@ -303,29 +318,59 @@ category('Technical quality', 120);
   const focusRule = /:focus-visible\s*\{[^}]*outline\s*:/i.test(html);
   check('Visible keyboard focus ring', 20, focusRule && focusables > 0, `${focusables} focusables`);
 
+  // Collect the full stack of background layers behind each text node, innermost first,
+  // so translucent surfaces can be composited rather than treated as opaque. A layer
+  // painted at 6% alpha is not a 6%-alpha colour to the eye — it is that colour mixed
+  // into whatever sits under it.
   const contrasts = await page.evaluate(() => {
     const out = [];
     const walk = el => {
       const c = getComputedStyle(el);
       if (el.children.length === 0 && el.textContent?.trim() && parseFloat(c.fontSize) >= 11) {
-        let bgEl = el, bg = 'rgba(0, 0, 0, 0)';
-        while (bgEl && bg === 'rgba(0, 0, 0, 0)') { bg = getComputedStyle(bgEl).backgroundColor; bgEl = bgEl.parentElement; }
-        out.push([c.color, bg, parseFloat(c.fontSize)]);
+        const stack = [];
+        for (let x = el; x; x = x.parentElement) {
+          const s = getComputedStyle(x);
+          if (s.backgroundColor !== 'rgba(0, 0, 0, 0)') stack.push(s.backgroundColor);
+          // a gradient with no solid colour behind it: fall through, but record nothing
+          if (x === document.body) break;
+        }
+        stack.push(getComputedStyle(document.body).backgroundColor);
+        out.push([c.color, stack, parseFloat(c.fontSize), c.fontWeight]);
       }
       [...el.children].forEach(walk);
     };
     walk(document.body);
     return out;
   });
+
+  // Composite the stack back-to-front into one opaque colour.
+  function flatten(stack) {
+    let base = null;
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const l = parseRGB(stack[i]);
+      if (!l) continue;
+      if (!base) { base = [l[0], l[1], l[2]]; continue; }
+      const a = l[3];
+      base = [0, 1, 2].map(k => l[k] * a + base[k] * (1 - a));
+    }
+    return base;
+  }
+
   let low = 0;
-  for (const [fg, bg, size] of contrasts) {
-    const f = parseRGB(fg), b = parseRGB(bg);
+  const lowDetail = [];
+  for (const [fg, stack, size, weight] of contrasts) {
+    let f = parseRGB(fg);
+    const b = flatten(stack);
     if (!f || !b) continue;
-    const need = size >= 24 ? 3 : 4.5;
-    if (contrast(f, b) < need) low++;
+    if (f[3] < 1) f = [0, 1, 2].map(k => f[k] * f[3] + b[k] * (1 - f[3])); // translucent text too
+    const large = size >= 24 || (size >= 18.66 && parseInt(weight, 10) >= 700);
+    const need = large ? 3 : 4.5;
+    const r = contrast(f, b);
+    if (r < need) { low++; if (lowDetail.length < 4) lowDetail.push(`${r.toFixed(1)}<${need}`); }
   }
   check('Text contrast passes AA', 25,
-    low === 0 ? 25 : Math.max(0, 25 - low * 3), `${low}/${contrasts.length} below AA`);
+    low === 0 ? 25 : Math.max(0, 25 - low * 3),
+    `${low}/${contrasts.length} below AA ${lowDetail.join(' ')}`);
 
   check('prefers-reduced-motion respected', 15, /prefers-reduced-motion\s*:\s*reduce/.test(html));
 
@@ -365,6 +410,7 @@ category('Convex readiness', 60);
   check('Schema handoff doc exists', 10, existsSync(join(ROOT, 'docs', 'convex-schema.md')));
 }
 
+assertBudget(cur);
 await browser.close();
 
 /* ── report ───────────────────────────────────────────────────────── */
