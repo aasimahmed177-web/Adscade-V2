@@ -253,16 +253,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   color:var(--cream-dim);margin:1.4rem 0 0;border-top:var(--hair);padding-top:1rem;
 }
 
-/* ─── generic grids ──────────────────────────────────────────────────── */
-.grid{display:grid;gap:1.2rem}
-.grid--2{grid-template-columns:repeat(2,1fr)}
-.grid--3{grid-template-columns:repeat(3,1fr)}
-.tile{padding:1.5rem}
-.tile__k{
-  font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--gold);margin:0 0 .7rem;
-}
-.tile p{margin:0;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.86)}
 
 /* comparison — pairs stay together so mobile can label them */
 .cmp{border:var(--hair);border-radius:14px;overflow:hidden}
@@ -289,15 +279,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .report__row b{font-family:var(--serif);font-size:var(--t-h5);color:var(--gold);font-weight:400;white-space:nowrap}
 .report__foot{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
 
-/* timeline */
-.tl{display:grid;gap:0;border-left:1px solid rgba(201,160,74,.3);padding-left:1.8rem}
-.tl__row{position:relative;padding-bottom:2.2rem}
-.tl__row:last-child{padding-bottom:0}
-.tl__row::before{
-  content:"";position:absolute;left:calc(-1.8rem - 5px);top:.45rem;
-  width:9px;height:9px;border-radius:50%;background:var(--gold);
-}
-.tl__wk{font-size:var(--t-micro);font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.35rem}
 
 /* founder — its own band, deliberately away from the video */
 .founder{display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(1.8rem,5vw,3.5rem);align-items:center}
@@ -417,7 +398,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   /* the reading sizes carry almost all the prose — lift them on the device that
      carries almost all the traffic */
   :root{--t-small:.94rem;--t-micro:.72rem;--t-lead:1.1rem}
-  .stage,.leak,.founder,.grid--2,.grid--3,.foot__top{grid-template-columns:1fr}
+  .stage,.leak,.founder,.foot__top{grid-template-columns:1fr}
   .founder__img{max-width:260px}
   .founder{gap:1.6rem}
 }
@@ -520,7 +501,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       <h2 class="h2">You are not short of enquiries.<br>You are <em>losing them in transit.</em></h2>
       <p class="lead">Every stage below is a place your money quietly goes missing — and none of it shows up in your ad account, which only ever reports the click. We rebuild all four as one system and report on each of them weekly.</p>
       <ul class="pains">
-        <li>An enquiry lands at <b>night</b>. Nobody has <b>replied</b> by the time he's seen the project down the road.</li>
+        <li>An enquiry lands at <b>night</b>. Nobody has <b>replied</b> by the time he opens his laptop again in the morning.</li>
+        <li>You lose the booking to a <b>faster</b> project, not a better one — same budget, same locality, quicker follow-up.</li>
         <li><b>Channel partners</b> lead with whichever project pays best this month. When yours isn't it, the pipeline stops.</li>
         <li>The <b>tail</b> — odd floors, odd facings — stops moving once the launch push is over.</li>
         <li>And every <b>unsold</b> unit keeps accruing <b>interest</b> the whole time, whether anyone is selling or not.</li>
@@ -599,6 +581,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       <li><b>Weekly reporting</b> — site visits and cost per site visit, not clicks</li>
     </ul>
 
+    <p class="lead lead--sm dim" style="margin-top:1.6rem">And it is live inside a week:</p>
     <div class="sched">
       <span><b>Days 1–2</b> Strategy locked</span>
       <span><b>Days 3–5</b> Everything built</span>
@@ -938,9 +921,15 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       // only the strip the dock itself occupies is discounted — a CTA anywhere else
       // on screen means the dock is redundant
     }, {rootMargin:'0px 0px -12% 0px'});
-    // every in-page CTA, not just the two obvious ones — a second gold pill on screen
-    // next to the dock reads as a duplication bug
-    document.querySelectorAll('.rail, #book, .faq-cta').forEach(function(el){ io.observe(el); });
+    // Observe every in-page CTA rather than a hand-maintained list — a hand-maintained
+    // list silently rots the moment a new CTA is added, which is exactly what happened
+    // when the mid-page section gained one. A second gold pill on screen beside the dock
+    // reads as a duplication bug.
+    var watched = [document.querySelector('.rail'), document.getElementById('book')];
+    document.querySelectorAll('a[href="#book"]').forEach(function(a){
+      if (!a.closest('.dock')) watched.push(a);
+    });
+    watched.forEach(function(el){ if (el) io.observe(el); });
   }
 
   // A 1.6s smooth flight across 11,000px is a long blurred nothing on a mid-range phone.

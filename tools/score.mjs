@@ -117,7 +117,9 @@ category('Message match & congruency', 150);
   // rule is unchanged: every live ad angle must have a recognisable home on the page.
   const angles = {
     'money leak': ['leak', 'ad account'],
-    'enquiry dies overnight': ['night', 'replied'],
+    // ads 2R and 6 argue the same underlying pain — response speed — from two angles,
+    // so one slot enforces both. Stricter than checking either alone.
+    'response speed (ads 2R & 6)': ['night', 'replied', 'faster'],
     'carrying cost': ['unsold', 'interest'],
     'channel partner dependence': ['channel partner'],
     'the tail': ['tail'],
