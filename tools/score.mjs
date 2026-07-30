@@ -318,29 +318,59 @@ category('Technical quality', 120);
   const focusRule = /:focus-visible\s*\{[^}]*outline\s*:/i.test(html);
   check('Visible keyboard focus ring', 20, focusRule && focusables > 0, `${focusables} focusables`);
 
+  // Collect the full stack of background layers behind each text node, innermost first,
+  // so translucent surfaces can be composited rather than treated as opaque. A layer
+  // painted at 6% alpha is not a 6%-alpha colour to the eye — it is that colour mixed
+  // into whatever sits under it.
   const contrasts = await page.evaluate(() => {
     const out = [];
     const walk = el => {
       const c = getComputedStyle(el);
       if (el.children.length === 0 && el.textContent?.trim() && parseFloat(c.fontSize) >= 11) {
-        let bgEl = el, bg = 'rgba(0, 0, 0, 0)';
-        while (bgEl && bg === 'rgba(0, 0, 0, 0)') { bg = getComputedStyle(bgEl).backgroundColor; bgEl = bgEl.parentElement; }
-        out.push([c.color, bg, parseFloat(c.fontSize)]);
+        const stack = [];
+        for (let x = el; x; x = x.parentElement) {
+          const s = getComputedStyle(x);
+          if (s.backgroundColor !== 'rgba(0, 0, 0, 0)') stack.push(s.backgroundColor);
+          // a gradient with no solid colour behind it: fall through, but record nothing
+          if (x === document.body) break;
+        }
+        stack.push(getComputedStyle(document.body).backgroundColor);
+        out.push([c.color, stack, parseFloat(c.fontSize), c.fontWeight]);
       }
       [...el.children].forEach(walk);
     };
     walk(document.body);
     return out;
   });
+
+  // Composite the stack back-to-front into one opaque colour.
+  function flatten(stack) {
+    let base = null;
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const l = parseRGB(stack[i]);
+      if (!l) continue;
+      if (!base) { base = [l[0], l[1], l[2]]; continue; }
+      const a = l[3];
+      base = [0, 1, 2].map(k => l[k] * a + base[k] * (1 - a));
+    }
+    return base;
+  }
+
   let low = 0;
-  for (const [fg, bg, size] of contrasts) {
-    const f = parseRGB(fg), b = parseRGB(bg);
+  const lowDetail = [];
+  for (const [fg, stack, size, weight] of contrasts) {
+    let f = parseRGB(fg);
+    const b = flatten(stack);
     if (!f || !b) continue;
-    const need = size >= 24 ? 3 : 4.5;
-    if (contrast(f, b) < need) low++;
+    if (f[3] < 1) f = [0, 1, 2].map(k => f[k] * f[3] + b[k] * (1 - f[3])); // translucent text too
+    const large = size >= 24 || (size >= 18.66 && parseInt(weight, 10) >= 700);
+    const need = large ? 3 : 4.5;
+    const r = contrast(f, b);
+    if (r < need) { low++; if (lowDetail.length < 4) lowDetail.push(`${r.toFixed(1)}<${need}`); }
   }
   check('Text contrast passes AA', 25,
-    low === 0 ? 25 : Math.max(0, 25 - low * 3), `${low}/${contrasts.length} below AA`);
+    low === 0 ? 25 : Math.max(0, 25 - low * 3),
+    `${low}/${contrasts.length} below AA ${lowDetail.join(' ')}`);
 
   check('prefers-reduced-motion respected', 15, /prefers-reduced-motion\s*:\s*reduce/.test(html));
 
