@@ -10,7 +10,9 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — AdScade">
 <meta property="og:description" content="One team builds and owns your entire buyer funnel — so the leads that reach you already have their budget, location and timeline on record.">
-<meta property="og:image" content="https://adscade.com/assets/asim-ahmed.jpg">
+<meta property="og:image" content="https://adscade.com/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://adscade.com/">
 <meta property="og:locale" content="en_IN">
 <meta name="twitter:card" content="summary_large_image">
@@ -248,7 +250,7 @@ a{color:var(--gold);text-underline-offset:3px}
 .report__rows{display:grid;gap:.55rem;margin:0 0 1.1rem}
 .report__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:.7rem .9rem;border:var(--hair);border-radius:4px}
 .report__row span{font-size:var(--t-small);color:rgba(234,224,200,.88)}
-.report__row b{font-family:var(--serif);font-size:var(--t-h5);color:var(--gold);font-weight:400}
+.report__row b{font-family:var(--serif);font-size:var(--t-h5);color:var(--gold);font-weight:400;white-space:nowrap}
 .report__foot{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
 
 /* timeline */
@@ -263,7 +265,7 @@ a{color:var(--gold);text-underline-offset:3px}
 
 /* founder — its own band, deliberately away from the video */
 .founder{display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(1.8rem,5vw,3.5rem);align-items:center}
-.founder__img{border-radius:14px;border:1px solid rgba(201,160,74,.3);aspect-ratio:4/5;object-fit:cover;object-position:center 18%;width:100%}
+.founder__img{border-radius:14px;border:1px solid rgba(201,160,74,.3);aspect-ratio:4/5;object-fit:cover;object-position:center 18%;width:100%;height:auto}
 .founder__quote{
   font-family:var(--accent-serif);font-size:var(--t-h4);line-height:1.45;
   color:var(--cream);border-left:2px solid var(--gold-deep);padding-left:1.3rem;margin:1.6rem 0 0;
@@ -532,7 +534,7 @@ a{color:var(--gold);text-underline-offset:3px}
       </div>
       <div class="card tile">
         <p class="tile__k">Losing to someone faster</p>
-        <p>The deal didn't go to a better broker. It went to the one whose system replied in ninety seconds while yours waited until you had a moment.</p>
+        <p>The deal didn't go to a better broker. It went to the one whose system replied in under a minute while yours waited until you had a moment.</p>
       </div>
       <div class="card tile">
         <p class="tile__k">The unit that won't sell</p>
@@ -589,7 +591,7 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="card tile"><p class="tile__k">Video ad creative</p><p>Shot for your funnel and your project, in the language your buyers actually search in. Not recycled generic footage.</p></div>
       <div class="card tile"><p class="tile__k">Meta ads management</p><p>Facebook and Instagram campaigns built, launched and optimised — with the landing page and creative already matched to them.</p></div>
       <div class="card tile"><p class="tile__k">WhatsApp automation</p><p>An automated follow-up sequence that filters and nurtures every lead, so your team only picks up the phone for people worth calling.</p></div>
-      <div class="card tile"><p class="tile__k">Weekly reporting</p><p>Every Monday, the four numbers that actually decide whether this is working — shown in full below.</p></div>
+      <div class="card tile"><p class="tile__k">Weekly reporting</p><p>Every Monday, the numbers that actually decide whether this is working — shown in full below.</p></div>
     </div>
   </div>
 </section>
@@ -611,7 +613,7 @@ a{color:var(--gold);text-underline-offset:3px}
         <div class="report__row"><span>Matched your budget &amp; location</span><b>41</b></div>
         <div class="report__row"><span>Booked a site visit</span><b>14</b></div>
         <div class="report__row"><span>Cost per qualified lead</span><b>₹ 1,180</b></div>
-        <div class="report__row"><span>Biggest drop-off this week</span><b>Follow-up</b></div>
+        <div class="report__row"><span>Biggest drop-off</span><b>Follow-up</b></div>
       </div>
       <p class="report__foot">Illustrative layout, not client data — your numbers replace these from week one</p>
     </div>
@@ -698,6 +700,7 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="business_type" value="developer">Developer or builder</label>
           <label class="opt"><input type="radio" name="business_type" value="other">Something else</label>
         </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button></div>
       </div>
 
@@ -722,6 +725,7 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="inventory" value="launching">Launching within the next 60 days</label>
           <label class="opt"><input type="radio" name="inventory" value="none" data-disqualify="inventory">No active inventory at the moment</label>
         </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="dq" data-dq="inventory" role="status">
           <b>Straight answer: we'd be a bad fit right now.</b> Without an active project or live inventory there is nothing for a funnel to sell, and we'd be taking your money to build something with no job to do. Come back when you have stock to move.
           <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
@@ -732,16 +736,18 @@ a{color:var(--gold);text-underline-offset:3px}
       <!-- Q4 -->
       <div class="step" data-step="3" role="group" aria-labelledby="q4">
         <p class="step__n">Question 4 of 6</p>
-        <p class="q" id="q4">What do you spend a month on marketing — ads, portals and freelancers combined?</p>
+        <p class="q" id="q4">What can you put behind marketing each month — ads, portals and freelancers combined?</p>
         <div class="opts">
-          <label class="opt"><input type="radio" name="spend" value="none" required data-disqualify="spend">Nothing yet</label>
+          <label class="opt"><input type="radio" name="spend" value="ready_no_spend" required>Nothing yet, but I have a budget ready</label>
+          <label class="opt"><input type="radio" name="spend" value="none" data-disqualify="spend">Nothing, and no budget I can commit yet</label>
           <label class="opt"><input type="radio" name="spend" value="under_50k">Under ₹50,000</label>
           <label class="opt"><input type="radio" name="spend" value="50k_150k">₹50,000 – ₹1,50,000</label>
           <label class="opt"><input type="radio" name="spend" value="150k_300k">₹1,50,000 – ₹3,00,000</label>
           <label class="opt"><input type="radio" name="spend" value="300k_plus">Over ₹3,00,000</label>
         </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="dq" data-dq="spend" role="status">
-          <b>Straight answer: we'd be a bad fit right now.</b> A funnel needs an ad budget behind it — we build and run the system, but we don't fund the media. With nothing to spend, there's nothing for us to optimise.
+          <b>Straight answer: we'd be a bad fit right now.</b> A funnel needs a budget behind it — we build and run the system, but we don't fund the media. Until you have something to commit, there's nothing for us to optimise.
           <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
         </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
@@ -758,6 +764,7 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="lead_source" value="referrals">Referrals and walk-ins only</label>
           <label class="opt"><input type="radio" name="lead_source" value="nothing">Nothing consistent right now</label>
         </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
       </div>
 
@@ -770,6 +777,7 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="cpql" value="rough">Roughly, but not reliably</label>
           <label class="opt"><input type="radio" name="cpql" value="unknown">No idea</label>
         </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
       </div>
 
@@ -805,10 +813,11 @@ a{color:var(--gold);text-underline-offset:3px}
           <span class="err">Please tick the consent box so we're allowed to contact you.</span>
         </div>
         <button class="cta cta--wide" type="submit">Book My Audit Call</button>
+        <div class="nav" style="justify-content:center"><button class="back" type="button" data-back>Back</button></div>
         <div class="errbox" id="submit-err">
           <span class="err">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span>
         </div>
-        <p class="cta-note">30 minutes, no obligation. You'll pick your time on the next screen.</p>
+        <p class="cta-note" id="contact-note">30 minutes, no obligation. You'll pick your time on the next screen.</p>
       </div>
 
       <!-- success -->
@@ -818,12 +827,12 @@ a{color:var(--gold);text-underline-offset:3px}
           <h3 class="h3">Answers received. Now pick your time.</h3>
           <p class="lead lead--center">Choose a slot that suits you — you'll get the confirmation immediately, no waiting on us.</p>
           <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Pick My Slot →</a>
-          <p class="cta-note">Keep your ad account open during the call. The audit is far more useful with real numbers on the screen.<br>Scheduler not loading? WhatsApp us on +91 79961 12470.</p>
+          <p class="cta-note">Keep your ad account open during the call. The audit is far more useful with real numbers on the screen.<br>Scheduler not loading? <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
         </div>
         <div id="done-later" hidden>
           <h3 class="h3">Details saved. We'll check back.</h3>
-          <p class="lead lead--center">We're not booking a call yet, because from your answers we'd be taking your money to build something with no job to do. When you have inventory to move and a budget behind it, message us and we'll pick this up properly.</p>
-          <p class="cta-note">Nothing else to do right now. WhatsApp us any time on +91 79961 12470.</p>
+          <p class="lead lead--center" id="done-later-why">We're not booking a call yet, because from your answers a funnel wouldn't yet have what it needs to work. When that changes, message us and we'll pick this up properly.</p>
+          <p class="cta-note">Nothing else to do right now. <a href="https://wa.me/917996112470">WhatsApp us any time on +91 79961 12470</a>.</p>
         </div>
       </div>
     </form>
@@ -990,17 +999,20 @@ a{color:var(--gold);text-underline-offset:3px}
     var q7 = document.getElementById('q7');
     q7.textContent = disqualified ? 'Where should we reach you when the time is right?'
                                   : 'Where should we send the call link?';
+    document.getElementById('contact-note').textContent = disqualified
+      ? "We'll hold your details. No call is being booked right now."
+      : '30 minutes, no obligation. You\'ll pick your time on the next screen.';
   }
 
   function validateStep(){
     var step = steps[at];
     var radios = step.querySelector('input[type=radio]');
     if (radios){
-      if (!step.querySelector('input[name="' + radios.name + '"]:checked')){
-        step.querySelector('.opt').style.borderColor = 'var(--clay)';
-        return false;
-      }
-      return true;
+      var box = step.querySelector('[data-radio-err]');
+      var ok = !!step.querySelector('input[name="' + radios.name + '"]:checked');
+      if (box) box.classList.toggle('invalid', !ok);
+      if (!ok) step.querySelector('.opt').style.borderColor = 'var(--clay)';
+      return ok;
     }
     var ok = true;
     step.querySelectorAll('input[required]').forEach(function(el){
@@ -1037,6 +1049,9 @@ a{color:var(--gold);text-underline-offset:3px}
     if (e.target.type === 'radio'){
       var opt = e.target.closest('.opt');
       if (opt) opt.style.borderColor = '';
+      var step = e.target.closest('.step');
+      var box = step && step.querySelector('[data-radio-err]');
+      if (box) box.classList.remove('invalid');
       syncDisqualify();
     }
     var f = e.target.closest('.field');

@@ -175,7 +175,10 @@ category('VSL funnel architecture', 150);
   // The rule exists to stop attention leaking away BEFORE the visitor converts. The
   // scheduler is where conversion completes, so it is a permitted destination — added
   // 30 Jul 2026 when the client supplied a Calendly link. Anything else still fails.
-  const ALLOWED_HOSTS = ['calendly.com'];
+  // calendly.com added 30 Jul 2026 (the scheduler is where conversion completes);
+  // wa.me added the same day (the post-submit fallback when the scheduler won't load).
+  // Both live inside #done and are unreachable until the form is submitted — verified below.
+  const ALLOWED_HOSTS = ['calendly.com', 'wa.me'];
   const leaks = await page.$$eval('a[href]', (as, allowed) => as
     .map(a => a.getAttribute('href'))
     .filter(h => /^(https?:)?\/\//i.test(h))
@@ -183,8 +186,8 @@ category('VSL funnel architecture', 150);
   // ...and the permitted one must not be reachable until the form is done, or it becomes
   // exactly the attention leak the rule exists to prevent.
   const schedulerHidden = await page.evaluate(() => {
-    const a = document.querySelector('a[href*="calendly.com"]');
-    return !a || a.getBoundingClientRect().width === 0;
+    const links = [...document.querySelectorAll('a[href*="calendly.com"], a[href*="wa.me"]')];
+    return links.every(a => a.getBoundingClientRect().width === 0);
   });
   check('No outbound links off the funnel', 20, leaks.length === 0 && schedulerHidden,
     leaks.join(' ') + (schedulerHidden ? '' : ' scheduler visible pre-submit'));

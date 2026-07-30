@@ -66,6 +66,38 @@ t('disqualified lead is still captured', await p.isVisible('#done.on'));
 t('disqualified lead gets NO scheduler', !(await p.isVisible('.book-slot')));
 t('disqualified lead gets the honest ending', await p.isVisible('#done-later'));
 
+/* ── budget-ready-but-not-spending is NOT a disqualifier ──────────── */
+await p.goto(URL); await p.waitForTimeout(300);
+await pick('business_type','independent_broker'); await next(0);
+await p.fill('#city','Indore'); await next(1);
+await pick('inventory','active'); await next(2);
+await pick('spend','ready_no_spend'); await next(3);
+t('"budget ready, not spending yet" is not disqualified',
+  !(await p.isVisible('.dq[data-dq="spend"].on')) && await p.isVisible('[data-step="4"].on'));
+
+/* ── radio steps explain themselves when empty ────────────────────── */
+await p.goto(URL); await p.waitForTimeout(300);
+await next(0);
+t('empty radio step shows a written reason',
+  await p.isVisible('[data-step="0"] [data-radio-err].invalid .err'));
+await pick('business_type','other');
+t('picking an option clears the reason',
+  !(await p.isVisible('[data-step="0"] [data-radio-err].invalid')));
+
+/* ── contact step is reversible ───────────────────────────────────── */
+await p.goto(URL); await p.waitForTimeout(300);
+await pick('business_type','developer'); await next(0);
+await p.fill('#city','Kochi'); await next(1);
+await pick('inventory','active'); await next(2);
+await pick('spend','300k_plus'); await next(3);
+await pick('lead_source','portals'); await next(4);
+await pick('cpql','rough'); await next(5);
+t('contact step has a Back button', await p.isVisible('[data-step="6"] [data-back]'));
+t('contact note promises a slot for a qualified lead',
+  (await p.textContent('#contact-note')).includes('pick your time'));
+await p.click('[data-step="6"] [data-back]');
+t('Back from contact returns to question 6', await p.isVisible('[data-step="5"].on'));
+
 /* ── disqualification, inline in the step that caused it ──────────── */
 await p.goto(URL); await p.waitForTimeout(300);
 await p.check('input[value="independent_broker"]'); await p.click('[data-step="0"] [data-next]');
@@ -170,6 +202,12 @@ const trustLines = await m.evaluate(() => {
   return { h: Math.round(s.getBoundingClientRect().height), d: getComputedStyle(s).display };
 });
 t(`trust strip reads as one phrase (${trustLines.d}, ${trustLines.h}px)`, trustLines.d !== 'flex');
+
+const fRatio = await m.evaluate(() => {
+  const r = document.querySelector('.founder__img').getBoundingClientRect();
+  return +(r.width / r.height).toFixed(2);
+});
+t(`founder photo honours its 4:5 ratio (${fRatio})`, Math.abs(fRatio - 0.8) < 0.04);
 
 t('no founder photo inside the video block',
   await m.evaluate(() => !document.querySelector('.vsl').innerHTML.includes('asim-ahmed')));
