@@ -17,6 +17,8 @@ await p.goto(URL); await p.waitForTimeout(400);
 await p.click('[data-step="0"] [data-next]');
 t('empty question blocks advance', await p.isVisible('[data-step="0"].on'));
 
+t('scheduler hidden before submit', !(await p.isVisible('.book-slot')));
+
 const seq = [['input[value="brokerage_team"]',0],['#city',1],['input[value="active"]',2],
   ['input[value="150k_300k"]',3],['input[value="freelancer"]',4],['input[value="unknown"]',5]];
 for (const [sel, step] of seq) {
@@ -38,6 +40,9 @@ await p.check('#consent');
 await p.click('button[type=submit]');
 await p.waitForTimeout(700);
 t('completed form submits', await p.isVisible('#done.on'));
+t('scheduler appears only after submit', await p.isVisible('.book-slot'));
+t('scheduler points at the real calendly link',
+  (await p.getAttribute('.book-slot', 'href')) === 'https://calendly.com/aasim-ahmed177/realestate-growth-systems');
 t('payload reached submitLead', logs.some(l => l.includes('lead captured')));
 const doneBox = await (await p.$('#done')).boundingBox();
 t('confirmation is on screen', doneBox && doneBox.y > -10 && doneBox.y < 900);
@@ -86,17 +91,14 @@ t(`video reachable on first screen (top=${Math.round(vsl.y)}px)`, vsl.y < 700);
 t('no horizontal scroll', await m.evaluate(() =>
   document.documentElement.scrollWidth - document.documentElement.clientWidth <= 1));
 
-const widths = await m.$$eval('.leak__stage', els => els.map(e => Math.round(e.getBoundingClientRect().width)));
-t(`leak funnel keeps its taper (${widths.join('>')})`,
-  widths.length === 4 && widths[0] > widths[1] && widths[1] > widths[2] && widths[2] > widths[3]);
+const bars = await m.$$eval('.leak__bar', els => els.map(e => Math.round(e.getBoundingClientRect().width)));
+t(`leak bars encode the funnel (${bars.join('>')})`,
+  bars.length === 4 && bars[0] > bars[1] && bars[1] > bars[2] && bars[2] > bars[3]);
 
-const dripOwnLine = await m.evaluate(() => {
-  const s = document.querySelector('.leak__stage');
-  const name = s.querySelector('.leak__name').getBoundingClientRect();
-  const drip = s.querySelector('.leak__drip').getBoundingClientRect();
-  return drip.top >= name.bottom - 2;
-});
-t('loss label wraps to its own line', dripOwnLine);
+// the bar width must be the number, not a decorative taper
+const trackW = await m.evaluate(() => document.querySelector('.leak__track').getBoundingClientRect().width);
+t('bar widths are proportional to the data',
+  Math.abs(bars[1] / trackW - 0.60) < 0.03 && Math.abs(bars[2] / trackW - 0.20) < 0.03);
 
 // Reading prose only. Uppercase utility type — eyebrows, captions, labels — is
 // deliberately small in this design system and is not what gets read at length.
@@ -122,10 +124,14 @@ const tapTargets = await m.evaluate(() => {
 });
 t(`tap targets >=44px (${tapTargets.slice(0,3).join(' ') || 'all ok'})`, tapTargets.length === 0);
 
-const cmpLabelled = await m.evaluate(() =>
-  [...document.querySelectorAll('.cmp__cell')].every(c =>
-    getComputedStyle(c.querySelector('b')).display !== 'none'));
-t('comparison cells self-label on mobile', cmpLabelled);
+const cmpSideBySide = await m.evaluate(() => {
+  const cells = [...document.querySelectorAll('.cmp__cell')];
+  const old = cells[0].getBoundingClientRect(), nu = cells[1].getBoundingClientRect();
+  return nu.left > old.right - 2 && Math.abs(nu.top - old.top) < 2;
+});
+t('comparison stays side-by-side on mobile', cmpSideBySide);
+t('comparison headers visible on mobile',
+  await m.evaluate(() => getComputedStyle(document.querySelector('.cmp__head')).display !== 'none'));
 
 await m.evaluate(() => {
   document.documentElement.style.scrollBehavior = 'auto';
@@ -137,6 +143,26 @@ t('dock stands down when the form is on screen',
 
 t('no founder photo inside the video block',
   await m.evaluate(() => !document.querySelector('.vsl').innerHTML.includes('asim-ahmed')));
+
+// Word-boundary matching: "freelancer" legitimately contains "free", and the FAQ's
+// "two to three weeks" is the post-launch optimisation period, not the build timeline.
+const banned = await m.evaluate(() => {
+  const t = document.body.textContent;
+  const rules = {
+    'free': /\bfree\b/i,
+    'hinglish': /hinglish/i,
+    '3-week build': /(live|built|ready)[^.]{0,20}three weeks/i,
+    // scoped outside the form — the form's ₹ brackets are the broker's own spend, not our price
+    'published pricing': null,
+    'ad spend': /\bad spend\b/i,
+  };
+  const hits = Object.entries(rules).filter(([, re]) => re && re.test(t)).map(([k]) => k);
+  const outsideForm = [...document.body.children]
+    .map(n => n.contains(document.getElementById('lead-form')) ? '' : n.textContent).join(' ');
+  if (/₹\s?\d{2},000\s*[–-]/.test(outsideForm)) hits.push('published pricing');
+  return hits;
+});
+t(`removed wording stays removed (${banned.join(',') || 'none'})`, banned.length === 0);
 
 t('no js errors', !logs.some(l => l.startsWith('ERR')));
 await b.close();

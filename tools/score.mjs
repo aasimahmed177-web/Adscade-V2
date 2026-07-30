@@ -82,6 +82,8 @@ const html = readFileSync(PAGE, 'utf8');
 const text = norm(await page.evaluate(() => document.body.textContent));
 const textL = text.toLowerCase();
 const has = (...terms) => terms.every(t => textL.includes(t.toLowerCase()));
+// Client changed the delivery promise from three weeks to one on 30 Jul 2026.
+const DELIVERY = ['one week', '7 days'];
 const hasAny = (...terms) => terms.some(t => textL.includes(t.toLowerCase()));
 
 /* ══ 1. MESSAGE MATCH & CONGRUENCY — 150 ═════════════════════════ */
@@ -143,7 +145,11 @@ category('VSL funnel architecture', 150);
     el.tagName === 'BUTTON' && !!el.getAttribute('aria-label')) : false;
   check('Play affordance is a labelled button', 20, playOK);
 
-  check('Runtime / duration hint shown', 5, /\b\d+\s*(min|minute)/i.test(text));
+  // CHANGED 30 Jul 2026: was a runtime hint ("6 min"). The client removed it, correctly —
+  // advertising a runtime for a video that does not exist is a claim about nothing. What
+  // the slot must do instead is say plainly that the video is not ready yet.
+  check('Video slot states its status honestly', 5,
+    /recording|coming soon|not yet|being filmed/i.test(text));
 
   const foldCTA = await page.evaluate(() => {
     const vh = window.innerHeight;
@@ -166,10 +172,22 @@ category('VSL funnel architecture', 150);
   const forms = await page.$$('form');
   check('Exactly one conversion form', 10, forms.length === 1, `${forms.length} forms`);
 
-  const leaks = await page.$$eval('a[href]', as => as
+  // The rule exists to stop attention leaking away BEFORE the visitor converts. The
+  // scheduler is where conversion completes, so it is a permitted destination — added
+  // 30 Jul 2026 when the client supplied a Calendly link. Anything else still fails.
+  const ALLOWED_HOSTS = ['calendly.com'];
+  const leaks = await page.$$eval('a[href]', (as, allowed) => as
     .map(a => a.getAttribute('href'))
-    .filter(h => /^(https?:)?\/\//i.test(h)));
-  check('No outbound links off the funnel', 20, leaks.length === 0, leaks.join(' '));
+    .filter(h => /^(https?:)?\/\//i.test(h))
+    .filter(h => !allowed.some(host => h.includes(host))), ALLOWED_HOSTS);
+  // ...and the permitted one must not be reachable until the form is done, or it becomes
+  // exactly the attention leak the rule exists to prevent.
+  const schedulerHidden = await page.evaluate(() => {
+    const a = document.querySelector('a[href*="calendly.com"]');
+    return !a || a.getBoundingClientRect().width === 0;
+  });
+  check('No outbound links off the funnel', 20, leaks.length === 0 && schedulerHidden,
+    leaks.join(' ') + (schedulerHidden ? '' : ' scheduler visible pre-submit'));
 }
 
 /* ══ 3. QUALIFICATION FORM — 120 ═════════════════════════════════ */
@@ -224,7 +242,7 @@ category('Copy & ICP resonance', 130);
     'why not run ads myself': ['leaking bucket'],
     'burned before': ['burned'],
     'how many leads guaranteed': ['qualified lead" is defined', 'qualified lead', 'guarantee'],
-    'how long': ['three weeks', '3 weeks'],
+    'how long': DELIVERY,
   };
   for (const [name, terms] of Object.entries(objections)) {
     check(`Objection handled: ${name}`, 10, hasAny(...terms));

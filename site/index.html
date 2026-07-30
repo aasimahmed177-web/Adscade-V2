@@ -6,7 +6,7 @@
 <title>Stop Losing Money on Scattered Real Estate Marketing — AdScade</title>
 <meta name="description" content="AdScade builds and runs the entire buyer lead funnel for Indian real estate businesses — landing page, video, Meta ads and automated WhatsApp qualification. Book an audit call.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://adscade.in/">
+<link rel="canonical" href="https://adscade.com/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — AdScade">
 <meta property="og:description" content="One team builds and owns your entire buyer funnel — so the leads that reach you already have their budget, location and timeline on record.">
@@ -199,33 +199,21 @@ a{color:var(--gold);text-underline-offset:3px}
 /* ─── signature: the leak diagram ────────────────────────────────────── */
 .leak{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,4rem);align-items:start}
 .leak__fig{position:relative;padding:.5rem 0}
-/* Bars are left-aligned and shrink stage by stage. The triangular void that opens on the
-   right is not empty space — it is where each stage's loss is labelled. */
-.leak__stage{
-  position:relative;border:1px solid rgba(201,160,74,.3);
-  background:linear-gradient(90deg,rgba(26,51,34,.9),rgba(26,51,34,.4));
-  padding:1rem 1.2rem;margin:0 auto .8rem 0;
-  display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;
+/* The bar width is the number, not a decoration — which is why the last bar is a sliver.
+   Same shape at every viewport; nothing to reflow, nothing to lose on a phone. */
+.leak__stage{position:relative;margin:0 0 1.3rem}
+.leak__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.5rem}
+.leak__name{font-size:var(--t-small);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.leak__val{font-family:var(--serif);font-size:var(--t-h4);color:var(--gold);line-height:1}
+.leak__track{height:14px;border:1px solid rgba(201,160,74,.28);border-radius:2px;overflow:hidden;background:rgba(5,16,10,.55)}
+.leak__bar{
+  display:block;height:100%;min-width:14px;
+  background:linear-gradient(90deg,rgba(26,51,34,1),rgba(26,51,34,.5));
+  border-right:2px solid var(--gold-deep);
 }
-.leak__stage:nth-child(1){width:70%}
-.leak__stage:nth-child(2){width:57%}
-.leak__stage:nth-child(3){width:44%}
-.leak__stage:nth-child(4){width:31%;border-color:var(--gold);background:rgba(224,184,101,.12)}
-.leak__name{font-size:var(--t-small);font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
-.leak__val{font-family:var(--serif);font-size:var(--t-h5);color:var(--gold);white-space:nowrap}
-.leak__drip{
-  position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
-  font-family:var(--serif);font-size:.92rem;color:var(--leak);white-space:nowrap;
-  animation:drip 3.6s ease-in-out infinite;
-}
-.leak__stage:nth-child(2) .leak__drip{animation-delay:.6s}
-.leak__stage:nth-child(3) .leak__drip{animation-delay:1.2s}
-.leak__stage:nth-child(4) .leak__drip{color:var(--gold);animation:none;opacity:1}
-/* never fades to nothing — the labels are content, the motion is only emphasis */
-@keyframes drip{
-  0%,100%{opacity:.5;transform:translateY(-50%)}
-  40%{opacity:1;transform:translateY(calc(-50% + 3px))}
-}
+.leak__stage:nth-child(4) .leak__bar{background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-right:none}
+.leak__drip{display:block;margin-top:.45rem;font-family:var(--serif);font-size:.95rem;color:var(--leak)}
+.leak__stage:nth-child(4) .leak__drip{color:var(--gold)}
 .leak__cap{
   font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:var(--cream-dim);margin:1.4rem 0 0;border-top:var(--hair);padding-top:1rem;
@@ -254,7 +242,8 @@ a{color:var(--gold);text-underline-offset:3px}
 .cmp__pair{display:contents}
 .cmp__cell{padding:1.1rem 1.4rem;border-top:var(--hair);font-size:var(--t-small);line-height:1.5}
 .cmp__cell--old{color:var(--cream-dim);background:rgba(142,59,46,.09)}
-.cmp__cell b{display:none}
+.cmp__cell--new{border-left:var(--hair)}
+.cmp__head--new{border-left:var(--hair)}
 
 /* sample report — the proof artefact */
 .report{max-width:720px;margin-inline:auto;padding:1.6rem}
@@ -288,13 +277,6 @@ a{color:var(--gold);text-underline-offset:3px}
 /* guarantee */
 .guarantee{border:1px solid var(--gold-deep);border-radius:14px;padding:clamp(1.6rem,4vw,3rem);background:rgba(224,184,101,.06);text-align:center}
 .guarantee__terms{font-size:var(--t-small);color:var(--cream-dim);max-width:62ch;margin:1.4rem auto 0;border-top:var(--hair);padding-top:1.2rem;text-align:left}
-
-/* price strip */
-.price{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(201,160,74,.22);border:var(--hair);border-radius:14px;overflow:hidden;margin-top:2rem}
-.price__cell{background:var(--ink);padding:1.3rem 1.4rem}
-.price__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 .5rem}
-.price__v{font-family:var(--serif);font-size:var(--t-h4);margin:0 0 .3rem}
-.price__n{font-size:var(--t-small);color:var(--cream-dim);margin:0}
 
 /* ─── form ───────────────────────────────────────────────────────────── */
 .form-band{background:var(--ink-warm)}
@@ -342,6 +324,16 @@ a{color:var(--gold);text-underline-offset:3px}
 .done.on{display:block}
 .done__tick{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;margin:0 auto 1.3rem}
 .done__tick svg{width:26px;height:26px}
+/* the scheduler hand-off — a different action from the page's CTA, so a different class */
+.book-slot{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
+  font-family:var(--sans);font-size:var(--t-small);font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:var(--gold);color:#1A1204;border:1px solid var(--gold);
+  padding:1.05rem 2.2rem;border-radius:999px;text-decoration:none;min-height:52px;
+  transition:transform .18s ease,background .18s ease;
+}
+.book-slot:hover{background:#EFCB80;transform:translateY(-2px)}
 /* disqualification lives inside the step that triggered it — never trailing the submit button */
 .dq{display:none;border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.09);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.3rem;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.88)}
 .dq.on{display:block}
@@ -391,15 +383,8 @@ a{color:var(--gold);text-underline-offset:3px}
   /* the reading sizes carry almost all the prose — lift them on the device that
      carries almost all the traffic */
   :root{--t-small:.94rem;--t-micro:.72rem;--t-lead:1.1rem}
-  .stage,.leak,.founder,.grid--2,.grid--3,.foot__top,.price{grid-template-columns:1fr}
-  .price{gap:1px}
+  .stage,.leak,.founder,.grid--2,.grid--3,.foot__top{grid-template-columns:1fr}
   .founder__img{max-width:260px}
-  .leak__stage:nth-child(1){width:100%}
-  .leak__stage:nth-child(2){width:86%}
-  .leak__stage:nth-child(3){width:70%}
-  .leak__stage:nth-child(4){width:52%}
-  /* force the loss label onto its own line — a flex item needs a basis, not display:block */
-  .leak__drip{position:static;transform:none;flex-basis:100%;width:100%;margin-top:.35rem;animation:none;opacity:1}
   .founder{gap:1.6rem}
 }
 @media(max-width:560px){
@@ -408,23 +393,14 @@ a{color:var(--gold);text-underline-offset:3px}
   .dock{display:block}
   body{padding-bottom:calc(5.5rem + env(safe-area-inset-bottom))}
   .hero{padding-top:1.4rem}
-  .cmp__grid{grid-template-columns:1fr}
-  .cmp__head{display:none}
-  .cmp__pair{display:block;border-top:var(--hair)}
-  .cmp__cell{border-top:none;padding-block:.9rem}
-  .cmp__cell--old{background:rgba(142,59,46,.09)}
-  /* headers scroll away on a phone, so each pair carries its own label */
-  .cmp__cell b{
-    display:block;font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;
-    text-transform:uppercase;margin-bottom:.3rem;
-  }
-  .cmp__cell--old b{color:var(--clay-text)}
-  .cmp__cell--new b{color:var(--gold)}
+  /* the comparison stays side-by-side on a phone — that is the whole point of it —
+     so the type tightens and the copy is written short enough to survive the column */
+  .cmp__cell{padding:.85rem .65rem;font-size:.88rem;line-height:1.4}
+  .cmp__head{padding:.8rem .65rem;font-size:.62rem;letter-spacing:.08em}
   .trust{gap:.5rem 1.2rem}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
-  .leak__drip{opacity:1}
 }
 </style>
 </head>
@@ -455,7 +431,7 @@ a{color:var(--gold);text-underline-offset:3px}
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
             </button>
             <p class="vsl__label">Walkthrough · recording this week</p>
-            <p class="vsl__hint">Aasim walks through where the money actually leaks in a real estate funnel. Roughly 6 minutes, in Hinglish.</p>
+            <p class="vsl__hint">Aasim walks through exactly where the money leaks in a real estate funnel, and what a fixed one looks like.</p>
           </div>
         </div>
         <div class="vsl__agenda" id="agenda">
@@ -465,10 +441,6 @@ a{color:var(--gold);text-underline-offset:3px}
             <li>What a qualified lead should cost in a Tier-1 versus Tier-2 micro-market</li>
             <li>The WhatsApp sequence that filters budget, location and timeline before you pick up</li>
           </ol>
-        </div>
-        <div class="vsl__bar">
-          <span><i class="vsl__dot"></i>Funnel walkthrough</span>
-          <span>Hinglish · 6 min</span>
         </div>
       </div>
 
@@ -498,8 +470,7 @@ a{color:var(--gold);text-underline-offset:3px}
 <!-- ═══ trust strip ══════════════════════════════════════════════════ -->
 <div class="wrap">
   <div class="trust">
-    <span>Landing page · Video · <b>Meta ads</b> · WhatsApp qualification</span>
-    <span>Funnel live in <b>three weeks</b></span>
+    <span>Funnel live in <b>one week</b></span>
     <span>Weekly <b>cost-per-qualified-lead</b> reporting</span>
   </div>
 </div>
@@ -517,24 +488,24 @@ a{color:var(--gold);text-underline-offset:3px}
     </div>
     <div class="leak__fig">
       <div class="leak__stage">
-        <span class="leak__name">Ad → click</span>
-        <span class="leak__val">100</span>
+        <div class="leak__row"><span class="leak__name">Ad → click</span><span class="leak__val">100</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:100%"></i></div>
         <span class="leak__drip">₹ wrong audience</span>
       </div>
       <div class="leak__stage">
-        <span class="leak__name">Landing page</span>
-        <span class="leak__val">60</span>
+        <div class="leak__row"><span class="leak__name">Landing page</span><span class="leak__val">60</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:60%"></i></div>
         <span class="leak__drip">₹ message mismatch</span>
       </div>
       <div class="leak__stage">
-        <span class="leak__name">Follow-up</span>
-        <span class="leak__val">20</span>
+        <div class="leak__row"><span class="leak__name">Follow-up</span><span class="leak__val">20</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:20%"></i></div>
         <span class="leak__drip">₹ slow response</span>
       </div>
       <div class="leak__stage">
-        <span class="leak__name">Site visit</span>
-        <span class="leak__val">4</span>
-        <span class="leak__drip">96 of 100 gone</span>
+        <div class="leak__row"><span class="leak__name">Site visit</span><span class="leak__val">4</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:4%"></i></div>
+        <span class="leak__drip">96 of every 100 gone before anyone stood on site</span>
       </div>
       <p class="leak__cap">Illustrative funnel shape · your real numbers come out of the audit</p>
     </div>
@@ -566,23 +537,11 @@ a{color:var(--gold);text-underline-offset:3px}
       </div>
       <div class="card tile">
         <p class="tile__k">Losing to someone faster</p>
-        <p>The deal didn't go to a better broker. It went to the one whose system replied in ninety seconds while yours waited for you to be free.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">Portal leads, shared five ways</p>
-        <p>You pay 99acres or MagicBricks for the lead. So do four other brokers. By the time you call, he has been called four times already and he is annoyed.</p>
+        <p>The deal didn't go to a better broker. It went to the one whose system replied in ninety seconds while yours waited until you had a moment.</p>
       </div>
       <div class="card tile">
         <p class="tile__k">The unit that won't sell</p>
         <p>Ninety days on the same inventory. The price is right and the location is right, but the only people seeing it are the ones already walking past the site.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">The empty site visit</p>
-        <p>You block a Sunday, arrange the keys, drive out — and he doesn't show. Nobody confirmed his budget or his timeline before the visit was booked.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">The month the phone doesn't ring</p>
-        <p>Referrals dry up between seasons and there's nothing underneath them. Your pipeline depends on who happens to remember you this month.</p>
       </div>
     </div>
   </div>
@@ -599,24 +558,24 @@ a{color:var(--gold);text-underline-offset:3px}
         <div class="cmp__head cmp__head--new">Complete Buyer Funnel System</div>
 
         <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>Landing page, video and ads from different freelancers</div>
-          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>One team builds and owns the entire funnel</div>
+          <div class="cmp__cell cmp__cell--old">Three freelancers, no shared plan</div>
+          <div class="cmp__cell cmp__cell--new">One team owns the whole funnel</div>
         </div>
         <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>No qualification — every lead treated the same</div>
-          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>Built-in qualifying questions filter serious buyers</div>
+          <div class="cmp__cell cmp__cell--old">Every lead treated the same</div>
+          <div class="cmp__cell cmp__cell--new">Qualifying questions filter serious buyers</div>
         </div>
         <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>No follow-up after the click</div>
-          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>Automated WhatsApp sequence nurtures every lead</div>
+          <div class="cmp__cell cmp__cell--old">No follow-up after the click</div>
+          <div class="cmp__cell cmp__cell--new">Automated WhatsApp sequence follows up</div>
         </div>
         <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>Unclear where the funnel is leaking</div>
-          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>Weekly reporting shows drop-off at every stage</div>
+          <div class="cmp__cell cmp__cell--old">No idea where the funnel leaks</div>
+          <div class="cmp__cell cmp__cell--new">Weekly drop-off, stage by stage</div>
         </div>
         <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old"><b>Scattered</b>You pay for clicks, and count them as progress</div>
-          <div class="cmp__cell cmp__cell--new"><b>With AdScade</b>You count leads that booked a site visit, and what each one cost</div>
+          <div class="cmp__cell cmp__cell--old">You count clicks</div>
+          <div class="cmp__cell cmp__cell--new">You count site visits, and what each cost</div>
         </div>
       </div>
     </div>
@@ -669,15 +628,15 @@ a{color:var(--gold);text-underline-offset:3px}
   <div class="wrap grid grid--2" style="gap:clamp(2rem,5vw,4rem);align-items:start">
     <div>
       <p class="eyebrow">Delivery</p>
-      <h2 class="h2">Live in <em>three weeks.</em></h2>
+      <h2 class="h2">Live in <em>one week.</em></h2>
       <p class="lead">You know exactly what happens and when. No open-ended "we're working on it" months.</p>
       <a class="cta cta--ghost" href="#book">Book My Audit Call</a>
     </div>
     <div class="tl">
-      <div class="tl__row"><span class="tl__wk">Week 1</span><h3 class="h3">Strategy &amp; build begins</h3><p class="lead lead--sm">Funnel strategy finalised against your inventory and market. Landing page and video production starts.</p></div>
-      <div class="tl__row"><span class="tl__wk">Week 2</span><h3 class="h3">Assets finalised</h3><p class="lead lead--sm">Landing page, video creatives and the automated messaging sequence completed and tested end to end.</p></div>
-      <div class="tl__row"><span class="tl__wk">Week 3</span><h3 class="h3">Funnel goes live</h3><p class="lead lead--sm">Meta ads launched. From this day your leads get an automated WhatsApp reply in under a minute, at any hour — which is the speed the deal usually turns on.</p></div>
-      <div class="tl__row"><span class="tl__wk">Week 4+</span><h3 class="h3">Optimise &amp; scale</h3><p class="lead lead--sm">Weekly reporting, funnel optimisation, and scaling spend on whatever is actually converting.</p></div>
+      <div class="tl__row"><span class="tl__wk">Days 1–2</span><h3 class="h3">Strategy locked</h3><p class="lead lead--sm">We agree the offer, the qualification criteria, and which project we're selling. Copy and creative direction signed off.</p></div>
+      <div class="tl__row"><span class="tl__wk">Days 3–5</span><h3 class="h3">Everything built</h3><p class="lead lead--sm">Landing page, video creative and the WhatsApp qualification sequence produced together, by one team, matched to each other.</p></div>
+      <div class="tl__row"><span class="tl__wk">Days 6–7</span><h3 class="h3">Tested and live</h3><p class="lead lead--sm">Meta ads launched. From this day your leads get an automated WhatsApp reply in under a minute, at any hour — which is the speed the deal usually turns on.</p></div>
+      <div class="tl__row"><span class="tl__wk">Week 2+</span><h3 class="h3">Optimise &amp; scale</h3><p class="lead lead--sm">Weekly reporting, funnel optimisation, and scaling on whatever is actually converting.</p></div>
     </div>
   </div>
 </section>
@@ -692,29 +651,6 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="card tile"><p class="tile__k">Channel partners</p><p>You carry a builder's inventory and you're competing with every other partner selling the same project. The funnel is your only differentiator.</p></div>
       <div class="card tile"><p class="tile__k">Small developers</p><p>You have one or two active projects and an in-house sales team waiting on leads that are actually in budget and in the right city.</p></div>
     </div>
-
-    <div class="price">
-      <div class="price__cell">
-        <p class="price__k">Setup, one-time</p>
-        <p class="price__v">₹20,000 – ₹50,000</p>
-        <p class="price__n">Landing page build, video production, WhatsApp automation</p>
-      </div>
-      <div class="price__cell">
-        <p class="price__k">Monthly retainer</p>
-        <p class="price__v">₹25,000 – ₹50,000</p>
-        <p class="price__n">Ad management, optimisation, weekly reporting</p>
-      </div>
-      <div class="price__cell">
-        <p class="price__k">Ad spend</p>
-        <p class="price__v">Yours, separate</p>
-        <p class="price__n">Paid by you directly to Meta. Never bundled into our fee.</p>
-      </div>
-    </div>
-    <p class="lead lead--sm dim" style="margin-top:1rem">Ranges, not quotes — where you land depends on how much production your funnel needs. The exact number is worked out on the call, not after you've signed.</p>
-
-    <div class="notice" style="margin-top:2.2rem;max-width:none">
-      <b>This is not for everyone.</b> If you have no ad budget, no active inventory, or you're looking for the cheapest possible vendor rather than a funnel that works — we're a bad fit, and the call will tell you that in the first ten minutes rather than after you've paid.
-    </div>
   </div>
 </section>
 
@@ -727,7 +663,6 @@ a{color:var(--gold);text-underline-offset:3px}
       <h2 class="h2">Aasim Ahmed<br><em>Founder, AdScade</em></h2>
       <p class="lead">The call is with me, not a sales team reading off a script. I'll be looking at your ad account, your current page and your follow-up — and telling you which of the three is actually costing you money.</p>
       <p class="lead">Part of that is unglamorous: whether your funnel makes you look as organised as you actually are. The broker who loses a serious buyer usually didn't lose on price. He lost because it took him two minutes to find the last message.</p>
-      <p class="lead dim">AdScade works only with real estate businesses. Every funnel we build is tailored to how property buyers in India actually search, compare, and decide — which is nothing like how buyers behave in any other category.</p>
       <blockquote class="founder__quote">"Most brokers don't have a lead problem. They have a leak — and nobody has ever shown them where it is."</blockquote>
     </div>
   </div>
@@ -739,8 +674,8 @@ a{color:var(--gold);text-underline-offset:3px}
     <div class="guarantee">
       <p class="eyebrow">Our guarantee</p>
       <h2 class="h2 h2--center" style="max-width:26ch">If the funnel isn't producing leads that match your criteria, <em>we keep working on it at no extra charge.</em></h2>
-      <p class="lead lead--center">Your funnel is live within three weeks. If it hasn't generated qualified leads within 30 days of launch, we continue optimising — creative, targeting, page, follow-up — at no additional cost until it does.</p>
-      <p class="guarantee__terms"><b>What that means, precisely.</b> A "qualified lead" is defined as a submission that meets the agreed budget, location and timeline criteria set in writing during onboarding. The commitment covers our optimisation work at no extra charge; it does not cover your ad spend, which stays payable directly to the platform. We don't promise a number of leads, because the honest answer is that it depends on your inventory, your price and your market — and anyone quoting you a number before seeing those is guessing. Results vary based on market conditions, ad budget, and property type.</p>
+      <p class="lead lead--center">Your funnel is live within one week. If it hasn't generated qualified leads within 30 days of launch, we continue optimising — creative, targeting, page, follow-up — at no additional cost until it does.</p>
+      <p class="guarantee__terms"><b>What that means, precisely.</b> A "qualified lead" is defined as a submission that meets the agreed budget, location and timeline criteria set in writing during onboarding. The commitment covers our optimisation work at no extra charge. Media costs are billed to you directly by the platform and sit outside it. We don't promise a number of leads, because the honest answer is that it depends on your inventory, your price and your market — and anyone quoting you a number before seeing those is guessing. Results vary based on market conditions, budget, and property type.</p>
     </div>
   </div>
 </section>
@@ -749,7 +684,7 @@ a{color:var(--gold);text-underline-offset:3px}
 <section class="band form-band" id="book">
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Book your call</p>
-    <h2 class="h2 h2--center" style="max-width:22ch">Six questions, then we <em>confirm your slot.</em></h2>
+    <h2 class="h2 h2--center" style="max-width:22ch">Six questions, then <em>pick your slot.</em></h2>
     <p class="lead lead--center">We ask these so the call starts with your numbers instead of twenty minutes of background. If you're not a fit, we'll say so on this page rather than waste your time.</p>
 
     <form class="card form" id="lead-form" novalidate>
@@ -876,16 +811,18 @@ a{color:var(--gold);text-underline-offset:3px}
         </div>
         <button class="cta cta--wide" type="submit">Book My Audit Call</button>
         <div class="errbox" id="submit-err">
-          <span class="err">That didn't send. Check your connection and try again.</span>
+          <span class="err">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span>
         </div>
-        <p class="cta-note">30 minutes, no obligation. We'll WhatsApp you two slots within one working day.</p>
+        <p class="cta-note">30 minutes, no obligation. You'll pick your time on the next screen.</p>
       </div>
 
       <!-- success -->
       <div class="done" id="done" role="status" aria-live="polite" tabindex="-1">
         <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3 class="h3">Request received.</h3>
-        <p class="lead lead--center">We'll message you on WhatsApp within one working day with two slots to choose from. Before the call, keep your ad account access handy — the audit is much more useful with real numbers on the screen.</p>
+        <h3 class="h3">Answers received. Now pick your time.</h3>
+        <p class="lead lead--center">Choose a slot that suits you — you'll get the confirmation immediately, no waiting on us.</p>
+        <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Pick My Slot →</a>
+        <p class="cta-note">Keep your ad account open during the call. The audit is far more useful with real numbers on the screen.</p>
       </div>
     </form>
   </div>
@@ -901,7 +838,7 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="faq__a" id="a1" hidden><p>Because there is real production work before a single rupee goes to ads — the landing page is built, the video is shot, the WhatsApp automation is configured, all specifically for your project. The setup fee covers those hours. It also means both sides are committed before we start spending your ad budget.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a2">How much does the whole thing cost?</button>
-      <div class="faq__a" id="a2" hidden><p>Setup is ₹20,000–₹50,000 depending on how much production the funnel needs, and the retainer runs ₹25,000–₹50,000 a month. Ad spend is separate and always paid directly by you to the platform — we never bundle it into our fee. Exact numbers for your project are worked out on the call.</p></div>
+      <div class="faq__a" id="a2" hidden><p>Pricing is worked out on the call. We don't publish a number because the honest one depends on how much production your funnel needs and what market you're selling in — and a figure quoted before we've seen either would be a guess. You'll have the exact number before you commit to anything.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a3">What exactly counts as a "qualified lead"?</button>
       <div class="faq__a" id="a3" hidden><p>A submission that meets the budget, location and timeline criteria you and we agree during onboarding. If you sell 2BHKs in Thane West between ₹80 lakh and ₹1.2 crore, a lead asking about plots in Nashik is not a qualified lead and does not count toward the guarantee.</p></div>
@@ -916,7 +853,7 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="faq__a" id="a6" hidden><p>A fair question, and the honest answer is that you should judge us on the reporting rather than the promise. From week four you get weekly numbers on how many leads came in, how many matched your criteria, how many booked a site visit, and what each of those cost. If the funnel isn't working, you'll see it in the report before you have to ask.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a7">How long until leads start coming in?</button>
-      <div class="faq__a" id="a7" hidden><p>The funnel goes live in week three. Leads begin flowing once ads are running, and the first two to three weeks after launch are an optimisation period while the campaigns find the right audience. Anyone promising you leads next week is guessing.</p></div>
+      <div class="faq__a" id="a7" hidden><p>The funnel goes live at the end of week one. Leads begin flowing once ads are running, and the first two to three weeks after launch are an optimisation period while the campaigns find the right audience. Anyone promising you a specific number of leads on day one is guessing.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a8">What happens on the call?</button>
       <div class="faq__a" id="a8" hidden><p>Thirty minutes, with Aasim. We look at what you're running now, work out where the drop-off is, and tell you what a fixed funnel would look like for your project and what it would cost. If we don't think we can help, we say so — that outcome is common and it is fine.</p></div>
@@ -939,8 +876,9 @@ a{color:var(--gold);text-underline-offset:3px}
       <div>
         <p class="foot__k">Contact</p>
         <ul class="foot__list">
-          <li><a href="mailto:hello@adscade.in">hello@adscade.in</a></li>
-          <li>Lucknow, Uttar Pradesh, India</li>
+          <li><a href="mailto:admin@adscade.com">admin@adscade.com</a></li>
+          <li><a href="tel:+917996112470">+91 79961 12470</a></li>
+          <li>Bengaluru, Karnataka, India</li>
         </ul>
       </div>
       <div>
@@ -952,7 +890,7 @@ a{color:var(--gold);text-underline-offset:3px}
       </div>
     </div>
     <p class="foot__legal">
-      Results vary based on market conditions, ad budget, and property type. Past performance with other clients does not guarantee identical results. The three-week build timeline and the optimisation commitment described on this page apply from the date of onboarding completion and are subject to timely provision of project details, ad account access and creative approvals by the client. AdScade is an independent marketing services provider and is not affiliated with, endorsed by, or acting on behalf of Meta Platforms, Google LLC, or any property portal.
+      Results vary based on market conditions, budget, and property type. Past performance with other clients does not guarantee identical results. The one-week build timeline and the optimisation commitment described on this page apply from the date of onboarding completion and are subject to timely provision of project details, ad account access and creative approvals by the client. AdScade is an independent marketing services provider and is not affiliated with, endorsed by, or acting on behalf of Meta Platforms, Google LLC, or any property portal.
       <br><br>© <span id="yr">2026</span> AdScade. All rights reserved.
     </p>
   </div>
