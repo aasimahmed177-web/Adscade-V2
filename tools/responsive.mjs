@@ -62,6 +62,29 @@ console.log(' ', t('no horizontal page overflow after calendar mounts',
   await p.evaluate(()=>document.documentElement.scrollWidth - document.documentElement.clientWidth <= 1)),
   '— no page overflow after calendar mounts');
 
+/* Calendly failure path — the visitor must never face an empty 900px box */
+const f = await (await b.newContext({viewport:{width:390,height:844}})).newPage();
+await f.route('**/assets.calendly.com/**', r => r.abort());
+await f.goto(URL); await f.waitForTimeout(400);
+await f.evaluate(()=>{ window.ADSCADE_ENDPOINT='/stub';
+  window.fetch = async () => ({ok:true, json: async()=>({ok:true})}); });
+const A=[['role','founder'],['inventory','100_plus'],['price_band','above_150'],
+        ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
+for (let i=0;i<A.length;i++){ await f.check(`input[name="${A[i][0]}"][value="${A[i][1]}"]`); await f.click(`[data-step="${i}"] [data-next]`); }
+await f.fill('#name','T'); await f.fill('#company','T'); await f.fill('#project_city','Indore');
+await f.fill('#email','t@t.in'); await f.fill('#phone','9876543210'); await f.check('#consent');
+await f.click('button[type=submit]'); await f.waitForTimeout(1400);
+const fb = await f.evaluate(()=>({
+  shown: document.getElementById('cal-fallback').classList.contains('on'),
+  box: Math.round(document.querySelector('.cal').getBoundingClientRect().height),
+  href: [...document.querySelectorAll('#cal-fallback a')].map(a=>a.href)[0] }));
+console.log('\n— Calendly failure path —');
+console.log(' ', t('fallback surfaces when the embed is blocked', fb.shown), '— fallback surfaces when the embed is blocked');
+console.log(' ', t('reserved space collapses', fb.box === 0), '— reserved space collapses');
+console.log(' ', t('fallback points at the event URL',
+  fb.href === 'https://calendly.com/aasim-ahmed177/realestate-growth-systems'),
+  '— fallback points at the event URL');
+
 await b.close();
 console.log(fails ? `\n${fails} FAILED\n` : '\nall passed\n');
 process.exit(fails ? 1 : 0);

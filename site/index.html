@@ -373,6 +373,11 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   border:var(--hair);border-radius:14px;overflow:hidden;background:var(--elev);
 }
 .cal iframe{width:100%!important;min-height:680px;border:0;display:block}
+/* Collapse the reserved space if the widget never arrives. Two classes so this
+   beats the 900px mobile min-height that is declared later in the sheet. */
+.cal.cal--failed{min-height:0;height:0;border:0;margin:0;overflow:hidden}
+.cal-fallback{display:none;margin:1.4rem 0 .4rem}
+.cal-fallback.on{display:block}
 @media(max-width:560px){.cal,.cal iframe{min-height:900px}}
 .done__tick{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;margin:0 auto 1.3rem}
 .done__tick svg{width:26px;height:26px}
@@ -876,9 +881,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <h3 class="h3">You appear to be a fit. Choose a time.</h3>
         <p class="lead lead--center">Select an available slot to discuss your project, current funnel and sales process.</p>
         <div id="calendly-mount" class="cal"></div>
-        <p class="cta-note">Calendar not loading?
-          <a href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Open it in a new tab</a>,
-          or <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
+        <div class="cal-fallback" id="cal-fallback">
+          <p class="lead lead--center lead--sm">The booking calendar could not load in this browser.</p>
+          <a class="cta" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Open the calendar in a new tab</a>
+        </div>
+        <p class="cta-note">Prefer to message instead?
+          <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
       </div>
 
       <!-- outcome: manual review -->
@@ -1269,6 +1277,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 
   /* ── Calendly, loaded only after a qualified lead is stored ──────── */
   var CALENDLY_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
+  function failCalendar(){
+    var mount = document.getElementById('calendly-mount');
+    var note  = document.getElementById('cal-fallback');
+    if (mount) { mount.classList.add('cal--failed'); }
+    if (note)  { note.classList.add('on'); }
+  }
+
   function mountCalendly(name, email){
     var mount = document.getElementById('calendly-mount');
     if (!mount || mount.dataset.mounted) return;
@@ -1286,7 +1301,16 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     js.onload = function(){
       if (window.Calendly) window.Calendly.initInlineWidget({url: url, parentElement: mount});
     };
+    js.onerror = failCalendar;
     document.head.appendChild(js);
+
+    // If the widget has not rendered an iframe within 8s — blocked script, offline,
+    // corporate firewall — collapse the reserved 900px box and surface the direct
+    // link instead of leaving the visitor staring at an empty panel.
+    setTimeout(function(){
+      if (!mount.querySelector('iframe')) failCalendar();
+    }, 8000);
+
     track('calendar_view', null, true);
   }
 
