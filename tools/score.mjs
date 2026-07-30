@@ -95,7 +95,11 @@ category('Message match & congruency', 150);
   // enforces is whatever the ad end cards say, and the client is changing what they say.
   // CONSEQUENCE: all five YouTube end cards currently read "Book My Free Audit Call" and
   // must be re-cut to match, or Demand Gen will disapprove on ad↔page mismatch.
-  const AD_CTA = 'Book My Audit Call';
+  // CHANGED 30 Jul 2026 (3rd revision, client brief). The end cards must be re-cut to
+  // THIS string — they currently read "Book My Free Audit Call".
+  const AD_CTA = 'Check Fit & Pick a Time';
+  // The brief permits exactly two purpose-specific variants. Anything else is drift.
+  const CTA_ALLOWED = [AD_CTA, 'See Available Times', 'Book a Fit Call'];
 
   const h1 = norm(await page.evaluate(() => document.querySelector('h1')?.innerText || ''));
   check('H1 matches ad headline exactly', 30,
@@ -105,11 +109,12 @@ category('Message match & congruency', 150);
 
   const ctaTexts = await page.$$eval('.cta', els => els.map(e => e.innerText.replace(/\s+/g, ' ').trim()));
   const primary = ctaTexts.filter(t => !/^(continue|back|sending)/i.test(t));
-  const offBrand = primary.filter(t => lc(t) !== lc(AD_CTA));
+  const allowedLc = CTA_ALLOWED.map(lc);
+  const offBrand = primary.filter(t => !allowedLc.includes(lc(t)));
   check('No competing primary CTA copy', 20, offBrand.length === 0, offBrand.join(' | '));
 
-  check('CTA repeated 3+ times', 15,
-    primary.filter(t => lc(t) === lc(AD_CTA)).length >= 3, `${primary.length} primary CTAs`);
+  check('Primary CTA repeated 3+ times', 15,
+    primary.filter(t => lc(t) === lc(AD_CTA)).length >= 3, `${primary.length} CTAs`);
 
   // CHANGED 30 Jul 2026. These were the five broker-era scripts. The ad set was rewritten
   // for the developer ICP (docs/ad-scripts-v2.md), so the harness now enforces congruency
@@ -286,13 +291,17 @@ category('Visual design & typography', 150);
     const p = parseRGB(rgb);
     return p ? '#' + p.slice(0, 3).map(x => Math.round(x).toString(16).padStart(2, '0')).join('').toUpperCase() : '';
   };
-  const palette = ['#05100A', '#0F0D08', '#1A3322', '#EAE0C8', '#E0B865', '#C9A04A', '#D25242'];
+  // CHANGED 30 Jul 2026: replaced by the Adscade brand palette (client brief Part 1).
+  // Red is deliberately NOT in this list any more — it is an error state, not a brand colour.
+  const palette = ['#03140D', '#0A1D14', '#163A28', '#171209', '#E2B95B', '#F3E8D2', '#B5AA96'];
   const seen = new Set(used.colors.map(hexOf));
   const missingPal = palette.filter(p => !seen.has(p));
   check('Reference palette in use', 49, (palette.length - missingPal.length) * 7, missingPal.join(' '));
 
-  for (const f of ['Instrument Serif', 'Inter Tight', 'Fraunces']) {
-    check(`Typeface in use: ${f}`, 10, used.fams.includes(f));
+  // CHANGED 30 Jul 2026: the brief caps the system at two families. Fraunces is gone —
+  // it was 35 KB for a single pull-quote. Same 30 points, split across two.
+  for (const f of ['Instrument Serif', 'Inter Tight']) {
+    check(`Typeface in use: ${f}`, 15, used.fams.includes(f));
   }
 
   check('Type scale has 5+ steps', 20,
@@ -302,7 +311,10 @@ category('Visual design & typography', 150);
   check('Signature leak diagram, 4 stages', 25,
     stages.length >= 4 ? 25 : stages.length * 6, `${stages.length} stages`);
 
-  const tracked = used.ls.filter(x => x >= 0.1).length;
+  // 0.0999 not 0.1: letter-spacing:.1em on a 14px font computes to 1.4px, and 1.4/14
+  // is 0.09999999999999999 in binary floating point. An element set to exactly the
+  // design rule must not fail the check that enforces it.
+  const tracked = used.ls.filter(x => x >= 0.0999).length;
   check('Uppercase type is tracked out', 13, used.ls.length ? tracked / used.ls.length >= 0.8 : false,
     `${tracked}/${used.ls.length}`);
 

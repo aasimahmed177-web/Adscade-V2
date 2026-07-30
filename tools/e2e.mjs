@@ -44,6 +44,22 @@ await p.click('button[type=submit]');
 await p.waitForTimeout(700);
 t('completed form submits', await p.isVisible('#done.on'));
 t('scheduler appears only after submit', await p.isVisible('.book-slot'));
+t('primary CTA string is consistent',
+  await p.evaluate(() => {
+    const allowed = ['CHECK FIT & PICK A TIME','SEE AVAILABLE TIMES','BOOK A FIT CALL','CONTINUE','BACK','SENDING…'];
+    return [...document.querySelectorAll('.cta')]
+      .every(e => allowed.includes(e.innerText.trim().toUpperCase()));
+  }));
+t('no decorative red remains',
+  await p.evaluate(() => {
+    const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('');
+    // red may only appear on error/disqualify states
+    const decorative = /rgba\(210,\s*82,\s*66[^)]*\)/g;
+    const hits = (css.match(decorative) || []);
+    const errCtx = css.split('\n').filter(l => /210,\s*82,\s*66/.test(l))
+      .every(l => /--error|\.notice|\.dq|invalid/.test(l));
+    return hits.length === 0 || errCtx;
+  }));
 t('scheduler points at the real calendly link',
   (await p.getAttribute('.book-slot', 'href')) === 'https://calendly.com/aasim-ahmed177/realestate-growth-systems');
 t('payload reached submitLead', logs.some(l => l.includes('lead captured')));
@@ -113,7 +129,7 @@ await pick('lead_source','portals'); await next(4);
 await pick('cpql','rough'); await next(5);
 t('contact step has a Back button', await p.isVisible('[data-step="6"] [data-back]'));
 t('contact note promises a slot for a qualified lead',
-  (await p.textContent('#contact-note')).includes('pick your time'));
+  (await p.textContent('#contact-note')).includes('choose an available slot'));
 await p.click('[data-step="6"] [data-back]');
 t('Back from contact returns to question 6', await p.isVisible('[data-step="5"].on'));
 
@@ -194,14 +210,18 @@ const tapTargets = await m.evaluate(() => {
 });
 t(`tap targets >=44px (${tapTargets.slice(0,3).join(' ') || 'all ok'})`, tapTargets.length === 0);
 
-const cmpSideBySide = await m.evaluate(() => {
-  const cells = [...document.querySelectorAll('.cmp__cell')];
-  const old = cells[0].getBoundingClientRect(), nu = cells[1].getBoundingClientRect();
-  return nu.left > old.right - 2 && Math.abs(nu.top - old.top) < 2;
+// Brief Part 6 supersedes the earlier side-by-side request: below 760px the table
+// becomes two stacked cards, because a shrunk two-column table gives ~10 chars a line.
+const cmpStacked = await m.evaluate(() => {
+  const cols = [...document.querySelectorAll('.cmp__col')];
+  if (cols.length !== 2) return false;
+  const a = cols[0].getBoundingClientRect(), b = cols[1].getBoundingClientRect();
+  return b.top >= a.bottom - 2;
 });
-t('comparison stays side-by-side on mobile', cmpSideBySide);
-t('comparison headers visible on mobile',
-  await m.evaluate(() => getComputedStyle(document.querySelector('.cmp__head')).display !== 'none'));
+t('comparison stacks into two cards on mobile', cmpStacked);
+t('both comparison headers visible on mobile',
+  await m.evaluate(() => [...document.querySelectorAll('.cmp__head')]
+    .every(h => getComputedStyle(h).display !== 'none')));
 
 await m.evaluate(() => {
   document.documentElement.style.scrollBehavior = 'auto';

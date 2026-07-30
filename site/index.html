@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stop Losing Money on Scattered Real Estate Marketing — AdScade</title>
-<meta name="description" content="AdScade builds and runs the entire buyer lead funnel for Indian real estate developers — landing page, video, Meta ads and automated WhatsApp qualification. Book an audit call.">
+<title>Stop Losing Money on Scattered Real Estate Marketing — Adscade</title>
+<meta name="description" content="Adscade builds and runs the entire buyer lead funnel for Indian real estate developers — landing page, video, Meta ads and automated WhatsApp qualification. Book an audit call.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://adscade.com/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — AdScade">
+<meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — Adscade">
 <meta property="og:description" content="One team builds and owns your entire buyer funnel — so the leads that reach you already have their budget, location and timeline on record.">
 <meta property="og:image" content="https://adscade.com/assets/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -18,33 +18,52 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#05100A">
 <link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preload" as="image" href="assets/adscade-mark.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ─── tokens ─────────────────────────────────────────────────────────── */
 :root{
-  --ink:#05100A; --ink-warm:#0F0D08; --forest:#1A3322;
-  --cream:#EAE0C8; --cream-dim:#A9A290;
-  --gold:#E0B865; --gold-deep:#C9A04A;
-  /* clay is a *surface* colour — as text on our dark grounds it sits at 3.3:1.
-     --clay-text is the same hue lifted until it clears AA everywhere (min 6.5:1). */
-  --clay:#D25242; --clay-text:#E8A395; --leak:#D98A76;
-  --hair:1px solid rgba(201,160,74,.22);
-  --t-micro:.66rem; --t-label:.72rem; --t-small:.84rem;
-  --t-body:1rem; --t-lead:1.18rem; --t-h5:1.22rem; --t-h4:1.32rem; --t-h3:1.6rem;
-  --t-h2:clamp(2rem,4.5vw,3.2rem); --t-h1:clamp(2.15rem,6.2vw,5.4rem);
+  /* ─── Adscade brand tokens — canonical. See docs/ADSCADE_BRAND_GUIDELINES.md ─── */
+  --adscade-bg:#03140D;            /* deep forest — page ground */
+  --adscade-bg-elevated:#0A1D14;   /* raised surfaces: video frame, report card */
+  --adscade-panel-green:#163A28;   /* functional surfaces: cards, form */
+  --adscade-panel-dark:#171209;    /* editorial surfaces: comparison, explanatory bands */
+  --adscade-gold:#E2B95B;
+  --adscade-gold-hover:#F0C96B;
+  --adscade-cream:#F3E8D2;         /* headlines */
+  --adscade-text:#EEE5D5;          /* body copy */
+  --adscade-muted:#B5AA96;         /* secondary copy, labels */
+  --adscade-border:rgba(226,185,91,.22);
+  --adscade-border-strong:rgba(226,185,91,.42);
+
+  /* short aliases so existing components keep working unchanged */
+  --ink:var(--adscade-bg); --ink-warm:var(--adscade-panel-dark);
+  --forest:var(--adscade-panel-green); --elev:var(--adscade-bg-elevated);
+  --cream:var(--adscade-cream); --text:var(--adscade-text); --cream-dim:var(--adscade-muted);
+  --gold:var(--adscade-gold); --gold-deep:var(--adscade-gold-hover);
+  --hair:1px solid var(--adscade-border);
+
+  /* red is an ERROR colour only — never decorative. Lifted for AA as text. */
+  --error:#D25242; --error-text:#E8A395; --leak:#D98A76;
+
+  /* ─── type scale ─── */
+  --t-micro:.75rem; --t-label:.75rem; --t-small:1rem;
+  --t-body:1.0625rem; --t-lead:1.1875rem;
+  --t-h5:1.25rem; --t-h4:1.375rem; --t-h3:1.625rem;
+  --t-h2:clamp(2.125rem,4vw,3.375rem);   /* 34 → 54px */
+  --t-h1:clamp(3.25rem,5vw,4.75rem);     /* 52 → 76px */
   --col:min(1120px,92vw);
-  --pad:clamp(4.5rem,9vw,7.5rem);
+  --pad:clamp(3.5rem,7vw,7rem);
   --serif:"Instrument Serif",Georgia,serif;
   --sans:"Inter Tight",system-ui,-apple-system,sans-serif;
-  --accent-serif:"Fraunces",Georgia,serif;
 }
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
-  margin:0;background:var(--ink);color:var(--cream);
-  font-family:var(--sans);font-size:var(--t-body);line-height:1.62;
+  margin:0;background:var(--ink);color:var(--text);
+  font-family:var(--sans);font-size:var(--t-body);line-height:1.6;
   overflow-x:hidden;
 }
 img{max-width:100%;display:block}
@@ -108,14 +127,15 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   border-bottom:var(--hair);padding-block:.9rem;
   display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
 }
-.brandbar__id{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--cream);min-height:44px}
-.brandbar__mark{width:auto;height:34px}
-.brandbar__name{font-family:var(--serif);font-size:1.35rem;letter-spacing:.02em;margin:0}
-.brandbar__tag{
-  font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--cream-dim);margin:0;
+.brandbar__id{display:flex;align-items:center;gap:.55rem;color:var(--cream)}
+.brandbar__mark{width:auto;height:32px}
+.brandbar__name{font-family:var(--serif);font-size:1.3rem;letter-spacing:.02em;margin:0}
+.brandbar__fit{
+  font-size:var(--t-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);text-decoration:none;border:1px solid var(--adscade-border-strong);
+  border-radius:999px;padding:.7rem 1.15rem;min-height:48px;display:inline-flex;align-items:center;
 }
-.brandbar__tag b{color:var(--gold);font-weight:700}
+.brandbar__fit:hover{background:rgba(226,185,91,.1)}
 
 /* ─── hero ───────────────────────────────────────────────────────────── */
 .hero{padding-block:clamp(2rem,5vw,4rem) var(--pad);text-align:center;position:relative}
@@ -138,7 +158,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   line-height:1.02;letter-spacing:-.02em;margin:0 auto 1.1rem;max-width:16ch;
 }
 .hero__title .u{
-  background:linear-gradient(transparent 72%,rgba(210,82,66,.85) 72%,rgba(210,82,66,.85) 88%,transparent 88%);
+  background:linear-gradient(transparent 74%,var(--adscade-border-strong) 74%,var(--adscade-border-strong) 86%,transparent 86%);
 }
 .hero__title em{font-style:italic;color:var(--gold)}
 .hero__sub{
@@ -146,12 +166,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   max-width:62ch;margin:0 auto 1.6rem;
 }
 .hero__sub b{color:var(--cream);font-weight:600}
+/* informational qualifier, not an error — red is reserved for genuine error states */
 .notice{
-  border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.09);
+  border:1px solid var(--adscade-border);background:rgba(226,185,91,.05);
   border-radius:10px;padding:1rem 1.3rem;max-width:64ch;margin:0 auto;
-  font-size:var(--t-small);color:rgba(234,224,200,.88);text-align:left;
+  font-size:var(--t-small);line-height:1.55;color:var(--text);text-align:left;
 }
-.notice b{color:var(--clay-text)}
+.notice b{color:var(--gold)}
 
 /* ─── VSL + booking rail ─────────────────────────────────────────────── */
 .stage{
@@ -159,7 +180,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   align-items:start;margin-bottom:1.8rem;text-align:left;
 }
 .vsl{overflow:hidden;position:relative}
-.vsl__frame{aspect-ratio:16/9;position:relative;display:grid;place-items:center;background:var(--ink-warm)}
+.vsl__frame{aspect-ratio:16/9;position:relative;display:grid;place-items:center;background:var(--elev)}
 .vsl__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 /* the poster is atmosphere, not content — this keeps it from competing with the label */
 .vsl__frame::after{
@@ -186,7 +207,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .vsl__agenda ol{margin:0;padding-left:1.1rem;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.88)}
 .vsl__agenda li{margin-bottom:.45rem}
 
-.rail{padding:1.5rem}
+.rail{padding:clamp(1.25rem,3vw,2rem)}
 .rail__k{font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 1rem}
 .rail__list{list-style:none;margin:0 0 1.4rem;padding:0;display:grid;gap:.85rem}
 .rail__list li{display:flex;gap:.7rem;font-size:var(--t-small);line-height:1.45;color:rgba(234,224,200,.9)}
@@ -226,7 +247,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   border-right:2px solid var(--gold-deep);
 }
 .leak__stage:nth-child(4) .leak__bar{background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-right:none}
-.leak__drip{display:block;margin-top:.45rem;font-family:var(--serif);font-size:.95rem;color:var(--leak)}
+.leak__drip{display:block;margin-top:.45rem;font-family:var(--serif);font-size:1.0625rem;color:var(--leak)}
 .leak__stage:nth-child(4) .leak__drip{color:var(--gold)}
 .deliv{list-style:none;margin:1.2rem 0 0;padding:0;display:grid;gap:.7rem}
 .deliv li{
@@ -250,8 +271,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .pains b{color:var(--cream);font-weight:600}
 .leak__cap{
   font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--cream-dim);margin:1.4rem 0 0;border-top:var(--hair);padding-top:1rem;
+  color:var(--gold);margin:1.4rem 0 .5rem;border-top:var(--hair);padding-top:1rem;
 }
+.leak__note{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0}
 
 
 /* comparison — pairs stay together so mobile can label them */
@@ -260,41 +282,43 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   padding:1.1rem 1.4rem;font-size:var(--t-label);font-weight:800;
   letter-spacing:.14em;text-transform:uppercase;
 }
-.cmp__head--old{background:rgba(142,59,46,.28);color:var(--clay-text)}
+.cmp__head--old{background:rgba(142,59,46,.28);color:var(--error-text)}
 .cmp__head--new{background:rgba(224,184,101,.16);color:var(--gold)}
 .cmp__grid{display:grid;grid-template-columns:1fr 1fr}
-.cmp__pair{display:contents}
-.cmp__cell{padding:1.1rem 1.4rem;border-top:var(--hair);font-size:var(--t-small);line-height:1.5}
-.cmp__cell--old{color:var(--cream-dim);background:rgba(142,59,46,.09)}
+.cmp__col{display:flex;flex-direction:column}
+.cmp__cell{padding:1rem 1.3rem;border-top:var(--hair);font-size:var(--t-small);line-height:1.5;margin:0;flex:1}
+.cmp__cell--old{color:var(--cream-dim)}
+.cmp__cell--new{color:var(--text)}
 .cmp__cell--new,.cmp__head--new{border-left:var(--hair)}
+.cmp__head{margin:0}
 
 /* sample report — the proof artefact */
-.report{max-width:720px;margin-inline:auto;padding:1.6rem}
+.report{max-width:720px;margin-inline:auto;padding:clamp(1.4rem,3vw,2.2rem);background:var(--elev)}
 .report__head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;border-bottom:var(--hair);padding-bottom:.9rem;margin-bottom:1.1rem}
 .report__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0}
 .report__wk{font-size:var(--t-micro);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-dim);margin:0}
 .report__rows{display:grid;gap:.55rem;margin:0 0 1.1rem}
-.report__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:.7rem .9rem;border:var(--hair);border-radius:4px}
-.report__row span{font-size:var(--t-small);color:rgba(234,224,200,.88)}
-.report__row b{font-family:var(--serif);font-size:var(--t-h5);color:var(--gold);font-weight:400;white-space:nowrap}
-.report__foot{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
+.report__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:.85rem 1.1rem;border:var(--hair);border-radius:4px}
+.report__row span{font-size:var(--t-body);color:var(--text)}
+.report__row b{font-family:var(--serif);font-size:var(--t-h4);color:var(--gold);font-weight:400;white-space:nowrap}
+.report__foot{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
 
 
 /* founder — its own band, deliberately away from the video */
 .founder{display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(1.8rem,5vw,3.5rem);align-items:center}
 .founder__img{border-radius:14px;border:1px solid rgba(201,160,74,.3);aspect-ratio:4/5;object-fit:cover;object-position:center 18%;width:100%;height:auto}
 .founder__quote{
-  font-family:var(--accent-serif);font-size:var(--t-h4);line-height:1.45;
+  font-family:var(--serif);font-style:italic;font-size:var(--t-h3);line-height:1.4;
   color:var(--cream);border-left:2px solid var(--gold-deep);padding-left:1.3rem;margin:1.6rem 0 0;
 }
 
 /* guarantee */
-.guarantee{border:1px solid var(--gold-deep);border-radius:14px;padding:clamp(1.6rem,4vw,3rem);background:rgba(224,184,101,.06);text-align:center}
-.guarantee__terms{font-size:var(--t-small);color:var(--cream-dim);max-width:62ch;margin:1.4rem auto 0;border-top:var(--hair);padding-top:1.2rem;text-align:left}
+.guarantee{border:1px solid var(--adscade-border-strong);border-radius:14px;padding:clamp(1.4rem,3vw,2.4rem);background:rgba(226,185,91,.05);text-align:center}
+.guarantee__terms{font-size:var(--t-small);line-height:1.55;color:var(--cream-dim);max-width:66ch;margin:1.2rem auto 0;border-top:var(--hair);padding-top:1rem;text-align:left}
 
 /* ─── form ───────────────────────────────────────────────────────────── */
 .form-band{background:var(--ink-warm)}
-.form{max-width:660px;margin-inline:auto;padding:clamp(1.4rem,4vw,2.6rem)}
+.form{max-width:660px;margin-inline:auto;padding:clamp(1.25rem,3.5vw,2.5rem)}
 .form__prog{display:flex;gap:.4rem;margin-bottom:1.6rem}
 .form__prog i{flex:1;height:3px;background:rgba(201,160,74,.2);border-radius:2px;transition:background .3s ease}
 .form__prog i.on{background:var(--gold)}
@@ -322,9 +346,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 }
 .field input::placeholder{color:rgba(169,162,144,.7)}
 .field input:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(224,184,101,.16)}
-.err{display:none;color:var(--clay-text);font-size:var(--t-small);margin-top:.4rem;letter-spacing:0;text-transform:none;font-weight:400}
+.err{display:none;color:var(--error-text);font-size:var(--t-small);margin-top:.4rem;letter-spacing:0;text-transform:none;font-weight:400}
 .field.invalid .err,.errbox.invalid .err{display:block}
-.field.invalid input{border-color:var(--clay)}
+.field.invalid input{border-color:var(--error)}
 .consent{display:flex;gap:.75rem;align-items:flex-start;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.86);margin:1.3rem 0}
 .consent input{accent-color:var(--gold);width:20px;height:20px;flex:none;margin-top:.15rem}
 .nav{display:flex;gap:.5rem;align-items:center;margin-top:.5rem;flex-wrap:wrap}
@@ -351,11 +375,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 /* disqualification lives inside the step that triggered it — never trailing the submit button */
 .dq{display:none;border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.09);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.3rem;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.88)}
 .dq.on{display:block}
-.dq b{color:var(--clay-text)}
+.dq b{color:var(--error-text)}
 .alt-exit{
-  display:inline-block;margin-top:.9rem;background:none;border:1px solid var(--gold-deep);
+  display:inline-flex;align-items:center;margin-top:.9rem;background:none;
+  border:1px solid var(--adscade-border-strong);
   color:var(--gold);font-family:var(--sans);font-size:var(--t-small);font-weight:700;
-  padding:.8rem 1.2rem;border-radius:999px;cursor:pointer;min-height:48px;
+  padding:.85rem 1.3rem;border-radius:999px;cursor:pointer;min-height:48px;
 }
 .alt-exit:hover{background:rgba(224,184,101,.1)}
 
@@ -392,26 +417,37 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   transition:transform .25s ease;
 }
 .dock.hide{transform:translateY(110%)}
+.dock{display:none;align-items:center;gap:.6rem}
+.dock__x{
+  background:none;border:1px solid var(--adscade-border);color:var(--cream-dim);
+  width:48px;height:48px;flex:none;border-radius:999px;cursor:pointer;font-size:1.1rem;line-height:1;
+}
+.dock__x:hover{color:var(--cream)}
 
 /* ─── responsive ─────────────────────────────────────────────────────── */
 @media(max-width:900px){
-  /* the reading sizes carry almost all the prose — lift them on the device that
-     carries almost all the traffic */
-  :root{--t-small:.94rem;--t-micro:.72rem;--t-lead:1.1rem}
+  /* mobile carries ~99% of traffic. Headline drops to the mobile clamp; body stays
+     at 16px minimum so iOS never zooms a form field. */
+  :root{
+    --t-h1:clamp(2.4375rem,11vw,3.25rem);   /* 39 → 52px */
+    --t-body:1rem; --t-lead:1.0625rem; --t-small:1rem; --t-micro:.75rem;
+  }
   .stage,.leak,.founder,.foot__top{grid-template-columns:1fr}
   .founder__img{max-width:260px}
   .founder{gap:1.6rem}
 }
 @media(max-width:560px){
-  :root{--pad:3rem}
+  :root{--pad:3.5rem}
   .grid{gap:.8rem}
-  .dock{display:block}
+  .dock{display:flex}
   body{padding-bottom:calc(5.5rem + env(safe-area-inset-bottom))}
   .hero{padding-top:1.4rem}
-  /* the comparison stays side-by-side on a phone — that is the whole point of it —
-     so the type tightens and the copy is written short enough to survive the column */
-  .cmp__cell{padding:.85rem .65rem;font-size:.88rem;line-height:1.4}
-  .cmp__head{padding:.8rem .65rem;font-size:.62rem;letter-spacing:.08em}
+  /* Below 760px the two-column table becomes two stacked cards. A shrunk desktop table
+     forces ~10 characters per line, which is not a comparison anyone reads. */
+  .cmp__grid{grid-template-columns:1fr}
+  .cmp__col{border-top:var(--hair)}
+  .cmp__col:first-child{border-top:none}
+  .cmp__cell--new,.cmp__head--new{border-left:none}
   .trust{gap:.5rem 1.2rem}
 }
 @media(prefers-reduced-motion:reduce){
@@ -424,20 +460,20 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <!-- ═══ brand bar ════════════════════════════════════════════════════ -->
 <div class="wrap">
   <div class="brandbar">
-    <a class="brandbar__id" href="#book" aria-label="AdScade — book an audit call">
-      <img class="brandbar__mark" src="assets/adscade-mark.png" alt="" width="146" height="132">
-      <span class="brandbar__name">AdScade</span>
-    </a>
-    <p class="brandbar__tag">We work only with <b>real estate developers</b></p>
+    <span class="brandbar__id">
+      <img class="brandbar__mark" src="assets/adscade-mark.png" alt="Adscade" width="146" height="132" fetchpriority="high" decoding="async">
+      <span class="brandbar__name">Adscade</span>
+    </span>
+    <a class="brandbar__fit" href="#book">Check fit</a>
   </div>
 </div>
 
 <!-- ═══ hero ═════════════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="wrap">
-    <p class="hero__kicker">For developers with unsold inventory in a live project</p>
+    <p class="hero__kicker">Real Estate Acquisition Systems</p>
     <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
-    <p class="hero__sub">We build and manage your entire buyer funnel — <b>landing page, video, Meta ads, and automated qualification</b> — so your sales team gets site visits from people whose budget, location and timeline are already on record.</p>
+    <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and conversion tracking into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified sales conversations.</p>
 
     <!-- VSL + booking rail -->
     <div class="stage">
@@ -463,18 +499,17 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       </div>
 
       <aside class="card rail">
-        <p class="rail__k">What the audit call covers</p>
+        <p class="rail__k">See whether your funnel is a fit</p>
         <ul class="rail__list">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Where your current funnel is leaking, stage by stage</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>What a site visit should cost you in your micro-market — and what your unsold units are costing you in the meantime</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Whether your remaining inventory and ad budget can support a funnel at all</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Exactly what we'd build, and what it would cost</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Current ad and funnel structure</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Lead qualification and leakage</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Follow-up and tracking gaps</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Practical next steps</li>
         </ul>
-        <a class="cta cta--wide" href="#book">Book My Audit Call</a>
-        <p class="cta-note">30 minutes on WhatsApp or Google Meet. No slides, no sales pitch — we open your ad account and work through the numbers together.</p>
+        <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
+        <p class="cta-note">Six questions, then choose an available slot.</p>
         <div class="rail__meta">
-          <span>Straight with <b>Aasim Ahmed</b>, not a sales rep</span>
-          <span>One founder-led team — <b>we don't subcontract</b></span>
+          <span>30 minutes, direct with <b>Aasim Ahmed</b></span>
         </div>
       </aside>
     </div>
@@ -499,13 +534,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     <div>
       <p class="eyebrow">The leak</p>
       <h2 class="h2">You are not short of enquiries.<br>You are <em>losing them in transit.</em></h2>
-      <p class="lead">Every stage below is a place your money quietly goes missing — and none of it shows up in your ad account, which only ever reports the click. We rebuild all four as one system and report on each of them weekly.</p>
+      <p class="lead">Every stage is a place your money quietly goes missing — and none of it reaches your ad account, which only ever reports the click. We rebuild all four as one system and report on each of them weekly.</p>
       <ul class="pains">
-        <li>An enquiry lands at <b>night</b>. Nobody has <b>replied</b> by the time he opens his laptop again in the morning.</li>
-        <li>You lose the booking to a <b>faster</b> project, not a better one — same budget, same locality, quicker follow-up.</li>
-        <li><b>Channel partners</b> lead with whichever project pays best this month. When yours isn't it, the pipeline stops.</li>
-        <li>The <b>tail</b> — odd floors, odd facings — stops moving once the launch push is over.</li>
-        <li>And every <b>unsold</b> unit keeps accruing <b>interest</b> the whole time, whether anyone is selling or not.</li>
+        <li>An enquiry lands at <b>night</b>; nobody has <b>replied</b> before he has seen a <b>faster</b> project.</li>
+        <li><b>Channel partners</b> lead with whichever project pays best that month.</li>
+        <li>The <b>tail</b> — odd floors, odd facings — stops moving once the launch push ends.</li>
+        <li>Every <b>unsold</b> unit keeps accruing <b>interest</b> throughout.</li>
       </ul>
     </div>
     <div class="leak__fig">
@@ -529,7 +563,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <div class="leak__track"><i class="leak__bar" style="width:4%"></i></div>
         <span class="leak__drip">96 of every 100 gone before anyone stood on site</span>
       </div>
-      <p class="leak__cap">Illustrative funnel shape · your real numbers come out of the audit</p>
+      <p class="leak__cap">Illustrative funnel</p>
+      <p class="leak__note">Example shown for illustration. Actual conversion rates vary by market, offer, budget, follow-up and sales process.</p>
     </div>
   </div>
 </section>
@@ -538,47 +573,37 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <section class="band band--warm">
   <div class="wrap">
     <p class="eyebrow">The difference</p>
-    <h2 class="h2">Same ad budget. <em>Completely different</em> machine behind it.</h2>
-    <div class="cmp" style="margin-top:2.2rem">
+    <h2 class="h2">Same ad budget. <em>Completely different</em> system behind it.</h2>
+    <div class="cmp" style="margin-top:2rem">
       <div class="cmp__grid">
-        <div class="cmp__head cmp__head--old">Scattered approach</div>
-        <div class="cmp__head cmp__head--new">Complete Buyer Funnel System</div>
-
-        <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old">Three freelancers, no shared plan</div>
-          <div class="cmp__cell cmp__cell--new">One team owns the whole funnel</div>
+        <div class="cmp__col">
+          <p class="cmp__head cmp__head--old">Scattered marketing</p>
+          <p class="cmp__cell cmp__cell--old">Ads managed in isolation from the funnel</p>
+          <p class="cmp__cell cmp__cell--old">Every enquiry treated the same</p>
+          <p class="cmp__cell cmp__cell--old">Follow-up disconnected from the campaign</p>
+          <p class="cmp__cell cmp__cell--old">No idea which stage is leaking</p>
+          <p class="cmp__cell cmp__cell--old">Demand rented from broker networks</p>
+          <p class="cmp__cell cmp__cell--old">Optimised on clicks</p>
         </div>
-        <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old">Every lead treated the same</div>
-          <div class="cmp__cell cmp__cell--new">Qualifying questions filter serious buyers</div>
-        </div>
-        <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old">No follow-up after the click</div>
-          <div class="cmp__cell cmp__cell--new">Automated WhatsApp sequence follows up</div>
-        </div>
-        <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old">No idea where the funnel leaks</div>
-          <div class="cmp__cell cmp__cell--new">Weekly drop-off, stage by stage</div>
-        </div>
-        <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old">Demand rented from broker networks</div>
-          <div class="cmp__cell cmp__cell--new">Demand you own, feeding the same team</div>
-        </div>
-        <div class="cmp__pair">
-          <div class="cmp__cell cmp__cell--old">You count clicks</div>
-          <div class="cmp__cell cmp__cell--new">You count site visits, and what each cost</div>
+        <div class="cmp__col">
+          <p class="cmp__head cmp__head--new">The Adscade system</p>
+          <p class="cmp__cell cmp__cell--new">Ads and funnel planned together</p>
+          <p class="cmp__cell cmp__cell--new">Qualification built into the journey</p>
+          <p class="cmp__cell cmp__cell--new">Follow-up connected to the campaign</p>
+          <p class="cmp__cell cmp__cell--new">Weekly drop-off, stage by stage</p>
+          <p class="cmp__cell cmp__cell--new">Demand you own, feeding the same team</p>
+          <p class="cmp__cell cmp__cell--new">Optimised on lead quality</p>
         </div>
       </div>
     </div>
 
-    <p class="lead" style="margin-top:2.4rem">That right-hand column is six things, built together by one team and live in <b>one week</b>:</p>
+    <p class="lead" style="margin-top:2.2rem">Adscade builds and manages five things, as one system:</p>
     <ul class="deliv">
-      <li><b>Funnel strategy</b> — positioning built around your project, not swapped from another client's account</li>
-      <li><b>Landing page</b> — buyer qualification baked in: budget, configuration, location, timeline</li>
-      <li><b>Video ad creative</b> — shot for your project, not recycled stock</li>
-      <li><b>Meta ads</b> — built, launched and optimised, already matched to the page and creative</li>
-      <li><b>WhatsApp automation</b> — filters every enquiry so your team only calls people worth calling</li>
-      <li><b>Weekly reporting</b> — site visits and cost per site visit, not clicks</li>
+      <li><b>Offer and messaging</b> — positioning built around your project, not swapped from another client's account</li>
+      <li><b>Campaign management</b> — built, launched and optimised, matched to the page and creative</li>
+      <li><b>Landing page and qualification</b> — budget, configuration, location and timeline captured before your sales team is involved</li>
+      <li><b>Tracking and attribution</b> — every enquiry tied back to the campaign that produced it</li>
+      <li><b>Reporting and optimisation</b> — one weekly view, acted on the same week</li>
     </ul>
 
     <p class="lead lead--sm dim" style="margin-top:1.6rem">And it is live inside a week:</p>
@@ -590,7 +615,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     </div>
 
     <div style="text-align:center;margin-top:2.2rem">
-      <a class="cta cta--ghost" href="#book">Book My Audit Call</a>
+      <a class="cta cta--ghost" href="#book">Check Fit &amp; Pick a Time</a>
     </div>
   </div>
 </section>
@@ -598,24 +623,23 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <!-- ═══ sample report — proof of the differentiator ══════════════════ -->
 <section class="band band--warm">
   <div class="wrap">
-    <p class="eyebrow" style="text-align:center">What you actually get</p>
-    <h2 class="h2 h2--center" style="max-width:22ch">Every Monday, in your inbox, in <em>your units.</em></h2>
-    <p class="lead lead--center">Most agencies report clicks and impressions. Neither tells you whether anyone stood inside the flat. This is the shape of what we send — the same numbers your sales review already runs on.</p>
+    <p class="eyebrow" style="text-align:center">Reporting</p>
+    <h2 class="h2 h2--center" style="max-width:20ch">Every Monday, know where <em>every enquiry stands.</em></h2>
+    <p class="lead lead--center">One concise report covering spend, enquiries, qualified leads, booked calls, follow-up status and the actions being taken next.</p>
 
     <div class="card report">
       <div class="report__head">
-        <p class="report__k">Weekly funnel report</p>
-        <p class="report__wk">Sample layout</p>
+        <p class="report__k">Sample reporting view</p>
       </div>
       <div class="report__rows">
-        <div class="report__row"><span>Enquiries captured</span><b>68</b></div>
-        <div class="report__row"><span>Matched budget, configuration &amp; timeline</span><b>41</b></div>
+        <div class="report__row"><span>Media spend</span><b>₹ 80,360</b></div>
+        <div class="report__row"><span>Enquiries generated</span><b>68</b></div>
+        <div class="report__row"><span>Qualified enquiries</span><b>41</b></div>
         <div class="report__row"><span>Site visits booked</span><b>14</b></div>
-        <div class="report__row"><span>Cost per site visit</span><b>₹ 5,740</b></div>
-        <div class="report__row"><span>Cost per qualified lead</span><b>₹ 1,180</b></div>
-        <div class="report__row"><span>Biggest drop-off</span><b>Follow-up</b></div>
+        <div class="report__row"><span>Cost per qualified lead</span><b>₹ 1,960</b></div>
+        <div class="report__row"><span>Follow-up status</span><b>9 awaiting</b></div>
       </div>
-      <p class="report__foot">Illustrative layout, not client data — your numbers replace these from week one</p>
+      <p class="report__foot">Illustrative layout, not a client's data. Your numbers replace these from week one.</p>
     </div>
   </div>
 </section>
@@ -623,12 +647,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <!-- ═══ founder — deliberately its own section ═══════════════════════ -->
 <section class="band">
   <div class="wrap founder">
-    <img class="founder__img" src="assets/asim-ahmed.jpg" alt="Aasim Ahmed, founder of AdScade" width="480" height="600" loading="lazy" decoding="async">
+    <img class="founder__img" src="assets/asim-ahmed.jpg" alt="Aasim Ahmed, founder of Adscade" width="480" height="600" loading="lazy" decoding="async">
     <div>
-      <p class="eyebrow">Who you'll be talking to</p>
-      <h2 class="h2">Aasim Ahmed<br><em>Founder, AdScade</em></h2>
-      <p class="lead">The call is with me, not a sales team reading off a script. I'll be looking at your ad account, your current page and your follow-up — and telling you which of the three is actually costing you site visits.</p>
-      <p class="lead">Part of that is unglamorous: whether your funnel makes the company look as organised as the building is. A buyer who walks away from a serious purchase rarely walks over price. He walks because the experience before the site visit told him something he didn't like.</p>
+      <p class="eyebrow">Built and managed by</p>
+      <h2 class="h2">Aasim Ahmed<br><em>Founder, Adscade</em></h2>
+      <p class="lead">Adscade exists because advertising is almost never the part that is broken. The campaign runs, the clicks arrive, and the loss happens somewhere between the click and the sales conversation — in the page, the qualification, or the follow-up. Nobody owning one piece can see that.</p>
+      <p class="lead">So I run the pieces together. I oversee the offer and messaging, the campaigns, the landing page and qualification, the tracking, and the weekly reporting. For a developer that matters more than for most businesses: enquiry volume is easy, but a site visit from someone who can actually afford the flat is the only number that moves inventory.</p>
       <blockquote class="founder__quote">"Most developers don't have a demand problem. They have a leak — and nobody has ever shown them where it is."</blockquote>
     </div>
   </div>
@@ -638,10 +662,10 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <section class="band band--warm">
   <div class="wrap">
     <div class="guarantee">
-      <p class="eyebrow">Our guarantee</p>
-      <h2 class="h2 h2--center" style="max-width:26ch">If the funnel isn't producing leads that match your criteria, <em>we keep working on it at no extra charge.</em></h2>
-      <p class="lead lead--center">Your funnel is live within one week. If it hasn't generated qualified leads within 30 days of launch, we continue optimising — creative, targeting, page, follow-up — at no additional cost until it does.</p>
-      <p class="guarantee__terms"><b>What that means, precisely.</b> A "qualified lead" is defined as a submission that meets the agreed budget, location and timeline criteria set in writing during onboarding. The commitment covers our optimisation work at no extra charge. Media costs are billed to you directly by the platform and sit outside it. We don't promise a number of leads, because the honest answer is that it depends on your inventory, your price and your market — and anyone quoting you a number before seeing those is guessing. Results vary based on market conditions, budget, and property type.</p>
+      <p class="eyebrow">Where we stand</p>
+      <h2 class="h2 h2--center" style="max-width:24ch">If the funnel isn't producing leads that match your criteria, <em>we keep working on it at no extra charge.</em></h2>
+      <p class="lead lead--center">A "qualified lead" is defined as a submission meeting the budget, location and timeline criteria agreed in writing at onboarding. We don't promise a number — that depends on your inventory, your price and your market.</p>
+      <p class="guarantee__terms">This applies within the agreed initial optimisation scope and assumes timely access, approvals, follow-up and the agreed media budget. Exact terms are defined in the service agreement. Media costs are billed to you directly by the platform. Results vary based on market conditions, budget and property type.</p>
     </div>
   </div>
 </section>
@@ -649,9 +673,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <!-- ═══ booking form ═════════════════════════════════════════════════ -->
 <section class="band form-band" id="book">
   <div class="wrap">
-    <p class="eyebrow" style="text-align:center">Book your call</p>
-    <h2 class="h2 h2--center" style="max-width:22ch">Six questions, your details, then <em>pick your slot.</em></h2>
-    <p class="lead lead--center">We ask these so the call starts with your numbers instead of twenty minutes of background. If you're not a fit, we'll say so on this page rather than waste your time.</p>
+    <p class="eyebrow" style="text-align:center">Check fit</p>
+    <h2 class="h2 h2--center" style="max-width:20ch">Six questions. Then <em>choose a time.</em></h2>
+    <p class="lead lead--center">Tell us what you are currently running and where the funnel is breaking. If the engagement appears suitable, you will be able to choose an available call slot.</p>
 
     <form class="card form" id="lead-form" novalidate>
       <div class="form__prog" aria-hidden="true">
@@ -787,12 +811,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <div class="errbox" id="consent-err">
           <span class="err">Please tick the consent box so we're allowed to contact you.</span>
         </div>
-        <button class="cta cta--wide" type="submit">Book My Audit Call</button>
+        <button class="cta cta--wide" type="submit">See Available Times</button>
         <div class="nav" style="justify-content:center"><button class="back" type="button" data-back>Back</button></div>
         <div class="errbox" id="submit-err">
           <span class="err">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span>
         </div>
-        <p class="cta-note" id="contact-note">30 minutes, no obligation. You'll pick your time on the next screen.</p>
+        <p class="cta-note" id="contact-note">Six questions, then choose an available slot.</p>
       </div>
 
       <!-- success -->
@@ -801,7 +825,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <div id="done-booked">
           <h3 class="h3">Answers received. Now pick your time.</h3>
           <p class="lead lead--center">Choose a slot that suits you — you'll get the confirmation immediately, no waiting on us.</p>
-          <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Pick My Slot →</a>
+          <a class="book-slot" id="pick-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Pick My Slot →</a>
           <p class="cta-note">Keep your ad account open during the call. The audit is far more useful with real numbers on the screen.<br>Scheduler not loading? <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
         </div>
         <div id="done-later" hidden>
@@ -820,33 +844,26 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     <p class="eyebrow">Common questions</p>
     <h2 class="h2">Before you book.</h2>
     <div class="faq" style="margin-top:2rem">
-      <button class="faq__q" aria-expanded="false" aria-controls="a1">How much does this cost?</button>
-      <div class="faq__a" id="a1" hidden><p>It's a one-time setup fee plus a monthly retainer. We don't publish the numbers because the honest ones depend on how much production your funnel needs and which market you're selling in — a figure quoted before we've seen either would be a guess. You'll have the exact number on the call, before you commit to anything.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a1">Who is this designed for?</button>
+      <div class="faq__a" id="a1" hidden><p>Developers with unsold inventory in a RERA-registered project, a sales team waiting on footfall, and a budget they can commit to media. If the project isn't registered yet, we legally cannot advertise it. If there is nothing unsold, there is nothing for a funnel to sell.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a2">Why a setup fee and not just a monthly fee?</button>
-      <div class="faq__a" id="a2" hidden><p>Because there is real production work before a single rupee goes to ads — the landing page built, the video shot, the WhatsApp automation configured, all specifically for your project. The setup fee covers those hours. It also means both sides are committed before we start spending your budget.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a2">What does Adscade actually manage?</button>
+      <div class="faq__a" id="a2" hidden><p>Five things, run as one system: offer and messaging, campaign management, the landing page and qualification, tracking and attribution, and weekly reporting and optimisation. Nothing is subcontracted to someone who has never seen the rest of your funnel. Running ads without the rest of it is pouring water into a leaking bucket — which is usually what has already been tried.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a3">What exactly counts as a "qualified lead"?</button>
-      <div class="faq__a" id="a3" hidden><p>A submission that meets the budget, location and timeline criteria you and we agree during onboarding. If you sell 2BHKs in Thane West between ₹80 lakh and ₹1.2 crore, a lead asking about plots in Nashik is not a qualified lead and does not count toward the guarantee.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a3">Do we need an existing funnel?</button>
+      <div class="faq__a" id="a3" hidden><p>No. Plenty of developers come from portal enquiries or channel partners only. What you do need is unsold inventory and a media budget — the funnel is built for your project rather than adapted from something you already have.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a4">Do I need to already be running ads?</button>
-      <div class="faq__a" id="a4" hidden><p>You need a budget you're willing to spend, but you don't need to be running ads today — plenty of clients come from portal leads or referrals only. What you do need is active inventory. If you have nothing to sell right now, there's nothing for the funnel to sell, and we'll tell you that on the call.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a4">What budget is normally required?</button>
+      <div class="faq__a" id="a4" hidden><p>Our fee is a one-time setup fee plus a monthly retainer; media budget sits outside it and is paid by you directly to the platform. The setup fee covers real production before a rupee goes to ads — the page built, the video shot, the qualification configured for your project. Exact numbers depend on your city and price point and are agreed on the call.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a5">How is this different from just running ads?</button>
-      <div class="faq__a" id="a5" hidden><p>Running ads without a proper funnel is pouring water into a leaking bucket. We build the landing page, the video, the qualification and the follow-up as one connected system, then run the ads into it — so when something underperforms, we can see which stage caused it and fix that stage.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a5">Who creates the video and advertising assets?</button>
+      <div class="faq__a" id="a5" hidden><p>We do, for your project specifically. The landing page, the video creative and the qualification sequence are produced together by one team so the message holds from the ad through to the sales conversation.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a6">I've been burned by an agency before. Why would this be different?</button>
-      <div class="faq__a" id="a6" hidden><p>A fair question, and the honest answer is that you should judge us on the reporting rather than the promise. From the first Monday after launch you get weekly numbers on how many leads came in, how many matched your criteria, how many booked a site visit, and what each of those cost. If the funnel isn't working, you'll see it in the report before you have to ask.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a6">What happens after the qualification form?</button>
+      <div class="faq__a" id="a6" hidden><p>If the answers indicate a suitable engagement, you go straight to the calendar and choose a slot. If they don't, we say so on the page rather than book a call neither of us needs — and you can still leave your details for later. If you have been burned by an agency before, judge us on the weekly reporting rather than the promise: you will see the drop-off before you have to ask about it.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a7">How long until leads start coming in?</button>
-      <div class="faq__a" id="a7" hidden><p>The funnel goes live at the end of week one. Leads begin flowing once ads are running, and the first two to three weeks after launch are an optimisation period while the campaigns find the right audience. Anyone promising you a specific number of leads on day one is guessing.</p></div>
-
-      <button class="faq__q" aria-expanded="false" aria-controls="a8">What happens on the call?</button>
-      <div class="faq__a" id="a8" hidden><p>Thirty minutes, with Aasim. We look at what you're running now, work out where the drop-off is, and tell you what a fixed funnel would look like for your project and what it would cost. If we don't think we can help, we say so — that outcome is common and it is fine.</p></div>
-    </div>
-
-    <div class="faq-cta" style="text-align:center;margin-top:3rem">
-      <a class="cta" href="#book">Book My Audit Call</a>
+    <div class="faq-cta" style="text-align:center;margin-top:2.4rem">
+      <a class="cta" href="#book">Book a Fit Call</a>
     </div>
   </div>
 </section>
@@ -856,7 +873,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   <div class="wrap">
     <div class="foot__top">
       <div>
-        <p class="foot__brand"><img class="foot__mark" src="assets/adscade-mark.png" alt="" width="146" height="132" loading="lazy">AdScade</p>
+        <p class="foot__brand"><img class="foot__mark" src="assets/adscade-mark.png" alt="" width="146" height="132" loading="lazy">Adscade</p>
         <p class="dim" style="margin:0;max-width:36ch">Done-for-you buyer funnels for real estate developers across India. Landing page, video, Meta ads and automated lead qualification — built and run by one team.</p>
       </div>
       <div>
@@ -876,20 +893,60 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       </div>
     </div>
     <p class="foot__legal">
-      Results vary based on market conditions, budget, and property type. Past performance with other clients does not guarantee identical results. The one-week build timeline and the optimisation commitment described on this page apply from the date of onboarding completion and are subject to timely provision of project details, ad account access and creative approvals by the client. AdScade is an independent marketing services provider and is not affiliated with, endorsed by, or acting on behalf of Meta Platforms, Google LLC, or any property portal.
-      <br><br>© <span id="yr">2026</span> AdScade. All rights reserved.
+      Results vary based on market conditions, budget, and property type. Past performance with other clients does not guarantee identical results. The one-week build timeline and the optimisation commitment described on this page apply from the date of onboarding completion and are subject to timely provision of project details, ad account access and creative approvals by the client. Adscade is an independent marketing services provider and is not affiliated with, endorsed by, or acting on behalf of Meta Platforms, Google LLC, or any property portal.
+      <br><br>© <span id="yr">2026</span> Adscade. All rights reserved.
     </p>
   </div>
 </footer>
 
 <!-- ═══ sticky mobile dock ═══════════════════════════════════════════ -->
-<div class="dock" id="dock"><a class="cta cta--wide" href="#book">Book My Audit Call</a></div>
+<div class="dock" id="dock">
+  <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
+  <button class="dock__x" id="dock-x" type="button" aria-label="Hide this bar">&times;</button>
+</div>
 
 <script>
 (function(){
   "use strict";
 
   document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* ── analytics ────────────────────────────────────────────────────
+     This page carries NO tracking of its own. track() pushes to
+     window.dataLayer only if a tag manager has already created it, so
+     until one is wired this is inert and nothing leaves the browser.
+
+     NOTE: privacy.html currently states that no third-party analytics run
+     on this page. If GTM is connected, that policy must be updated first.
+
+     No personally identifying data is ever sent — only the campaign
+     attribution already present in the URL.
+  ─────────────────────────────────────────────────────────────────── */
+  var fired = {};
+  var q = new URLSearchParams(location.search);
+  var attribution = {
+    utm_source:   q.get('utm_source')   || null,
+    utm_medium:   q.get('utm_medium')   || null,
+    utm_campaign: q.get('utm_campaign') || null,
+    utm_content:  q.get('utm_content')  || null,
+    utm_term:     q.get('utm_term')     || null,
+    gclid:        q.get('gclid')        || null,
+    landing_path: location.pathname,
+    referrer:     document.referrer || null
+  };
+  function track(event, data, once){
+    if (once){ if (fired[event]) return; fired[event] = true; }
+    if (!window.dataLayer) return;                       // inert until a tag manager exists
+    window.dataLayer.push(Object.assign({event: event}, attribution, data || {}));
+  }
+  window.adscadeTrack = track;
+
+  document.querySelectorAll('a[href="#book"], .cta, .book-slot').forEach(function(el){
+    el.addEventListener('click', function(){
+      if (el.matches('.book-slot')) return;              // scheduler handled separately
+      track('primary_cta_click', {cta_text: el.innerText.trim()});
+    });
+  });
 
   /* ── FAQ ───────────────────────────────────────────────────────── */
   document.querySelectorAll('.faq__q').forEach(function(btn){
@@ -907,6 +964,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     var open = play.getAttribute('aria-expanded') === 'true';
     play.setAttribute('aria-expanded', String(!open));
     agenda.classList.toggle('on', !open);
+    // Fires once. When the real video lands, replace this with the player's own
+    // play event and add the 25/50/75/complete progress handlers alongside it.
+    if (!open) track('vsl_play', null, true);
   });
 
   /* ── sticky dock: stand down whenever a real CTA is on screen ───── */
@@ -934,6 +994,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 
   // A 1.6s smooth flight across 11,000px is a long blurred nothing on a mid-range phone.
   // Short hops keep the animation; long ones jump.
+  var dockX = document.getElementById('dock-x');
+  if (dockX) dockX.addEventListener('click', function(){
+    dock.classList.add('hide');
+    submitted = true;              // stops the observer bringing it back
+  });
+
   document.querySelectorAll('a[href="#book"]').forEach(function(a){
     a.addEventListener('click', function(e){
       var target = document.getElementById('book');
@@ -976,13 +1042,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     // Aasim's calendar, because the page has just told them we cannot help them yet.
     disqualified = !!form.querySelector('input[data-disqualify]:checked');
     var submit = form.querySelector('button[type=submit]');
-    submit.textContent = disqualified ? 'Send My Details' : 'Book My Audit Call';
+    submit.textContent = disqualified ? 'Send My Details' : 'See Available Times';
     var q7 = document.getElementById('q7');
     q7.textContent = disqualified ? 'Where should we reach you when the time is right?'
                                   : 'Where should we send the call link?';
     document.getElementById('contact-note').textContent = disqualified
-      ? "We'll hold your details. No call is being booked right now."
-      : '30 minutes, no obligation. You\'ll pick your time on the next screen.';
+      ? "We'll hold your details. No slot is being offered right now."
+      : 'Six questions, then choose an available slot.';
   }
 
   function validateStep(){
@@ -992,7 +1058,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       var box = step.querySelector('[data-radio-err]');
       var ok = !!step.querySelector('input[name="' + radios.name + '"]:checked');
       if (box) box.classList.toggle('invalid', !ok);
-      if (!ok) step.querySelector('.opt').style.borderColor = 'var(--clay)';
+      if (!ok) step.querySelector('.opt').style.borderColor = 'var(--error)';
       return ok;
     }
     var ok = true;
@@ -1010,6 +1076,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   form.querySelectorAll('[data-next]').forEach(function(b){
     b.addEventListener('click', function(){
       if (!validateStep()) return;
+      track('qualification_form_start', null, true);
       if (at < steps.length - 1) show(at + 1);
     });
   });
@@ -1041,6 +1108,15 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   form.addEventListener('input', clearError);
   form.addEventListener('change', clearError);
 
+  // Opening the scheduler is NOT a booking. booked_call fires only from a confirmed
+  // booking callback — Calendly posts one to the opener when a slot is confirmed.
+  var slot = document.getElementById('pick-slot');
+  if (slot) slot.addEventListener('click', function(){ track('scheduler_opened', null, true); });
+  window.addEventListener('message', function(e){
+    if (!/calendly\.com$/.test((e.origin || '').replace(/^https?:\/\//, ''))) return;
+    if (e.data && e.data.event === 'calendly.event_scheduled') track('booked_call', null, true);
+  });
+
   /* ── submission adapter ────────────────────────────────────────────
      Everything that leaves this page goes through submitLead(). Wiring
      Convex later replaces the body of this one function and nothing else.
@@ -1052,7 +1128,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   ─────────────────────────────────────────────────────────────────── */
   async function submitLead(payload){
     if (window.CONVEX_SUBMIT) return window.CONVEX_SUBMIT(payload);
-    console.info('[AdScade] lead captured (no backend wired yet)', payload);
+    console.info('[Adscade] lead captured (no backend wired yet)', payload);
     return {ok:true, pending:true};
   }
 
@@ -1088,6 +1164,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     btn.textContent = 'Sending…';
     try {
       await submitLead(payload);
+      track('qualification_form_complete', {qualified: !disqualified}, true);
+      if (!disqualified) track('calendar_view', null, true);
       steps[at].classList.remove('on');
       var done = document.getElementById('done');
       document.getElementById('done-booked').hidden = disqualified;
@@ -1101,7 +1179,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       done.focus({preventScroll:true});
     } catch (err){
       btn.disabled = false;
-      btn.textContent = disqualified ? 'Send My Details' : 'Book My Audit Call';
+      btn.textContent = disqualified ? 'Send My Details' : 'See Available Times';
       document.getElementById('submit-err').classList.add('invalid');
     }
   });
