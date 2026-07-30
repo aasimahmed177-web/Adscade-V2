@@ -61,6 +61,9 @@ a{color:var(--gold);text-underline-offset:3px}
    and inert when this file runs standalone with no surrounding theme. */
 body{background:var(--ink) !important;color:var(--cream) !important}
 h1,h2,h3,h4,h5,h6,label{color:inherit !important}
+/* Astra injects its own scroll-to-top button; this page has its own sticky CTA and
+   does not want a second floating control competing with it. */
+#ast-scroll-top{display:none !important}
 
 /* ─── primitives ─────────────────────────────────────────────────────── */
 .wrap{width:var(--col);margin-inline:auto}
@@ -225,6 +228,26 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .leak__stage:nth-child(4) .leak__bar{background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-right:none}
 .leak__drip{display:block;margin-top:.45rem;font-family:var(--serif);font-size:.95rem;color:var(--leak)}
 .leak__stage:nth-child(4) .leak__drip{color:var(--gold)}
+.deliv{list-style:none;margin:1.2rem 0 0;padding:0;display:grid;gap:.7rem}
+.deliv li{
+  position:relative;padding-left:1.2rem;font-size:var(--t-small);line-height:1.5;
+  color:rgba(234,224,200,.86);
+}
+.deliv li::before{content:"";position:absolute;left:0;top:.5em;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.deliv b{color:var(--cream);font-weight:700}
+.sched{
+  display:flex;flex-wrap:wrap;gap:.6rem 1.6rem;margin-top:1.8rem;
+  border-top:var(--hair);padding-top:1.2rem;
+}
+.sched span{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--cream-dim)}
+.sched b{color:var(--gold);font-weight:800;margin-right:.4rem}
+.pains{list-style:none;margin:1.4rem 0 0;padding:0;display:grid;gap:.8rem}
+.pains li{
+  position:relative;padding-left:1.1rem;font-size:var(--t-small);line-height:1.5;
+  color:rgba(234,224,200,.82);
+}
+.pains li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--leak)}
+.pains b{color:var(--cream);font-weight:600}
 .leak__cap{
   font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:var(--cream-dim);margin:1.4rem 0 0;border-top:var(--hair);padding-top:1rem;
@@ -495,10 +518,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     <div>
       <p class="eyebrow">The leak</p>
       <h2 class="h2">You are not short of enquiries.<br>You are <em>losing them in transit.</em></h2>
-      <p class="lead">A hundred people click. Sixty land on a page that doesn't answer the question the ad raised. Twenty get as far as a follow-up — and nobody replies until evening. Four end up standing in the flat, and one of those was never going to buy at your price anyway.</p>
-      <p class="lead dim">Nothing in that sequence shows up in your ad account. The ad account says the ad worked. Which is why the leak survives for months.</p>
-      <div class="rule"></div>
-      <p class="lead">Each of those four stages is a place your money quietly goes missing — while every unsold flat keeps accruing interest whether the funnel works or not. We rebuild all four as one system, and report on every one of them each week.</p>
+      <p class="lead">Every stage below is a place your money quietly goes missing — and none of it shows up in your ad account, which only ever reports the click. We rebuild all four as one system and report on each of them weekly.</p>
+      <ul class="pains">
+        <li>An enquiry lands at <b>night</b>. Nobody has <b>replied</b> by the time he's seen the project down the road.</li>
+        <li><b>Channel partners</b> lead with whichever project pays best this month. When yours isn't it, the pipeline stops.</li>
+        <li>The <b>tail</b> — odd floors, odd facings — stops moving once the launch push is over.</li>
+        <li>And every <b>unsold</b> unit keeps accruing <b>interest</b> the whole time, whether anyone is selling or not.</li>
+      </ul>
     </div>
     <div class="leak__fig">
       <div class="leak__stage">
@@ -526,54 +552,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   </div>
 </section>
 
-<!-- ═══ problem ══════════════════════════════════════════════════════ -->
-<section class="band">
-  <div class="wrap">
-    <p class="eyebrow">Sound familiar?</p>
-    <h2 class="h2">Landing page from one freelancer. Video from another.<br>Ads run by someone with <em>no shared strategy.</em></h2>
-    <p class="lead">Nothing built to work together — so even when your ads run, the funnel leaks, and the units stay unsold while you pay interest on all of them.</p>
-    <div class="grid grid--3" style="margin-top:2.5rem">
-      <div class="card tile">
-        <p class="tile__k">The money leak</p>
-        <p>Spend goes out every month. You can see the invoice and the clicks in the ad account. You cannot see which step between the click and the site visit is destroying the return.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">The enquiry that dies overnight</p>
-        <p>An enquiry lands at night. Your follow-up happens at eleven the next morning, by which time he has already walked into the project down the road. Nobody was at fault. There was simply no system awake.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">The buyer who walked</p>
-        <p>A serious buyer calls and your team spends two minutes hunting for his last message. He decides the company is disorganised — and quietly concludes the building will be too.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">Managing four vendors</p>
-        <p>One freelancer for the page, one for video, one for ads, and your marketing manager in the middle coordinating all of them. When something breaks, no single person was watching the whole funnel.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">Losing to someone faster</p>
-        <p>The booking didn't go to a better project. It went to the one whose system replied in under a minute while yours waited for someone on the team to pick up.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">The tail that won't move</p>
-        <p>Launch cleared the easy units. What's left is odd floors and odd facings that channel partners have stopped leading with — and every month they sit, the interest keeps running.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">Interest on empty flats</p>
-        <p>Forty unsold units at ₹60 lakh, financed at twelve percent, is roughly ₹2.4 crore a year in carrying cost. That number is bigger than any marketing budget you will ever debate — and it runs whether anyone is selling or not.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">Channel partners set the pace</p>
-        <p>You pay two to five percent and still don't control demand. Partners lead with whichever project pays best this month. When yours isn't it, the pipeline simply stops — and there's nothing underneath it.</p>
-      </div>
-      <div class="card tile">
-        <p class="tile__k">The discount you don't want to give</p>
-        <p>The obvious way to move the tail is to cut the price. It also devalues every remaining unit, angers the buyers who paid full, and tells the market the project is in trouble. Buying demand is almost always cheaper.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ old way / our way ════════════════════════════════════════════ -->
+<!-- ═══ the difference + what's in it, merged ══════════════════════ -->
 <section class="band band--warm">
   <div class="wrap">
     <p class="eyebrow">The difference</p>
@@ -609,22 +588,26 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         </div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- ═══ offer ════════════════════════════════════════════════════════ -->
-<section class="band">
-  <div class="wrap">
-    <p class="eyebrow">The Complete Buyer Funnel System</p>
-    <h2 class="h2">One system. Built, managed, and <em>optimised for you.</em></h2>
-    <p class="lead">Six deliverables, one team, one point of contact. Nothing is subcontracted to someone who has never seen the rest of your funnel.</p>
-    <div class="grid grid--3" style="margin-top:2.5rem">
-      <div class="card tile"><p class="tile__k">Funnel strategy</p><p>Positioning and offer built around your specific property or project — not a template swapped from another client's account.</p></div>
-      <div class="card tile"><p class="tile__k">Landing page</p><p>Built for your project with buyer qualification baked in: budget, configuration, location, timeline — captured before anyone reaches your sales team.</p></div>
-      <div class="card tile"><p class="tile__k">Video ad creative</p><p>Shot for your funnel and your project, in the language your buyers actually search in. Not recycled generic footage.</p></div>
-      <div class="card tile"><p class="tile__k">Meta ads management</p><p>Facebook and Instagram campaigns built, launched and optimised — with the landing page and creative already matched to them.</p></div>
-      <div class="card tile"><p class="tile__k">WhatsApp automation</p><p>An automated follow-up sequence that filters and nurtures every lead, so your team only picks up the phone for people worth calling.</p></div>
-      <div class="card tile"><p class="tile__k">Weekly reporting</p><p>Every Monday, in site visits and cost per site visit — not clicks. Shown in full below.</p></div>
+    <p class="lead" style="margin-top:2.4rem">That right-hand column is six things, built together by one team and live in <b>one week</b>:</p>
+    <ul class="deliv">
+      <li><b>Funnel strategy</b> — positioning built around your project, not swapped from another client's account</li>
+      <li><b>Landing page</b> — buyer qualification baked in: budget, configuration, location, timeline</li>
+      <li><b>Video ad creative</b> — shot for your project, not recycled stock</li>
+      <li><b>Meta ads</b> — built, launched and optimised, already matched to the page and creative</li>
+      <li><b>WhatsApp automation</b> — filters every enquiry so your team only calls people worth calling</li>
+      <li><b>Weekly reporting</b> — site visits and cost per site visit, not clicks</li>
+    </ul>
+
+    <div class="sched">
+      <span><b>Days 1–2</b> Strategy locked</span>
+      <span><b>Days 3–5</b> Everything built</span>
+      <span><b>Days 6–7</b> Tested and live</span>
+      <span><b>Week 2+</b> Optimise &amp; scale</span>
+    </div>
+
+    <div style="text-align:center;margin-top:2.2rem">
+      <a class="cta cta--ghost" href="#book">Book My Audit Call</a>
     </div>
   </div>
 </section>
@@ -650,37 +633,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <div class="report__row"><span>Biggest drop-off</span><b>Follow-up</b></div>
       </div>
       <p class="report__foot">Illustrative layout, not client data — your numbers replace these from week one</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ timeline ═════════════════════════════════════════════════════ -->
-<section class="band">
-  <div class="wrap grid grid--2" style="gap:clamp(2rem,5vw,4rem);align-items:start">
-    <div>
-      <p class="eyebrow">Delivery</p>
-      <h2 class="h2">Live in <em>one week.</em></h2>
-      <p class="lead">You know exactly what happens and when. No open-ended "we're working on it" months.</p>
-      <a class="cta cta--ghost" href="#book">Book My Audit Call</a>
-    </div>
-    <div class="tl">
-      <div class="tl__row"><span class="tl__wk">Days 1–2</span><h3 class="h3">Strategy locked</h3><p class="lead lead--sm">We agree the offer, the qualification criteria, and which project we're selling. Copy and creative direction signed off.</p></div>
-      <div class="tl__row"><span class="tl__wk">Days 3–5</span><h3 class="h3">Everything built</h3><p class="lead lead--sm">Landing page, video creative and the WhatsApp qualification sequence produced together, by one team, matched to each other.</p></div>
-      <div class="tl__row"><span class="tl__wk">Days 6–7</span><h3 class="h3">Tested and live</h3><p class="lead lead--sm">Meta ads launched. From this day your leads get an automated WhatsApp reply in under a minute, at any hour — which is the speed the deal usually turns on.</p></div>
-      <div class="tl__row"><span class="tl__wk">Week 2+</span><h3 class="h3">Optimise &amp; scale</h3><p class="lead lead--sm">Weekly reporting, funnel optimisation, and scaling on whatever is actually converting.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ who this is for ══════════════════════════════════════════════ -->
-<section class="band band--warm">
-  <div class="wrap">
-    <p class="eyebrow">Is this for you?</p>
-    <h2 class="h2">Built for developers who already spend on marketing —<br>and <em>can't tell you what it returns.</em></h2>
-    <div class="grid grid--3" style="margin-top:2.5rem">
-      <div class="card tile"><p class="tile__k">Delivered, and still selling</p><p>You've handed over several buildings and have unsold units in a live RERA-registered project. The launch push worked; the tail hasn't moved in months.</p></div>
-      <div class="card tile"><p class="tile__k">Tired of renting demand</p><p>Your pipeline runs through channel partners and broker networks. When they lead with someone else's project, your sales team has nothing to work with.</p></div>
-      <div class="card tile"><p class="tile__k">A sales team waiting on footfall</p><p>You have three to twenty people in sales and a marketing manager coordinating vendors. What's missing is qualified site visits, not effort.</p></div>
     </div>
   </div>
 </section>

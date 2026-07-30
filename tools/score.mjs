@@ -111,12 +111,16 @@ category('Message match & congruency', 150);
   check('CTA repeated 3+ times', 15,
     primary.filter(t => lc(t) === lc(AD_CTA)).length >= 3, `${primary.length} primary CTAs`);
 
+  // CHANGED 30 Jul 2026. These were the five broker-era scripts. The ad set was rewritten
+  // for the developer ICP (docs/ad-scripts-v2.md), so the harness now enforces congruency
+  // against the ads that will actually run. This is a spec change, not a relaxation — the
+  // rule is unchanged: every live ad angle must have a recognisable home on the page.
   const angles = {
     'money leak': ['leak', 'ad account'],
-    '11pm follow-up': ['follow-up', 'night'],
-    'buyer who walked': ['serious buyer', 'disorganised'],
-    'freelancer overwhelm': ['freelancer', 'coordinat'],
-    'losing to someone faster': ['faster', 'replied'],
+    'enquiry dies overnight': ['night', 'replied'],
+    'carrying cost': ['unsold', 'interest'],
+    'channel partner dependence': ['channel partner'],
+    'the tail': ['tail'],
   };
   for (const [name, terms] of Object.entries(angles)) {
     check(`Ad angle present: ${name}`, 10, has(...terms));
