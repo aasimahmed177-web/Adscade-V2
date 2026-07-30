@@ -557,7 +557,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         </ul>
         <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
         <p class="cta-note">Six questions, then choose an available slot.</p>
-        <p class="cta-note qual-note">Built for developers with active inventory, a dedicated sales team and ₹1&nbsp;lakh+ monthly media capacity.</p>
+        <p class="cta-note qual-note">Built for developers with active inventory, a structured follow-up process and ₹1&nbsp;lakh+ monthly media capacity.</p>
         <div class="rail__meta">
           <span>30 minutes, direct with <b>Aasim Ahmed</b></span>
         </div>
@@ -834,12 +834,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <div class="field">
           <label for="name">Full name</label>
           <input type="text" id="name" name="name" autocomplete="name" required>
-          <span class="err">Please enter your name.</span>
+          <span class="err" role="alert">Please enter your name.</span>
         </div>
         <div class="field">
           <label for="company">Company or developer name</label>
           <input type="text" id="company" name="company" autocomplete="organization" required>
-          <span class="err">Please enter your company name.</span>
+          <span class="err" role="alert">Please enter your company name.</span>
         </div>
         <div class="field">
           <label for="project_name">Project name <span class="opt-tag">optional</span></label>
@@ -848,29 +848,29 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <div class="field">
           <label for="project_city">Project city</label>
           <input type="text" id="project_city" name="project_city" placeholder="e.g. Indore, Thane, Coimbatore" required>
-          <span class="err">Please enter the city the project is in.</span>
+          <span class="err" role="alert">Please enter the city the project is in.</span>
         </div>
         <div class="field">
           <label for="email">Work email</label>
           <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
-          <span class="err">Enter a valid email address.</span>
+          <span class="err" role="alert">Enter a valid email address.</span>
         </div>
         <div class="field">
           <label for="phone">WhatsApp or phone number</label>
           <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or +country code" required>
-          <span class="err">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
+          <span class="err" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
         </div>
         <label class="consent">
           <input type="checkbox" id="consent" name="consent" required>
           <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
         </label>
         <div class="errbox" id="consent-err">
-          <span class="err">Please tick the consent box so we're allowed to contact you.</span>
+          <span class="err" role="alert">Please tick the consent box so we're allowed to contact you.</span>
         </div>
         <button class="cta cta--wide" type="submit">Check Fit</button>
         <div class="nav" style="justify-content:center"><button class="back" type="button" data-back>Back</button></div>
         <div class="errbox" id="submit-err">
-          <span class="err">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span>
+          <span class="err" role="alert">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span>
         </div>
         <p class="cta-note" id="contact-note">Six questions, then choose an available slot.</p>
       </div>
@@ -1010,9 +1010,11 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   }
   window.adscadeTrack = track;
 
-  document.querySelectorAll('a[href="#book"], .cta, .book-slot').forEach(function(el){
+  // Page CTAs only. The in-form "Continue" and "Check Fit" buttons also carry .cta,
+  // and counting them would inflate this event by up to seven per completed form.
+  document.querySelectorAll('a[href="#book"], .cta').forEach(function(el){
+    if (el.closest('#lead-form')) return;
     el.addEventListener('click', function(){
-      if (el.matches('.book-slot')) return;              // scheduler handled separately
       track('primary_cta_click', {cta_text: el.innerText.trim()});
     });
   });
@@ -1211,8 +1213,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       var bad = !el.value.trim();
       if (el.type === 'tel'){
         var digits = el.value.replace(/[^\d]/g,'');
-        // 10-digit Indian mobile, or an international number with country code
-        bad = !(/^[6-9]\d{9}$/.test(digits) || (/^\+/.test(el.value.trim()) && digits.length >= 8 && digits.length <= 15));
+        // Accept: bare 10-digit Indian mobile; 91- or 0-prefixed Indian mobile typed
+        // without a "+" (very common on mobile); or any explicit international number.
+        var indian10  = /^[6-9]\d{9}$/.test(digits);
+        var indian91  = /^91[6-9]\d{9}$/.test(digits);
+        var indian0   = /^0[6-9]\d{9}$/.test(digits);
+        var intl      = /^\+/.test(el.value.trim()) && digits.length >= 8 && digits.length <= 15;
+        bad = !(indian10 || indian91 || indian0 || intl);
       }
       if (el.type === 'email') bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
       if (f) f.classList.toggle('invalid', bad);
@@ -1299,7 +1306,15 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     var js = document.createElement('script');
     js.src = 'https://assets.calendly.com/assets/external/widget.js'; js.async = true;
     js.onload = function(){
-      if (window.Calendly) window.Calendly.initInlineWidget({url: url, parentElement: mount});
+      if (!window.Calendly) return failCalendar();
+      window.Calendly.initInlineWidget({url: url, parentElement: mount});
+      // Fire only once the iframe is genuinely present — the spec defines this event
+      // as "embed actually rendered", and the 8s failure path must not have counted.
+      var tries = 0;
+      var poll = setInterval(function(){
+        if (mount.querySelector('iframe')) { clearInterval(poll); track('calendar_view', null, true); }
+        else if (++tries > 40) clearInterval(poll);
+      }, 200);
     };
     js.onerror = failCalendar;
     document.head.appendChild(js);
@@ -1310,8 +1325,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     setTimeout(function(){
       if (!mount.querySelector('iframe')) failCalendar();
     }, 8000);
-
-    track('calendar_view', null, true);
   }
 
   form.addEventListener('submit', async function(e){
@@ -1361,20 +1374,25 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       var saved = await submitLead(payload);
       window.__adscadeSubmissionId = payload.submission_id;
 
+      // The server recomputes the score independently. Where it answers, its verdict
+      // is authoritative — otherwise a future edit to only one of the two scoring
+      // tables could show "you're a fit" while the stored record says otherwise.
+      var outcome = (saved && saved.outcome) || verdict.outcome;
+
       track('contact_details_submitted', null, true);
       track('qualification_form_complete', null, true);
-      track('qualification_outcome', {outcome: verdict.outcome, score_band: verdict.band}, true);
+      track('qualification_outcome', {outcome: outcome, score_band: verdict.band}, true);
 
       steps[at].classList.remove('on');
       bars.forEach(function(b){ b.classList.add('on'); });
       dock.classList.add('hide');
       submitted = true;
 
-      var panel = verdict.outcome === 'qualified' ? 'done-qualified'
-                : verdict.outcome === 'manual_review' ? 'done-review' : 'done-nofit';
+      var panel = outcome === 'qualified' ? 'done-qualified'
+                : outcome === 'manual_review' ? 'done-review' : 'done-nofit';
       var el = document.getElementById(panel);
       el.classList.add('on');
-      if (verdict.outcome === 'qualified') mountCalendly(payload.name, payload.email);
+      if (outcome === 'qualified') mountCalendly(payload.name, payload.email);
       el.scrollIntoView({behavior:'smooth', block:'start'});
       el.focus({preventScroll:true});
     } catch (err){

@@ -117,6 +117,18 @@ On confirmation the page also PATCHes the stored lead to set `calendly_booked = 
 
 ---
 
+## Known coverage gap — bookings made via the fallback link
+
+`booked_call` depends on a `postMessage` from the **embedded** Calendly iframe. If the
+embed fails to load (blocked script, corporate firewall, offline) the visitor is offered a
+direct link that opens Calendly in a **new tab**. A booking completed in that tab cannot
+message back to the funnel window, so `booked_call` and the `calendly_booked` database
+update will not fire for that visitor.
+
+The lead itself is still stored — only the booking confirmation is missed. During QA, do
+not read a gap between `calendar_view` and `booked_call` as lost bookings without first
+checking Calendly's own dashboard.
+
 ## Activation checklist
 
 Before switching tracking on, in order:

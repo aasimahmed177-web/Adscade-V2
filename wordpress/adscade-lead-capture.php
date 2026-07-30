@@ -19,7 +19,9 @@
 if (!defined('ABSPATH')) exit;
 
 const ADSCADE_TABLE   = 'adscade_leads';
-const ADSCADE_RL_MAX  = 5;    // submissions allowed per IP...
+// Deliberately generous: Indian carrier-grade NAT puts many unrelated visitors behind
+// one address. This is bot friction, not a hard quota — the honeypot does the real work.
+const ADSCADE_RL_MAX  = 20;   // submissions allowed per resolved client address...
 const ADSCADE_RL_WIN  = 600;  // ...per this many seconds
 
 /* ── storage ─────────────────────────────────────────────────────────── */
@@ -92,8 +94,21 @@ add_action('rest_api_init', function () {
     ]);
 });
 
+/**
+ * Indian mobile carriers route very large numbers of unrelated subscribers through the
+ * same public address (CGNAT). Keying a rate limit on REMOTE_ADDR alone would let one
+ * carrier's pool lock out genuine visitors on a funnel that is ~99% mobile. Where a
+ * trusted proxy supplies the real client address we use that; the threshold is also set
+ * generously. Filter 'adscade_trusted_proxy_header' if you sit behind a CDN.
+ */
 function adscade_client_ip_hash() {
-    $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+    $header = apply_filters('adscade_trusted_proxy_header', 'HTTP_CF_CONNECTING_IP');
+    $ip = '';
+    if ($header && !empty($_SERVER[$header])) {
+        $ip = sanitize_text_field(wp_unslash($_SERVER[$header]));
+    } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+        $ip = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
+    }
     // Hashed with the site salt — we never store a raw IP.
     return $ip ? hash('sha256', $ip . wp_salt('auth')) : null;
 }
@@ -317,6 +332,18 @@ function adscade_admin_page() {
     echo '</tbody></table></div>';
 }
 
+/**
+ * Neutralise CSV formula injection. sanitize_text_field() strips tags but leaves a
+ * leading = + - @ intact, so a value typed into "Company name" could execute when the
+ * export is opened in Excel or Sheets. Prefixing with an apostrophe forces it to text.
+ */
+function adscade_csv_safe($v) {
+    if (is_string($v) && $v !== '' && strpbrk($v[0], "=+-@\t\r") !== false) {
+        return "'" . $v;
+    }
+    return $v;
+}
+
 function adscade_export_csv() {
     global $wpdb;
     $rows = $wpdb->get_results('SELECT * FROM ' . adscade_table_name() . ' ORDER BY id DESC', ARRAY_A);
@@ -325,7 +352,7 @@ function adscade_export_csv() {
     $out = fopen('php://output', 'w');
     if ($rows) {
         fputcsv($out, array_keys($rows[0]));
-        foreach ($rows as $r) fputcsv($out, $r);
+        foreach ($rows as $r) fputcsv($out, array_map('adscade_csv_safe', $r));
     }
     fclose($out);
     exit;
