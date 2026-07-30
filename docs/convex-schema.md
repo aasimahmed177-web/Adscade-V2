@@ -28,11 +28,11 @@ runs, or replace the body of `submitLead`. Nothing else changes.
 
 ```ts
 {
-  businessType: "independent_broker" | "brokerage_team" | "channel_partner" | "developer" | "other",
+  businessType: "developer" | "first_project" | "channel_partner" | "brokerage_team" | "other",
   city:         string,   // free text — "Thane West", "Gurugram Sector 79"
-  inventory:    "active" | "launching" | "none",
+  inventory:    "active" | "launching" | "no_rera" | "none",
   spend:        "none" | "ready_no_spend" | "under_50k" | "50k_150k" | "150k_300k" | "300k_plus",
-  leadSource:   "portals" | "self_ads" | "freelancer" | "referrals" | "nothing",
+  leadSource:   "portals" | "self_ads" | "freelancer" | "channel_partners" | "referrals" | "nothing",
   cpql:         "tracked" | "rough" | "unknown",
 
   name:         string,
@@ -56,16 +56,17 @@ import { v } from "convex/values";
 export default defineSchema({
   leads: defineTable({
     businessType: v.union(
-      v.literal("independent_broker"), v.literal("brokerage_team"),
-      v.literal("channel_partner"), v.literal("developer"), v.literal("other")),
+      v.literal("developer"), v.literal("first_project"), v.literal("channel_partner"),
+      v.literal("brokerage_team"), v.literal("other")),
     city:       v.string(),
-    inventory:  v.union(v.literal("active"), v.literal("launching"), v.literal("none")),
+    inventory:  v.union(v.literal("active"), v.literal("launching"),
+                        v.literal("no_rera"), v.literal("none")),
     spend:      v.union(
       v.literal("none"), v.literal("ready_no_spend"), v.literal("under_50k"),
       v.literal("50k_150k"), v.literal("150k_300k"), v.literal("300k_plus")),
     leadSource: v.union(
       v.literal("portals"), v.literal("self_ads"), v.literal("freelancer"),
-      v.literal("referrals"), v.literal("nothing")),
+      v.literal("channel_partners"), v.literal("referrals"), v.literal("nothing")),
     cpql:       v.union(v.literal("tracked"), v.literal("rough"), v.literal("unknown")),
 
     name:     v.string(),
@@ -94,7 +95,9 @@ export default defineSchema({
 The six questions exist to sort leads before Aasim's calendar is touched. Compute `tier` in
 the mutation, not on the client — a client-side tier is a client-editable tier.
 
-- **disqualified** — `inventory === "none"` **or** `spend === "none"`. Note `ready_no_spend`
+- **disqualified** — `inventory === "none"`, `inventory === "no_rera"`, **or** `spend === "none"`.
+  `no_rera` is the hard one: advertising an unregistered project is illegal under RERA §3, so
+  this is a legal bar rather than a commercial preference. Never override it. Note `ready_no_spend`
   ("nothing yet, but I have a budget ready") is **not** a disqualifier — the ICP screens on
   budget, not on current spend, and the page's own FAQ says you needn't be running ads today. These are the two hard
   disqualifiers from `docs/ICP.md` §4. The page already tells these visitors honestly that
@@ -116,9 +119,11 @@ export const submit = mutation({
     if (!args.consent) throw new Error("consent required");
     if (!/^[6-9]\d{9}$/.test(args.phone)) throw new Error("invalid phone");
 
-    const dq   = args.inventory === "none" || args.spend === "none";
+    const dq   = args.inventory === "none" || args.inventory === "no_rera"
+              || args.spend === "none";
     const hot  = ["50k_150k", "150k_300k", "300k_plus"].includes(args.spend)
                && args.inventory === "active"
+               && args.businessType === "developer"
                && (args.cpql === "rough" || args.cpql === "unknown");
 
     return await ctx.db.insert("leads", {

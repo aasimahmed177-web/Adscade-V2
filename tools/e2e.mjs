@@ -5,6 +5,8 @@
 import { chromium } from 'playwright';
 const b = await chromium.launch();
 let fails = 0;
+const pick = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
+const next = i => p.click(`[data-step="${i}"] [data-next]`);
 const t = (name, cond) => { if (!cond) fails++; console.log((cond ? '  ok  ' : 'FAIL  ') + name); };
 const URL = 'file://' + process.cwd() + '/site/index.html';
 
@@ -19,10 +21,11 @@ t('empty question blocks advance', await p.isVisible('[data-step="0"].on'));
 
 t('scheduler hidden before submit', !(await p.isVisible('.book-slot')));
 
-const seq = [['input[value="brokerage_team"]',0],['#city',1],['input[value="active"]',2],
-  ['input[value="150k_300k"]',3],['input[value="freelancer"]',4],['input[value="unknown"]',5]];
+const seq = [['radio:business_type:brokerage_team',0],['#city',1],['radio:inventory:active',2],
+  ['radio:spend:150k_300k',3],['radio:lead_source:freelancer',4],['radio:cpql:unknown',5]];
 for (const [sel, step] of seq) {
-  if (sel.startsWith('#')) await p.fill(sel, 'Thane West'); else await p.check(sel);
+  if (sel.startsWith('#')) await p.fill(sel, 'Thane West');
+  else { const [, n, v] = sel.split(':'); await p.check(`input[name="${n}"][value="${v}"]`); }
   await p.click(`[data-step="${step}"] [data-next]`);
 }
 t('reaches contact step', await p.isVisible('[data-step="6"].on'));
@@ -49,9 +52,7 @@ t('confirmation is on screen', doneBox && doneBox.y > -10 && doneBox.y < 900);
 
 /* ── a disqualified lead must never reach the scheduler ───────────── */
 await p.goto(URL); await p.waitForTimeout(300);
-const pick = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
-const next = i => p.click(`[data-step="${i}"] [data-next]`);
-await pick('business_type','independent_broker'); await next(0);
+await pick('business_type','developer'); await next(0);
 await p.fill('#city','Nashik'); await next(1);
 await pick('inventory','none'); await next(2);
 await pick('spend','none'); await next(3);
@@ -66,9 +67,27 @@ t('disqualified lead is still captured', await p.isVisible('#done.on'));
 t('disqualified lead gets NO scheduler', !(await p.isVisible('.book-slot')));
 t('disqualified lead gets the honest ending', await p.isVisible('#done-later'));
 
+/* ── an unregistered project is a hard legal stop ─────────────────── */
+await p.goto(URL); await p.waitForTimeout(300);
+await pick('business_type','developer'); await next(0);
+await p.fill('#city','Raipur'); await next(1);
+await pick('inventory','no_rera');
+t('unregistered project triggers the RERA stop', await p.isVisible('.dq[data-dq="rera"].on'));
+t('RERA stop cites the law, not preference',
+  (await p.textContent('.dq[data-dq="rera"]')).includes('RERA'));
+t('inventory warning does not also fire', !(await p.isVisible('.dq[data-dq="inventory"].on')));
+await next(2);
+await pick('spend','300k_plus'); await next(3);
+await pick('lead_source','channel_partners'); await next(4);
+await pick('cpql','unknown'); await next(5);
+await p.fill('#name','A Builder'); await p.fill('#business','Unregistered Projects');
+await p.fill('#phone','9000000002'); await p.fill('#email','b@u.in'); await p.check('#consent');
+await p.click('button[type=submit]'); await p.waitForTimeout(600);
+t('unregistered project gets NO scheduler', !(await p.isVisible('.book-slot')));
+
 /* ── budget-ready-but-not-spending is NOT a disqualifier ──────────── */
 await p.goto(URL); await p.waitForTimeout(300);
-await pick('business_type','independent_broker'); await next(0);
+await pick('business_type','developer'); await next(0);
 await p.fill('#city','Indore'); await next(1);
 await pick('inventory','active'); await next(2);
 await pick('spend','ready_no_spend'); await next(3);
@@ -100,18 +119,18 @@ t('Back from contact returns to question 6', await p.isVisible('[data-step="5"].
 
 /* ── disqualification, inline in the step that caused it ──────────── */
 await p.goto(URL); await p.waitForTimeout(300);
-await p.check('input[value="independent_broker"]'); await p.click('[data-step="0"] [data-next]');
+await pick('business_type','developer'); await p.click('[data-step="0"] [data-next]');
 await p.fill('#city','Nagpur'); await p.click('[data-step="1"] [data-next]');
-await p.check('input[value="none"]');
+await pick('inventory','none');
 t('no-inventory warns immediately, no Continue needed', await p.isVisible('.dq[data-dq="inventory"].on'));
 const dqBox = await (await p.$('.dq[data-dq="inventory"]')).boundingBox();
 const navBox = await (await p.$('[data-step="2"] .nav')).boundingBox();
 t('warning sits above Continue, not after it', dqBox.y < navBox.y);
-await p.check('input[value="active"]');
+await pick('inventory','active');
 t('correcting the answer clears the warning', !(await p.isVisible('.dq[data-dq="inventory"].on')));
 
-await p.check('input[value="none"]');
-await p.click('[data-step="2"] [data-remind]');
+await pick('inventory','none');
+await p.click('[data-step="2"] .dq[data-dq="inventory"] [data-remind]');
 t('lightweight exit skips to contact step', await p.isVisible('[data-step="6"].on'));
 t('warning does not follow to the contact step', !(await p.isVisible('[data-step="6"] .dq.on')));
 
