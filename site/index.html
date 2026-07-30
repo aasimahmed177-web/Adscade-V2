@@ -10,10 +10,12 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — AdScade">
 <meta property="og:description" content="One team builds and owns your entire buyer funnel — so the leads that reach you already have their budget, location and timeline on record.">
-<meta property="og:image" content="assets/asim-ahmed.jpg">
+<meta property="og:image" content="https://adscade.com/assets/asim-ahmed.jpg">
+<meta property="og:url" content="https://adscade.com/">
 <meta property="og:locale" content="en_IN">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#05100A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F0D08'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='19' fill='%23E0B865' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,500&display=swap" rel="stylesheet">
@@ -144,7 +146,7 @@ a{color:var(--gold);text-underline-offset:3px}
 /* the poster is atmosphere, not content — this keeps it from competing with the label */
 .vsl__frame::after{
   content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 78% 78% at 50% 50%,rgba(5,16,10,.92),rgba(5,16,10,.55));
+  background:radial-gradient(ellipse 72% 72% at 50% 55%,rgba(5,16,10,.82),rgba(5,16,10,.3));
 }
 .vsl__body{position:relative;z-index:1;text-align:center;padding:1.2rem}
 .vsl__play{
@@ -160,13 +162,6 @@ a{color:var(--gold);text-underline-offset:3px}
   text-transform:uppercase;color:var(--gold);margin:0 0 .35rem;
 }
 .vsl__hint{font-size:var(--t-small);color:var(--cream);margin:0 auto;max-width:36ch}
-.vsl__bar{
-  display:flex;justify-content:space-between;align-items:center;gap:1rem;
-  padding:.85rem 1.2rem;border-top:var(--hair);
-  font-size:var(--t-micro);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-dim);
-}
-.vsl__bar span{display:flex;align-items:center;gap:.45rem}
-.vsl__dot{width:5px;height:5px;border-radius:50%;background:var(--gold-deep)}
 /* revealed in place by the play control — never a jump to somewhere else */
 .vsl__agenda{display:none;padding:1.2rem 1.4rem;border-top:var(--hair);text-align:left}
 .vsl__agenda.on{display:block}
@@ -192,8 +187,9 @@ a{color:var(--gold);text-underline-offset:3px}
 }
 .trust span{
   font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--cream-dim);display:flex;align-items:center;gap:.5rem;
+  text-transform:uppercase;color:var(--cream-dim);
 }
+.trust b{white-space:nowrap}
 .trust b{color:var(--cream);font-weight:700}
 
 /* ─── signature: the leak diagram ────────────────────────────────────── */
@@ -205,10 +201,10 @@ a{color:var(--gold);text-underline-offset:3px}
 .leak__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.5rem}
 .leak__name{font-size:var(--t-small);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .leak__val{font-family:var(--serif);font-size:var(--t-h4);color:var(--gold);line-height:1}
-.leak__track{height:14px;border:1px solid rgba(201,160,74,.28);border-radius:2px;overflow:hidden;background:rgba(5,16,10,.55)}
+.leak__track{height:18px;border:1px solid rgba(201,160,74,.28);border-radius:2px;overflow:hidden;background:rgba(5,16,10,.55)}
 .leak__bar{
   display:block;height:100%;min-width:14px;
-  background:linear-gradient(90deg,rgba(26,51,34,1),rgba(26,51,34,.5));
+  background:linear-gradient(90deg,rgba(201,160,74,.45),rgba(201,160,74,.2));
   border-right:2px solid var(--gold-deep);
 }
 .leak__stage:nth-child(4) .leak__bar{background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-right:none}
@@ -242,8 +238,7 @@ a{color:var(--gold);text-underline-offset:3px}
 .cmp__pair{display:contents}
 .cmp__cell{padding:1.1rem 1.4rem;border-top:var(--hair);font-size:var(--t-small);line-height:1.5}
 .cmp__cell--old{color:var(--cream-dim);background:rgba(142,59,46,.09)}
-.cmp__cell--new{border-left:var(--hair)}
-.cmp__head--new{border-left:var(--hair)}
+.cmp__cell--new,.cmp__head--new{border-left:var(--hair)}
 
 /* sample report — the proof artefact */
 .report{max-width:720px;margin-inline:auto;padding:1.6rem}
@@ -430,7 +425,7 @@ a{color:var(--gold);text-underline-offset:3px}
             <button class="vsl__play" id="play" type="button" aria-label="Show what the walkthrough covers" aria-expanded="false" aria-controls="agenda">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
             </button>
-            <p class="vsl__label">Walkthrough · recording this week</p>
+            <p class="vsl__label">Walkthrough · in production</p>
             <p class="vsl__hint">Aasim walks through exactly where the money leaks in a real estate funnel, and what a fixed one looks like.</p>
           </div>
         </div>
@@ -456,7 +451,7 @@ a{color:var(--gold);text-underline-offset:3px}
         <p class="cta-note">30 minutes on WhatsApp or Google Meet. No slides, no sales pitch — we open your ad account and work through the numbers together.</p>
         <div class="rail__meta">
           <span>Straight with <b>Aasim Ahmed</b>, not a sales rep</span>
-          <span>We take on <b>four new funnels a month</b></span>
+          <span>One founder-led team — <b>we don't subcontract</b></span>
         </div>
       </aside>
     </div>
@@ -481,7 +476,7 @@ a{color:var(--gold);text-underline-offset:3px}
     <div>
       <p class="eyebrow">The leak</p>
       <h2 class="h2">You are not short of leads.<br>You are <em>losing them in transit.</em></h2>
-      <p class="lead">A hundred people click. Sixty land on a page that doesn't answer the question the ad raised. Twenty fill a form. Nobody follows up until evening. Four are still interested by then, and one of those was never going to buy in your city anyway.</p>
+      <p class="lead">A hundred people click. Sixty land on a page that doesn't answer the question the ad raised. Twenty get as far as a follow-up — and nobody replies until evening. Four end up standing on the site, and one of those was never going to buy in your city anyway.</p>
       <p class="lead dim">Nothing in that sequence shows up in your ad account. The ad account says the ad worked. Which is why the leak survives for months.</p>
       <div class="rule"></div>
       <p class="lead">Each of those four stages is a place your money can quietly go missing. We rebuild all four as one system, and report on every one of them each week.</p>
@@ -594,7 +589,7 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="card tile"><p class="tile__k">Video ad creative</p><p>Shot for your funnel and your project, in the language your buyers actually search in. Not recycled generic footage.</p></div>
       <div class="card tile"><p class="tile__k">Meta ads management</p><p>Facebook and Instagram campaigns built, launched and optimised — with the landing page and creative already matched to them.</p></div>
       <div class="card tile"><p class="tile__k">WhatsApp automation</p><p>An automated follow-up sequence that filters and nurtures every lead, so your team only picks up the phone for people worth calling.</p></div>
-      <div class="card tile"><p class="tile__k">Weekly reporting</p><p>Every Monday: how many leads came in, how many matched your budget and location, how many booked a site visit, and what each of those cost you.</p></div>
+      <div class="card tile"><p class="tile__k">Weekly reporting</p><p>Every Monday, the four numbers that actually decide whether this is working — shown in full below.</p></div>
     </div>
   </div>
 </section>
@@ -609,7 +604,7 @@ a{color:var(--gold);text-underline-offset:3px}
     <div class="card report">
       <div class="report__head">
         <p class="report__k">Weekly funnel report</p>
-        <p class="report__wk">Week 6 · sample layout</p>
+        <p class="report__wk">Sample layout</p>
       </div>
       <div class="report__rows">
         <div class="report__row"><span>Leads captured</span><b>68</b></div>
@@ -684,7 +679,7 @@ a{color:var(--gold);text-underline-offset:3px}
 <section class="band form-band" id="book">
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Book your call</p>
-    <h2 class="h2 h2--center" style="max-width:22ch">Six questions, then <em>pick your slot.</em></h2>
+    <h2 class="h2 h2--center" style="max-width:22ch">Six questions, your details, then <em>pick your slot.</em></h2>
     <p class="lead lead--center">We ask these so the call starts with your numbers instead of twenty minutes of background. If you're not a fit, we'll say so on this page rather than waste your time.</p>
 
     <form class="card form" id="lead-form" novalidate>
@@ -727,7 +722,7 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="inventory" value="launching">Launching within the next 60 days</label>
           <label class="opt"><input type="radio" name="inventory" value="none" data-disqualify="inventory">No active inventory at the moment</label>
         </div>
-        <div class="dq" data-dq="inventory">
+        <div class="dq" data-dq="inventory" role="status">
           <b>Straight answer: we'd be a bad fit right now.</b> Without an active project or live inventory there is nothing for a funnel to sell, and we'd be taking your money to build something with no job to do. Come back when you have stock to move.
           <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
         </div>
@@ -745,7 +740,7 @@ a{color:var(--gold);text-underline-offset:3px}
           <label class="opt"><input type="radio" name="spend" value="150k_300k">₹1,50,000 – ₹3,00,000</label>
           <label class="opt"><input type="radio" name="spend" value="300k_plus">Over ₹3,00,000</label>
         </div>
-        <div class="dq" data-dq="spend">
+        <div class="dq" data-dq="spend" role="status">
           <b>Straight answer: we'd be a bad fit right now.</b> A funnel needs an ad budget behind it — we build and run the system, but we don't fund the media. With nothing to spend, there's nothing for us to optimise.
           <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
         </div>
@@ -804,7 +799,7 @@ a{color:var(--gold);text-underline-offset:3px}
         </div>
         <label class="consent">
           <input type="checkbox" id="consent" name="consent" required>
-          <span>I agree to be contacted via phone or WhatsApp regarding this enquiry, and I have read the <a href="privacy.html">Privacy Policy</a>.</span>
+          <span>I agree to be contacted via phone or WhatsApp regarding this enquiry, and I have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
         </label>
         <div class="errbox" id="consent-err">
           <span class="err">Please tick the consent box so we're allowed to contact you.</span>
@@ -819,10 +814,17 @@ a{color:var(--gold);text-underline-offset:3px}
       <!-- success -->
       <div class="done" id="done" role="status" aria-live="polite" tabindex="-1">
         <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3 class="h3">Answers received. Now pick your time.</h3>
-        <p class="lead lead--center">Choose a slot that suits you — you'll get the confirmation immediately, no waiting on us.</p>
-        <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Pick My Slot →</a>
-        <p class="cta-note">Keep your ad account open during the call. The audit is far more useful with real numbers on the screen.</p>
+        <div id="done-booked">
+          <h3 class="h3">Answers received. Now pick your time.</h3>
+          <p class="lead lead--center">Choose a slot that suits you — you'll get the confirmation immediately, no waiting on us.</p>
+          <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Pick My Slot →</a>
+          <p class="cta-note">Keep your ad account open during the call. The audit is far more useful with real numbers on the screen.<br>Scheduler not loading? WhatsApp us on +91 79961 12470.</p>
+        </div>
+        <div id="done-later" hidden>
+          <h3 class="h3">Details saved. We'll check back.</h3>
+          <p class="lead lead--center">We're not booking a call yet, because from your answers we'd be taking your money to build something with no job to do. When you have inventory to move and a budget behind it, message us and we'll pick this up properly.</p>
+          <p class="cta-note">Nothing else to do right now. WhatsApp us any time on +91 79961 12470.</p>
+        </div>
       </div>
     </form>
   </div>
@@ -834,11 +836,11 @@ a{color:var(--gold);text-underline-offset:3px}
     <p class="eyebrow">Common questions</p>
     <h2 class="h2">Before you book.</h2>
     <div class="faq" style="margin-top:2rem">
-      <button class="faq__q" aria-expanded="false" aria-controls="a1">Why is there a setup fee at all?</button>
-      <div class="faq__a" id="a1" hidden><p>Because there is real production work before a single rupee goes to ads — the landing page is built, the video is shot, the WhatsApp automation is configured, all specifically for your project. The setup fee covers those hours. It also means both sides are committed before we start spending your ad budget.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a1">How much does this cost?</button>
+      <div class="faq__a" id="a1" hidden><p>It's a one-time setup fee plus a monthly retainer. We don't publish the numbers because the honest ones depend on how much production your funnel needs and which market you're selling in — a figure quoted before we've seen either would be a guess. You'll have the exact number on the call, before you commit to anything.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a2">How much does the whole thing cost?</button>
-      <div class="faq__a" id="a2" hidden><p>Pricing is worked out on the call. We don't publish a number because the honest one depends on how much production your funnel needs and what market you're selling in — and a figure quoted before we've seen either would be a guess. You'll have the exact number before you commit to anything.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a2">Why a setup fee and not just a monthly fee?</button>
+      <div class="faq__a" id="a2" hidden><p>Because there is real production work before a single rupee goes to ads — the landing page built, the video shot, the WhatsApp automation configured, all specifically for your project. The setup fee covers those hours. It also means both sides are committed before we start spending your budget.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a3">What exactly counts as a "qualified lead"?</button>
       <div class="faq__a" id="a3" hidden><p>A submission that meets the budget, location and timeline criteria you and we agree during onboarding. If you sell 2BHKs in Thane West between ₹80 lakh and ₹1.2 crore, a lead asking about plots in Nashik is not a qualified lead and does not count toward the guarantee.</p></div>
@@ -850,7 +852,7 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="faq__a" id="a5" hidden><p>Running ads without a proper funnel is pouring water into a leaking bucket. We build the landing page, the video, the qualification and the follow-up as one connected system, then run the ads into it — so when something underperforms, we can see which stage caused it and fix that stage.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a6">I've been burned by an agency before. Why would this be different?</button>
-      <div class="faq__a" id="a6" hidden><p>A fair question, and the honest answer is that you should judge us on the reporting rather than the promise. From week four you get weekly numbers on how many leads came in, how many matched your criteria, how many booked a site visit, and what each of those cost. If the funnel isn't working, you'll see it in the report before you have to ask.</p></div>
+      <div class="faq__a" id="a6" hidden><p>A fair question, and the honest answer is that you should judge us on the reporting rather than the promise. From the first Monday after launch you get weekly numbers on how many leads came in, how many matched your criteria, how many booked a site visit, and what each of those cost. If the funnel isn't working, you'll see it in the report before you have to ask.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a7">How long until leads start coming in?</button>
       <div class="faq__a" id="a7" hidden><p>The funnel goes live at the end of week one. Leads begin flowing once ads are running, and the first two to three weeks after launch are an optimisation period while the campaigns find the right audience. Anyone promising you a specific number of leads on day one is guessing.</p></div>
@@ -859,7 +861,7 @@ a{color:var(--gold);text-underline-offset:3px}
       <div class="faq__a" id="a8" hidden><p>Thirty minutes, with Aasim. We look at what you're running now, work out where the drop-off is, and tell you what a fixed funnel would look like for your project and what it would cost. If we don't think we can help, we say so — that outcome is common and it is fine.</p></div>
     </div>
 
-    <div style="text-align:center;margin-top:3rem">
+    <div class="faq-cta" style="text-align:center;margin-top:3rem">
       <a class="cta" href="#book">Book My Audit Call</a>
     </div>
   </div>
@@ -925,20 +927,40 @@ a{color:var(--gold);text-underline-offset:3px}
 
   /* ── sticky dock: stand down whenever a real CTA is on screen ───── */
   var dock = document.getElementById('dock');
+  var submitted = false;
   if ('IntersectionObserver' in window){
     var live = new Set();
     var io = new IntersectionObserver(function(entries){
+      if (submitted) return;
       entries.forEach(function(e){ e.isIntersecting ? live.add(e.target) : live.delete(e.target); });
       dock.classList.toggle('hide', live.size > 0);
-    }, {rootMargin:'-10% 0px -10% 0px'});
-    document.querySelectorAll('.rail, #book').forEach(function(el){ io.observe(el); });
+      // only the strip the dock itself occupies is discounted — a CTA anywhere else
+      // on screen means the dock is redundant
+    }, {rootMargin:'0px 0px -12% 0px'});
+    // every in-page CTA, not just the two obvious ones — a second gold pill on screen
+    // next to the dock reads as a duplication bug
+    document.querySelectorAll('.rail, #book, .faq-cta').forEach(function(el){ io.observe(el); });
   }
+
+  // A 1.6s smooth flight across 11,000px is a long blurred nothing on a mid-range phone.
+  // Short hops keep the animation; long ones jump.
+  document.querySelectorAll('a[href="#book"]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var target = document.getElementById('book');
+      if (Math.abs(target.getBoundingClientRect().top) > window.innerHeight * 3){
+        e.preventDefault();
+        target.scrollIntoView({block:'start'});
+      }
+    });
+  });
 
   /* ── multi-step form ───────────────────────────────────────────── */
   var form  = document.getElementById('lead-form');
   var steps = Array.prototype.slice.call(form.querySelectorAll('.step'));
   var bars  = Array.prototype.slice.call(form.querySelectorAll('.form__prog i'));
   var at    = 0;
+
+  var disqualified = false;
 
   function show(i){
     steps[at].classList.remove('on');
@@ -959,6 +981,15 @@ a{color:var(--gold);text-underline-offset:3px}
       var on = !!form.querySelector('input[data-disqualify="' + key + '"]:checked');
       box.classList.toggle('on', on);
     });
+    // Drives the ending. A visitor with no inventory or no budget still gets to leave
+    // their details — that lead is worth keeping — but they are never handed a slot in
+    // Aasim's calendar, because the page has just told them we cannot help them yet.
+    disqualified = !!form.querySelector('input[data-disqualify]:checked');
+    var submit = form.querySelector('button[type=submit]');
+    submit.textContent = disqualified ? 'Send My Details' : 'Book My Audit Call';
+    var q7 = document.getElementById('q7');
+    q7.textContent = disqualified ? 'Where should we reach you when the time is right?'
+                                  : 'Where should we send the call link?';
   }
 
   function validateStep(){
@@ -1063,7 +1094,10 @@ a{color:var(--gold);text-underline-offset:3px}
       await submitLead(payload);
       steps[at].classList.remove('on');
       var done = document.getElementById('done');
+      document.getElementById('done-booked').hidden = disqualified;
+      document.getElementById('done-later').hidden = !disqualified;
       done.classList.add('on');
+      submitted = true;
       bars.forEach(function(b){ b.classList.add('on'); });
       dock.classList.add('hide');
       // The confirmation is the whole point of the tap — put it on screen.
@@ -1071,7 +1105,7 @@ a{color:var(--gold);text-underline-offset:3px}
       done.focus({preventScroll:true});
     } catch (err){
       btn.disabled = false;
-      btn.textContent = 'Book My Audit Call';
+      btn.textContent = disqualified ? 'Send My Details' : 'Book My Audit Call';
       document.getElementById('submit-err').classList.add('invalid');
     }
   });

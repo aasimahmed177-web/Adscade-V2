@@ -47,6 +47,25 @@ t('payload reached submitLead', logs.some(l => l.includes('lead captured')));
 const doneBox = await (await p.$('#done')).boundingBox();
 t('confirmation is on screen', doneBox && doneBox.y > -10 && doneBox.y < 900);
 
+/* ── a disqualified lead must never reach the scheduler ───────────── */
+await p.goto(URL); await p.waitForTimeout(300);
+const pick = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
+const next = i => p.click(`[data-step="${i}"] [data-next]`);
+await pick('business_type','independent_broker'); await next(0);
+await p.fill('#city','Nashik'); await next(1);
+await pick('inventory','none'); await next(2);
+await pick('spend','none'); await next(3);
+await pick('lead_source','nothing'); await next(4);
+await pick('cpql','unknown'); await next(5);
+t('submit relabels for a disqualified lead',
+  (await p.textContent('button[type=submit]')).trim() === 'Send My Details');
+await p.fill('#name','Tyre Kicker'); await p.fill('#business','No Stock Realty');
+await p.fill('#phone','9000000001'); await p.fill('#email','t@k.in'); await p.check('#consent');
+await p.click('button[type=submit]'); await p.waitForTimeout(600);
+t('disqualified lead is still captured', await p.isVisible('#done.on'));
+t('disqualified lead gets NO scheduler', !(await p.isVisible('.book-slot')));
+t('disqualified lead gets the honest ending', await p.isVisible('#done-later'));
+
 /* ── disqualification, inline in the step that caused it ──────────── */
 await p.goto(URL); await p.waitForTimeout(300);
 await p.check('input[value="independent_broker"]'); await p.click('[data-step="0"] [data-next]');
@@ -140,6 +159,17 @@ await m.evaluate(() => {
 await m.waitForTimeout(700);
 t('dock stands down when the form is on screen',
   await m.evaluate(() => document.getElementById('dock').classList.contains('hide')));
+
+await m.evaluate(() => document.querySelector('.faq-cta').scrollIntoView());
+await m.waitForTimeout(500);
+t('dock stands down for the FAQ CTA too',
+  await m.evaluate(() => document.getElementById('dock').classList.contains('hide')));
+
+const trustLines = await m.evaluate(() => {
+  const s = [...document.querySelectorAll('.trust span')][1];
+  return { h: Math.round(s.getBoundingClientRect().height), d: getComputedStyle(s).display };
+});
+t(`trust strip reads as one phrase (${trustLines.d}, ${trustLines.h}px)`, trustLines.d !== 'flex');
 
 t('no founder photo inside the video block',
   await m.evaluate(() => !document.querySelector('.vsl').innerHTML.includes('asim-ahmed')));

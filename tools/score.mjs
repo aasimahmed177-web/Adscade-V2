@@ -149,7 +149,7 @@ category('VSL funnel architecture', 150);
   // advertising a runtime for a video that does not exist is a claim about nothing. What
   // the slot must do instead is say plainly that the video is not ready yet.
   check('Video slot states its status honestly', 5,
-    /recording|coming soon|not yet|being filmed/i.test(text));
+    /in production|recording|coming soon|not yet|being filmed/i.test(text));
 
   const foldCTA = await page.evaluate(() => {
     const vh = window.innerHeight;
