@@ -5,33 +5,33 @@
 import { chromium } from 'playwright';
 const b = await chromium.launch();
 let fails = 0;
-const pick = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
-const next = i => p.click(`[data-step="${i}"] [data-next]`);
 const t = (name, cond) => { if (!cond) fails++; console.log((cond ? '  ok  ' : 'FAIL  ') + name); };
 const URL = 'file://' + process.cwd() + '/site/index.html';
 
-/* ── desktop: full happy path ─────────────────────────────────────── */
+/* ── desktop: qualification flow ──────────────────────────────────── */
 const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
 const p = await ctx.newPage();
 const logs = []; p.on('console', m => logs.push(m.text())); p.on('pageerror', e => logs.push('ERR ' + e));
+const pick = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
+const next = i => p.click(`[data-step="${i}"] [data-next]`);
+const dl = () => p.evaluate(() => window.dataLayer || []);
+
 await p.goto(URL); await p.waitForTimeout(400);
+await p.evaluate(() => { window.dataLayer = []; });
 
 await p.click('[data-step="0"] [data-next]');
 t('empty question blocks advance', await p.isVisible('[data-step="0"].on'));
 
-t('scheduler hidden before submit', !(await p.isVisible('.book-slot')));
+const QUALIFIED = [['role','founder'],['inventory','100_plus'],['price_band','above_150'],
+                   ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
+for (let i = 0; i < QUALIFIED.length; i++) { await pick(...QUALIFIED[i]); await next(i); }
+t('reaches contact step after six questions', await p.isVisible('[data-step="6"].on'));
+t('contact step is labelled "Your details", not question 7',
+  (await p.textContent('[data-step="6"] .step__n')).trim() === 'Your details');
 
-const seq = [['radio:business_type:brokerage_team',0],['#city',1],['radio:inventory:active',2],
-  ['radio:spend:150k_300k',3],['radio:lead_source:freelancer',4],['radio:cpql:unknown',5]];
-for (const [sel, step] of seq) {
-  if (sel.startsWith('#')) await p.fill(sel, 'Thane West');
-  else { const [, n, v] = sel.split(':'); await p.check(`input[name="${n}"][value="${v}"]`); }
-  await p.click(`[data-step="${step}"] [data-next]`);
-}
-t('reaches contact step', await p.isVisible('[data-step="6"].on'));
-
-await p.fill('#name','Rajesh Kumar'); await p.fill('#business','Kumar Realty');
-await p.fill('#phone','12345'); await p.fill('#email','raj@kumar.in');
+await p.fill('#name','Rajesh Kumar'); await p.fill('#company','Kumar Developers');
+await p.fill('#project_city','Indore'); await p.fill('#email','rajesh@kumardev.in');
+await p.fill('#phone','12345');
 await p.click('button[type=submit]');
 t('invalid phone blocks submit', await p.isVisible('.field.invalid'));
 
@@ -39,116 +39,95 @@ await p.fill('#phone','9876543210');
 await p.click('button[type=submit]');
 t('missing consent blocks submit', await p.isVisible('#consent-err.invalid'));
 
+// no endpoint configured -> must NOT report success
 await p.check('#consent');
 await p.click('button[type=submit]');
+await p.waitForTimeout(500);
+t('unconfigured endpoint shows an error, never a fake success',
+  await p.isVisible('#submit-err.invalid') && !(await p.isVisible('#done-qualified.on')));
+
+// configure a stub endpoint and retry
+await p.evaluate(() => {
+  window.ADSCADE_ENDPOINT = '/stub';
+  window.__posted = [];
+  window.fetch = async (u, o) => { window.__posted.push(JSON.parse(o.body)); return {ok:true, json: async()=>({ok:true})}; };
+});
+await p.click('button[type=submit]');
 await p.waitForTimeout(700);
-t('completed form submits', await p.isVisible('#done.on'));
-t('scheduler appears only after submit', await p.isVisible('.book-slot'));
-t('primary CTA string is consistent',
+t('qualified lead reaches the qualified panel', await p.isVisible('#done-qualified.on'));
+t('manual-review panel not shown', !(await p.isVisible('#done-review.on')));
+t('not-a-fit panel not shown', !(await p.isVisible('#done-nofit.on')));
+
+const posted = (await p.evaluate(() => window.__posted))[0];
+t('lead was posted before the calendar appeared', !!posted && posted.outcome === 'qualified');
+t('payload carries a submission id and attribution', !!posted.submission_id && !!posted.attribution);
+t('payload carries answers and labels', !!posted.answers.role && !!posted.answer_labels.role);
+
+const events = await dl();
+const names = events.map(e => e.event);
+t('qualification_outcome fired', names.includes('qualification_outcome'));
+t('calendar_view fired exactly once', names.filter(n => n === 'calendar_view').length === 1);
+t('booked_call did NOT fire from viewing the calendar', !names.includes('booked_call'));
+t('outcome event carries band, not the numeric score', (() => {
+  const e = events.find(x => x.event === 'qualification_outcome');
+  return e && ['high','medium','low'].includes(e.score_band) && e.score === undefined;
+})());
+t('no PII in any dataLayer event', !JSON.stringify(events).match(/Rajesh|rajesh@|9876543210|Kumar Developers/));
+t('no PII in the URL', !/rajesh|9876543210/i.test(p.url()));
+
+t('calendly embed targets the correct event URL', await p.evaluate(() =>
+  document.body.innerHTML.includes('calendly.com/aasim-ahmed177/realestate-growth-systems')));
+
+/* ── routing: manual review ───────────────────────────────────────── */
+async function runFlow(answers) {
+  await p.goto(URL); await p.waitForTimeout(300);
   await p.evaluate(() => {
-    const allowed = ['CHECK FIT & PICK A TIME','SEE AVAILABLE TIMES','BOOK A FIT CALL','CONTINUE','BACK','SENDING…'];
-    return [...document.querySelectorAll('.cta')]
-      .every(e => allowed.includes(e.innerText.trim().toUpperCase()));
-  }));
-t('no decorative red remains',
-  await p.evaluate(() => {
-    const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('');
-    // red may only appear on error/disqualify states
-    const decorative = /rgba\(210,\s*82,\s*66[^)]*\)/g;
-    const hits = (css.match(decorative) || []);
-    const errCtx = css.split('\n').filter(l => /210,\s*82,\s*66/.test(l))
-      .every(l => /--error|\.notice|\.dq|invalid/.test(l));
-    return hits.length === 0 || errCtx;
-  }));
-t('scheduler points at the real calendly link',
-  (await p.getAttribute('.book-slot', 'href')) === 'https://calendly.com/aasim-ahmed177/realestate-growth-systems');
-t('payload reached submitLead', logs.some(l => l.includes('lead captured')));
-const doneBox = await (await p.$('#done')).boundingBox();
-t('confirmation is on screen', doneBox && doneBox.y > -10 && doneBox.y < 900);
+    window.dataLayer = []; window.ADSCADE_ENDPOINT = '/stub'; window.__posted = [];
+    window.fetch = async (u,o) => { window.__posted.push(JSON.parse(o.body)); return {ok:true, json: async()=>({ok:true})}; };
+  });
+  const keys = ['role','inventory','price_band','media_budget','followup','bottleneck'];
+  for (let i = 0; i < keys.length; i++) { await pick(keys[i], answers[keys[i]]); await next(i); }
+  await p.fill('#name','Test User'); await p.fill('#company','Test Developers');
+  await p.fill('#project_city','Nagpur'); await p.fill('#email','t@test.in');
+  await p.fill('#phone','9876543210'); await p.check('#consent');
+  await p.click('button[type=submit]'); await p.waitForTimeout(600);
+}
 
-/* ── a disqualified lead must never reach the scheduler ───────────── */
+await runFlow({role:'mandate_partner',inventory:'20_49',price_band:'50_75',
+               media_budget:'ready_1l',followup:'founder_only',bottleneck:'too_few'});
+t('manual review shows the review panel', await p.isVisible('#done-review.on'));
+t('manual review does NOT show Calendly', !(await p.isVisible('#done-qualified.on')));
+t('manual review lead is still stored', (await p.evaluate(()=>window.__posted)).length === 1);
+
+await runFlow({role:'broker',inventory:'100_plus',price_band:'above_150',
+               media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'});
+t('independent broker routed away from the calendar', await p.isVisible('#done-nofit.on'));
+t('broker lead is still stored', (await p.evaluate(()=>window.__posted)).length === 1);
+
+await runFlow({role:'founder',inventory:'none',price_band:'above_150',
+               media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'});
+t('no active inventory routed away', await p.isVisible('#done-nofit.on'));
+
+await runFlow({role:'founder',inventory:'100_plus',price_band:'above_150',
+               media_budget:'below_1l_not_ready',followup:'crm',bottleneck:'low_quality'});
+t('unwilling to invest routed away', await p.isVisible('#done-nofit.on'));
+
+await runFlow({role:'founder',inventory:'100_plus',price_band:'above_150',
+               media_budget:'above_3l',followup:'none',bottleneck:'low_quality'});
+t('no follow-up process routed away', await p.isVisible('#done-nofit.on'));
+
+await runFlow({role:'founder',inventory:'1_19',price_band:'above_150',
+               media_budget:'1_3l',followup:'crm',bottleneck:'few_site_visits'});
+t('premium boutique under 20 units qualifies', await p.isVisible('#done-qualified.on'));
+
+/* ── back navigation ──────────────────────────────────────────────── */
 await p.goto(URL); await p.waitForTimeout(300);
-await pick('business_type','developer'); await next(0);
-await p.fill('#city','Nashik'); await next(1);
-await pick('inventory','none'); await next(2);
-await pick('spend','none'); await next(3);
-await pick('lead_source','nothing'); await next(4);
-await pick('cpql','unknown'); await next(5);
-t('submit relabels for a disqualified lead',
-  (await p.textContent('button[type=submit]')).trim() === 'Send My Details');
-await p.fill('#name','Tyre Kicker'); await p.fill('#business','No Stock Realty');
-await p.fill('#phone','9000000001'); await p.fill('#email','t@k.in'); await p.check('#consent');
-await p.click('button[type=submit]'); await p.waitForTimeout(600);
-t('disqualified lead is still captured', await p.isVisible('#done.on'));
-t('disqualified lead gets NO scheduler', !(await p.isVisible('.book-slot')));
-t('disqualified lead gets the honest ending', await p.isVisible('#done-later'));
-
-/* ── an unregistered project is a hard legal stop ─────────────────── */
-await p.goto(URL); await p.waitForTimeout(300);
-await pick('business_type','developer'); await next(0);
-await p.fill('#city','Raipur'); await next(1);
-await pick('inventory','no_rera');
-t('unregistered project triggers the RERA stop', await p.isVisible('.dq[data-dq="rera"].on'));
-t('RERA stop cites the law, not preference',
-  (await p.textContent('.dq[data-dq="rera"]')).includes('RERA'));
-t('inventory warning does not also fire', !(await p.isVisible('.dq[data-dq="inventory"].on')));
-await next(2);
-await pick('spend','300k_plus'); await next(3);
-await pick('lead_source','channel_partners'); await next(4);
-await pick('cpql','unknown'); await next(5);
-await p.fill('#name','A Builder'); await p.fill('#business','Unregistered Projects');
-await p.fill('#phone','9000000002'); await p.fill('#email','b@u.in'); await p.check('#consent');
-await p.click('button[type=submit]'); await p.waitForTimeout(600);
-t('unregistered project gets NO scheduler', !(await p.isVisible('.book-slot')));
-
-/* ── budget-ready-but-not-spending is NOT a disqualifier ──────────── */
-await p.goto(URL); await p.waitForTimeout(300);
-await pick('business_type','developer'); await next(0);
-await p.fill('#city','Indore'); await next(1);
-await pick('inventory','active'); await next(2);
-await pick('spend','ready_no_spend'); await next(3);
-t('"budget ready, not spending yet" is not disqualified',
-  !(await p.isVisible('.dq[data-dq="spend"].on')) && await p.isVisible('[data-step="4"].on'));
-
-/* ── radio steps explain themselves when empty ────────────────────── */
-await p.goto(URL); await p.waitForTimeout(300);
-await next(0);
-t('empty radio step shows a written reason',
-  await p.isVisible('[data-step="0"] [data-radio-err].invalid .err'));
-await pick('business_type','other');
-t('picking an option clears the reason',
-  !(await p.isVisible('[data-step="0"] [data-radio-err].invalid')));
-
-/* ── contact step is reversible ───────────────────────────────────── */
-await p.goto(URL); await p.waitForTimeout(300);
-await pick('business_type','developer'); await next(0);
-await p.fill('#city','Kochi'); await next(1);
-await pick('inventory','active'); await next(2);
-await pick('spend','300k_plus'); await next(3);
-await pick('lead_source','portals'); await next(4);
-await pick('cpql','rough'); await next(5);
-t('contact step has a Back button', await p.isVisible('[data-step="6"] [data-back]'));
-t('contact note promises a slot for a qualified lead',
-  (await p.textContent('#contact-note')).includes('choose an available slot'));
-await p.click('[data-step="6"] [data-back]');
-t('Back from contact returns to question 6', await p.isVisible('[data-step="5"].on'));
-
-/* ── disqualification, inline in the step that caused it ──────────── */
-await p.goto(URL); await p.waitForTimeout(300);
-await pick('business_type','developer'); await p.click('[data-step="0"] [data-next]');
-await p.fill('#city','Nagpur'); await p.click('[data-step="1"] [data-next]');
-await pick('inventory','none');
-t('no-inventory warns immediately, no Continue needed', await p.isVisible('.dq[data-dq="inventory"].on'));
-const dqBox = await (await p.$('.dq[data-dq="inventory"]')).boundingBox();
-const navBox = await (await p.$('[data-step="2"] .nav')).boundingBox();
-t('warning sits above Continue, not after it', dqBox.y < navBox.y);
-await pick('inventory','active');
-t('correcting the answer clears the warning', !(await p.isVisible('.dq[data-dq="inventory"].on')));
-
-await pick('inventory','none');
-await p.click('[data-step="2"] .dq[data-dq="inventory"] [data-remind]');
-t('lightweight exit skips to contact step', await p.isVisible('[data-step="6"].on'));
-t('warning does not follow to the contact step', !(await p.isVisible('[data-step="6"] .dq.on')));
+await pick('role','founder'); await next(0);
+await pick('inventory','50_99'); await next(1);
+t('back returns to the previous question', await (async () => {
+  await p.click('[data-step="2"] [data-back]');
+  return p.isVisible('[data-step="1"].on');
+})());
 
 /* ── VSL control reveals in place, never teleports ────────────────── */
 await p.goto(URL); await p.waitForTimeout(300);

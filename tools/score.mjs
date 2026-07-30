@@ -99,7 +99,8 @@ category('Message match & congruency', 150);
   // THIS string — they currently read "Book My Free Audit Call".
   const AD_CTA = 'Check Fit & Pick a Time';
   // The brief permits exactly two purpose-specific variants. Anything else is drift.
-  const CTA_ALLOWED = [AD_CTA, 'See Available Times', 'Book a Fit Call'];
+  // 'Check Fit' is the form's submit button (brief §11). 'Book a Fit Call' closes the FAQ.
+  const CTA_ALLOWED = [AD_CTA, 'Check Fit', 'Book a Fit Call'];
 
   const h1 = norm(await page.evaluate(() => document.querySelector('h1')?.innerText || ''));
   check('H1 matches ad headline exactly', 30,
@@ -212,7 +213,10 @@ category('Qualification form', 120);
     steps.length >= 7 ? 30 : Math.round(steps.length / 7 * 30), `${steps.length} steps`);
 
   const names = await page.$$eval('#lead-form [name]', els => [...new Set(els.map(e => e.name))]);
-  const required = ['business_type', 'city', 'inventory', 'spend', 'lead_source', 'cpql', 'name', 'business', 'phone', 'email', 'consent'];
+  // CHANGED 31 Jul 2026: the six questions were replaced by the weighted qualification
+  // model in the final brief (§9). Field names follow that model.
+  const required = ['role', 'inventory', 'price_band', 'media_budget', 'followup', 'bottleneck',
+                    'name', 'company', 'project_city', 'email', 'phone', 'consent'];
   const missing = required.filter(n => !names.includes(n));
   check('All qualification fields present', 10,
     Math.round((required.length - missing.length) / required.length * 10), missing.join(','));
@@ -224,8 +228,23 @@ category('Qualification form', 120);
 
   check('Inline validation messages exist', 15, (await page.$$('.err')).length >= 4);
 
-  check('Success state present', 15, !!(await page.$('#done')));
-  check('Disqualification path present', 15, (await page.$$('[data-disqualify]')).length >= 2);
+  // Three distinct outcome panels replace the single success state — qualified,
+  // manual review, and not-currently-a-fit (brief §10).
+  const panels = await page.$$('#done-qualified, #done-review, #done-nofit');
+  check('All three outcome states present', 15, panels.length === 3, `${panels.length} panels`);
+
+  // Hard restrictions now live in the scoring model rather than data attributes.
+  const restricted = await page.evaluate(() => {
+    if (typeof window.__adscadeEvaluate !== 'function') return 0;
+    const base = {role:'founder',inventory:'100_plus',price_band:'above_150',
+                  media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'};
+    const cases = [{role:'broker'},{role:'agency_other'},{inventory:'none'},
+                   {media_budget:'below_1l_not_ready'},{followup:'none'}];
+    return cases.filter(c => window.__adscadeEvaluate(Object.assign({}, base, c))
+                              .outcome === 'not_current_fit').length;
+  });
+  check('Hard restrictions route away from the calendar', 15,
+    restricted === 5, `${restricted}/5 restrictions active`);
   check('Progress indicator', 15, (await page.$$('.form__prog i')).length >= 7);
 }
 
@@ -233,7 +252,7 @@ category('Qualification form', 120);
 category('Copy & ICP resonance', 130);
 {
   const vocab = [
-    ['cost per qualified lead', 'cpql'],
+    ['cost per qualified enquiry', 'cost per qualified lead', 'cpql'],
     ['site visit'],
     ['channel partner'],
     ['inventory'],
@@ -334,8 +353,10 @@ category('Ad-policy compliance', 120);
   check('No banned claim phrases', 40, hits.length === 0 ? 40 : Math.max(0, 40 - hits.length * 12), hits.join(','));
 
   check('Guarantee stated', 15, hasAny('guarantee'));
-  check('"Qualified lead" defined on page', 20,
-    has('qualified lead') && hasAny('is defined as', 'defined as'));
+  // The open-ended guarantee was withdrawn (brief §7). What must now be defined on the
+  // page is what a qualified ENQUIRY means, and against what criteria it is judged.
+  check('"Qualified enquiry" defined on page', 20,
+    has('qualified enquiry') && has('budget, location, property type and buying timeline'));
   check('Privacy Policy linked', 10, !!(await page.$('a[href*="privacy"]')));
   check('Terms linked', 10, !!(await page.$('a[href*="terms"]')));
   check('Results-vary disclaimer', 10, has('results vary'));
@@ -444,14 +465,16 @@ category('Convex readiness', 60);
 {
   check('Single submitLead() adapter', 20, /async function submitLead\s*\(/.test(html));
 
+
   const seg = html.slice(html.indexOf('submitLead'), html.indexOf('submitLead') + 1400);
   check('Payload shape documented', 15,
-    /businessType/.test(html) && /convex\/schema/.test(html));
+    /submission_id/.test(html) && /ADSCADE_ENDPOINT/.test(html));
 
+  // The endpoint must come from configuration, never be baked into the markup.
   const hardcoded = /fetch\(\s*["'`]https?:\/\//.test(html);
-  check('No hardcoded backend endpoint', 15, !hardcoded);
+  check('No hardcoded backend endpoint', 15, !hardcoded && /window\.ADSCADE_ENDPOINT/.test(html));
 
-  check('Schema handoff doc exists', 10, existsSync(join(ROOT, 'docs', 'convex-schema.md')));
+  check('Tracking spec documented', 10, existsSync(join(ROOT, 'docs', 'ADSCADE_TRACKING_SPEC.md')));
 }
 
 assertBudget(cur);

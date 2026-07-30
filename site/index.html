@@ -124,6 +124,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .cta--ghost:hover{background:rgba(224,184,101,.1)}
 .cta--wide{width:100%}
 .cta-note{font-size:var(--t-small);color:var(--cream-dim);margin:.75rem 0 0}
+/* secondary by colour and separation, not by shrinking below the reading floor */
+.qual-note{line-height:1.5;border-top:var(--hair);padding-top:.7rem;margin-top:.7rem;opacity:.85}
 
 /* ─── brand bar ──────────────────────────────────────────────────────── */
 .brandbar{
@@ -363,6 +365,15 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .back:hover{color:var(--cream)}
 .done{display:none;text-align:center;padding:1.5rem 0}
 .done.on{display:block}
+.opt-tag{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--adscade-muted);font-weight:700;margin-left:.4rem}
+/* Calendly inline embed. Fixed min-height so the panel does not jump when the
+   widget finishes loading, and no nested horizontal scroll on a phone. */
+.cal{
+  min-height:680px;width:100%;margin:1.4rem 0 .6rem;
+  border:var(--hair);border-radius:14px;overflow:hidden;background:var(--elev);
+}
+.cal iframe{width:100%!important;min-height:680px;border:0;display:block}
+@media(max-width:560px){.cal,.cal iframe{min-height:900px}}
 .done__tick{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;margin:0 auto 1.3rem}
 .done__tick svg{width:26px;height:26px}
 /* the scheduler hand-off — a different action from the page's CTA, so a different class */
@@ -472,12 +483,44 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <!-- ═══ hero ═════════════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="wrap">
-    <p class="hero__kicker">Real Estate Acquisition Systems</p>
+    <p class="hero__kicker">For regional residential developers</p>","hero eyebrow
     <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
-    <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and conversion tracking into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified sales conversations.</p>
+    <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and sales feedback into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified buyer conversations.</p>
 
     <!-- VSL + booking rail -->
     <div class="stage">
+      <!-- ══════════════════ VIDEO INTEGRATION ══════════════════════════
+           The final VSL is not yet supplied. This block is structurally ready
+           for a hosted MP4, a YouTube embed, a Vimeo embed or another player.
+
+           1. EMBED — replace the contents of .vsl__frame (keeping the 16:9
+              container and its class) with the player. Examples:
+                <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0"
+                        title="Adscade walkthrough" allowfullscreen
+                        style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+                <video controls playsinline preload="none"
+                       poster="POSTER_URL" style="position:absolute;inset:0;width:100%;height:100%">
+                  <source src="VIDEO_URL.mp4" type="video/mp4">
+                  <track kind="captions" src="CAPTIONS.vtt" srclang="en" label="English" default>
+                </video>
+              Do NOT autoplay with sound. Keep playsinline for iOS Safari.
+
+           2. POSTER — replace the .vsl__poster data-URI below with the real
+              poster image. Keep width/height attributes so nothing shifts.
+
+           3. PROGRESS CALLBACKS — wire vsl_play / vsl_25_percent /
+              vsl_50_percent / vsl_75_percent / vsl_complete at the marked
+              point in the script block (search "VSL PROGRESS"). Until a real
+              player can report progress, those events stay unwired — see
+              docs/ADSCADE_TRACKING_SPEC.md.
+
+           4. CAPTIONS — add a <track kind="captions"> for a hosted file, or
+              enable captions in the YouTube/Vimeo settings.
+
+           5. END CARD — must read "Check Fit & Pick a Time" with the line
+              "Answer six questions, then choose an available slot." It must
+              not say Free Audit, Free Strategy Call or Claim Your Spot.
+      ══════════════════════════════════════════════════════════════════ -->
       <div class="card vsl">
         <div class="vsl__frame">
           <img class="vsl__poster" width="1280" height="720" alt="" aria-hidden="true" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231A3322'/%3E%3Cstop offset='1' stop-color='%230F0D08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='320' height='180' fill='url(%23g)'/%3E%3Cg stroke='%23C9A04A' stroke-opacity='.14'%3E%3Cpath d='M0 45h320M0 90h320M0 135h320M80 0v180M160 0v180M240 0v180'/%3E%3C/g%3E%3Cg fill='none' stroke='%23E0B865' stroke-opacity='.45'%3E%3Crect x='96' y='48' width='128' height='16'/%3E%3Crect x='109' y='74' width='102' height='16'/%3E%3Crect x='122' y='100' width='76' height='16'/%3E%3Crect x='135' y='126' width='50' height='16'/%3E%3C/g%3E%3C/svg%3E">
@@ -509,6 +552,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         </ul>
         <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
         <p class="cta-note">Six questions, then choose an available slot.</p>
+        <p class="cta-note qual-note">Built for developers with active inventory, a dedicated sales team and ₹1&nbsp;lakh+ monthly media capacity.</p>
         <div class="rail__meta">
           <span>30 minutes, direct with <b>Aasim Ahmed</b></span>
         </div>
@@ -565,7 +609,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <span class="leak__drip">96 of every 100 gone before anyone stood on site</span>
       </div>
       <p class="leak__cap">Illustrative funnel</p>
-      <p class="leak__note">Example shown for illustration. Actual conversion rates vary by market, offer, budget, follow-up and sales process.</p>
+      <p class="leak__note">Example shown for illustration. Actual outcomes vary by project, price, market, media budget, follow-up and sales process.</p>
     </div>
   </div>
 </section>
@@ -579,32 +623,29 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       <div class="cmp__grid">
         <div class="cmp__col">
           <p class="cmp__head cmp__head--old">Scattered marketing</p>
-          <p class="cmp__cell cmp__cell--old">Ads managed in isolation from the funnel</p>
-          <p class="cmp__cell cmp__cell--old">Every enquiry treated the same</p>
-          <p class="cmp__cell cmp__cell--old">Follow-up disconnected from the campaign</p>
-          <p class="cmp__cell cmp__cell--old">No idea which stage is leaking</p>
-          <p class="cmp__cell cmp__cell--old">Demand rented from broker networks</p>
-          <p class="cmp__cell cmp__cell--old">Optimised on clicks</p>
+          <p class="cmp__cell cmp__cell--old">Ads and funnel handled separately</p>
+          <p class="cmp__cell cmp__cell--old">Generic landing experience</p>
+          <p class="cmp__cell cmp__cell--old">Every form submission treated equally</p>
+          <p class="cmp__cell cmp__cell--old">Sales outcomes remain disconnected</p>
+          <p class="cmp__cell cmp__cell--old">Optimisation based on top-level lead volume</p>
         </div>
         <div class="cmp__col">
           <p class="cmp__head cmp__head--new">The Adscade system</p>
-          <p class="cmp__cell cmp__cell--new">Ads and funnel planned together</p>
-          <p class="cmp__cell cmp__cell--new">Qualification built into the journey</p>
-          <p class="cmp__cell cmp__cell--new">Follow-up connected to the campaign</p>
-          <p class="cmp__cell cmp__cell--new">Weekly drop-off, stage by stage</p>
-          <p class="cmp__cell cmp__cell--new">Demand you own, feeding the same team</p>
-          <p class="cmp__cell cmp__cell--new">Optimised on lead quality</p>
+          <p class="cmp__cell cmp__cell--new">Campaign and funnel planned together</p>
+          <p class="cmp__cell cmp__cell--new">Message-matched landing journey</p>
+          <p class="cmp__cell cmp__cell--new">Qualification built into the funnel</p>
+          <p class="cmp__cell cmp__cell--new">Sales-stage feedback connected</p>
+          <p class="cmp__cell cmp__cell--new">Optimisation informed by enquiry quality</p>
         </div>
       </div>
     </div>
 
-    <p class="lead" style="margin-top:2.2rem">Adscade builds and manages five things, as one system:</p>
+    <p class="lead" style="margin-top:2.2rem">Adscade builds and manages four things, as one system:</p>
     <ul class="deliv">
-      <li><b>Offer and messaging</b> — positioning built around your project, not swapped from another client's account</li>
-      <li><b>Campaign management</b> — built, launched and optimised, matched to the page and creative</li>
-      <li><b>Landing page and qualification</b> — budget, configuration, location and timeline captured before your sales team is involved</li>
-      <li><b>Tracking and attribution</b> — every enquiry tied back to the campaign that produced it</li>
-      <li><b>Reporting and optimisation</b> — one weekly view, acted on the same week</li>
+      <li><b>Offer and messaging</b> — positioning built around your project and price band, not swapped from another account.</li>
+      <li><b>Campaign management</b> — built, launched and optimised against enquiry quality rather than volume.</li>
+      <li><b>Landing page and qualification</b> — budget, location, property type and timeline captured before your sales team is involved.</li>
+      <li><b>Tracking, reporting and optimisation</b> — every enquiry tied to the campaign that produced it, reviewed weekly.</li>
     </ul>
 
     <p class="lead lead--sm dim" style="margin-top:1.6rem">And it is live inside a week:</p>
@@ -626,21 +667,22 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Reporting</p>
     <h2 class="h2 h2--center" style="max-width:20ch">Every Monday, know where <em>every enquiry stands.</em></h2>
-    <p class="lead lead--center">One concise report: spend, enquiries, qualified leads, site visits booked, cost per site visit and cost per qualified lead, and what we are changing next.</p>
+    <p class="lead lead--center">One concise view of spend, enquiries, qualification, calls, site visits and follow-up — so marketing and sales are working from the same information.</p>
 
     <div class="card report">
       <div class="report__head">
         <p class="report__k">Sample reporting view</p>
       </div>
       <div class="report__rows">
-        <div class="report__row"><span>Media spend</span><b>₹ 80,360</b></div>
-        <div class="report__row"><span>Enquiries generated</span><b>68</b></div>
-        <div class="report__row"><span>Qualified enquiries</span><b>41</b></div>
-        <div class="report__row"><span>Site visits booked</span><b>14</b></div>
-        <div class="report__row"><span>Cost per site visit</span><b>₹ 5,740</b></div>
-        <div class="report__row"><span>Follow-up status</span><b>9 awaiting</b></div>
+        <div class="report__row"><span>Media spend</span><b>₹ 1,84,000</b></div>
+        <div class="report__row"><span>Enquiries generated</span><b>112</b></div>
+        <div class="report__row"><span>Qualified enquiries</span><b>38</b></div>
+        <div class="report__row"><span>Calls booked</span><b>21</b></div>
+        <div class="report__row"><span>Site visits</span><b>9</b></div>
+        <div class="report__row"><span>Cost per qualified enquiry</span><b>₹ 4,842</b></div>
+        <div class="report__row"><span>Follow-up status</span><b>17 awaiting</b></div>
       </div>
-      <p class="report__foot">Illustrative layout, not a client's data. Your numbers replace these from week one.</p>
+      <p class="report__foot">Figures shown are illustrative. Available reporting depends on the sales stages and outcome data maintained by the client's team.</p>
     </div>
   </div>
 </section>
@@ -652,8 +694,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     <div>
       <p class="eyebrow">Built and managed by</p>
       <h2 class="h2">Aasim Ahmed<br><em>Founder, Adscade</em></h2>
-      <p class="lead">Adscade exists because advertising is almost never the part that is broken. The campaign runs, the clicks arrive, and the loss happens somewhere between the click and the sales conversation — in the page, the qualification, or the follow-up. Nobody owning one piece can see that.</p>
-      <p class="lead">So I run the pieces together. I oversee the offer and messaging, the campaigns, the landing page and qualification, the tracking, and the weekly reporting. For a developer that matters more than for most businesses: enquiry volume is easy, but a site visit from someone who can actually afford the flat is the only number that moves inventory.</p>
+      <p class="lead">Adscade exists because ads, landing pages, qualification, follow-up and sales reporting are almost always handled as separate activities. Each one looks fine on its own. The loss happens in the gaps between them, and nobody owning a single piece can see it.</p>
+      <p class="lead">I approach acquisition as one connected commercial system, and I personally oversee the strategy and the system design. The objective is qualified buyer pipeline and visibility from enquiry through to site visit — not enquiry volume, which is the easiest number in this industry to produce and the least useful one to receive.</p>
       <blockquote class="founder__quote">"Most developers don't have a demand problem. They have a leak — and nobody has ever shown them where it is."</blockquote>
     </div>
   </div>
@@ -663,10 +705,10 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <section class="band band--warm">
   <div class="wrap">
     <div class="guarantee">
-      <p class="eyebrow">Where we stand</p>
-      <h2 class="h2 h2--center" style="max-width:24ch">If the funnel isn't producing leads that match your criteria, <em>we keep working on it at no extra charge.</em></h2>
-      <p class="lead lead--center">A "qualified lead" is defined as a submission meeting the budget, location and timeline criteria agreed in writing at onboarding. We don't promise a number — that depends on your inventory, your price and your market.</p>
-      <p class="guarantee__terms">This applies within the agreed initial optimisation scope and assumes timely access, approvals, follow-up and the agreed media budget. Exact terms are defined in the service agreement. Media costs are billed to you directly by the platform. Results vary based on market conditions, budget and property type.</p>
+      <p class="eyebrow">Qualification before volume</p>
+      <h2 class="h2 h2--center" style="max-width:26ch">Before launch, we agree on what a <em>qualified enquiry</em> actually means.</h2>
+      <p class="lead lead--center">Budget, location, property type and buying timeline are defined with your team. Campaigns, landing pages and follow-up are then evaluated against that standard — not merely the number of forms submitted.</p>
+      <p class="guarantee__terms">Qualification criteria, reporting responsibilities and the initial optimisation scope are documented during onboarding. Media costs are billed to you directly by the platform. Outcomes vary by project, price, market, media budget, follow-up and sales process.</p>
     </div>
   </div>
 </section>
@@ -679,103 +721,102 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     <p class="lead lead--center">Tell us what you are currently running and where the funnel is breaking. If the engagement appears suitable, you will be able to choose an available call slot.</p>
 
     <form class="card form" id="lead-form" novalidate>
+      <!-- honeypot: hidden from people, tempting to bots -->
+      <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
+        <label>Company website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+
       <div class="form__prog" aria-hidden="true">
         <i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i>
       </div>
 
-      <!-- Q1 -->
+      <!-- Q1 · role -->
       <div class="step on" data-step="0" role="group" aria-labelledby="q1">
         <p class="step__n">Question 1 of 6</p>
-        <p class="q" id="q1">What best describes your business?</p>
+        <p class="q" id="q1">Which best describes your role and business?</p>
         <div class="opts">
-          <label class="opt"><input type="radio" name="business_type" value="developer" required>Developer — we've delivered projects before</label>
-          <label class="opt"><input type="radio" name="business_type" value="first_project">Developer — this is our first project</label>
-          <label class="opt"><input type="radio" name="business_type" value="channel_partner">Channel partner for a builder</label>
-          <label class="opt"><input type="radio" name="business_type" value="brokerage_team">Brokerage with a sales team</label>
-          <label class="opt"><input type="radio" name="business_type" value="other">Something else</label>
+          <label class="opt"><input type="radio" name="role" value="founder" required>Founder, promoter or director at a residential developer</label>
+          <label class="opt"><input type="radio" name="role" value="marketing_sales_lead">Marketing or sales leader at a residential developer</label>
+          <label class="opt"><input type="radio" name="role" value="mandate_partner">Exclusive mandate or channel-partner firm with an in-house sales team</label>
+          <label class="opt"><input type="radio" name="role" value="broker">Independent broker or property consultant</label>
+          <label class="opt"><input type="radio" name="role" value="agency_other">Marketing agency, vendor or other</label>
         </div>
         <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button></div>
       </div>
 
-      <!-- Q2 -->
+      <!-- Q2 · inventory -->
       <div class="step" data-step="1" role="group" aria-labelledby="q2">
         <p class="step__n">Question 2 of 6</p>
-        <p class="q" id="q2">Which city or micro-market do you sell in?</p>
-        <div class="field">
-          <label for="city">City / micro-market</label>
-          <input type="text" id="city" name="city" placeholder="e.g. Thane West, Gurugram Sector 79, Hinjewadi" required>
-          <span class="err">Tell us where you operate — lead costs differ a lot by market.</span>
+        <p class="q" id="q2">How much residential inventory are you responsible for marketing over the next 6–12 months?</p>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="inventory" value="100_plus" required>100+ units</label>
+          <label class="opt"><input type="radio" name="inventory" value="50_99">50–99 units</label>
+          <label class="opt"><input type="radio" name="inventory" value="20_49">20–49 units</label>
+          <label class="opt"><input type="radio" name="inventory" value="1_19">1–19 units</label>
+          <label class="opt"><input type="radio" name="inventory" value="none">No currently active project or inventory</label>
         </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
       </div>
 
-      <!-- Q3 -->
+      <!-- Q3 · price band -->
       <div class="step" data-step="2" role="group" aria-labelledby="q3">
         <p class="step__n">Question 3 of 6</p>
-        <p class="q" id="q3">What's the status of the project you'd be promoting?</p>
+        <p class="q" id="q3">What is the typical selling price per unit?</p>
         <div class="opts">
-          <label class="opt"><input type="radio" name="inventory" value="active" required>RERA-registered, unsold units, selling now</label>
-          <label class="opt"><input type="radio" name="inventory" value="launching">RERA-registered, launching within 60 days</label>
-          <label class="opt"><input type="radio" name="inventory" value="no_rera" data-disqualify="rera">Not RERA-registered yet</label>
-          <label class="opt"><input type="radio" name="inventory" value="none" data-disqualify="inventory">Nothing unsold right now</label>
+          <label class="opt"><input type="radio" name="price_band" value="above_150" required>Above ₹1.5 crore</label>
+          <label class="opt"><input type="radio" name="price_band" value="75_150">₹75 lakh – ₹1.5 crore</label>
+          <label class="opt"><input type="radio" name="price_band" value="50_75">₹50–75 lakh</label>
+          <label class="opt"><input type="radio" name="price_band" value="below_50">Below ₹50 lakh</label>
+          <label class="opt"><input type="radio" name="price_band" value="mixed">Mixed inventory or several price bands</label>
         </div>
         <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <div class="dq" data-dq="rera" role="status">
-          <b>We can't advertise this project yet — and neither can anyone else.</b> Under RERA §3 a project cannot be marketed or sold before it's registered. That's the law, not our policy, and any agency willing to run ads for you before registration is putting your project at risk. Come back the day the registration number comes through and we'll build the funnel around it.
-          <br><button class="alt-exit" type="button" data-remind>Take my number for after registration</button>
-        </div>
-        <div class="dq" data-dq="inventory" role="status">
-          <b>Straight answer: we'd be a bad fit right now.</b> With nothing unsold there is nothing for a funnel to sell, and we'd be taking your money to build something with no job to do. Come back when the next project has stock to move.
-          <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
-        </div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
       </div>
 
-      <!-- Q4 -->
+      <!-- Q4 · media budget -->
       <div class="step" data-step="3" role="group" aria-labelledby="q4">
         <p class="step__n">Question 4 of 6</p>
-        <p class="q" id="q4">What can you put behind marketing each month — ads, portals and freelancers combined?</p>
+        <p class="q" id="q4">What are you currently spending — or prepared to invest — on digital advertising each month?</p>
         <div class="opts">
-          <label class="opt"><input type="radio" name="spend" value="ready_no_spend" required>Nothing yet, but I have a budget ready</label>
-          <label class="opt"><input type="radio" name="spend" value="none" data-disqualify="spend">Nothing, and no budget I can commit yet</label>
-          <label class="opt"><input type="radio" name="spend" value="under_50k">Under ₹50,000</label>
-          <label class="opt"><input type="radio" name="spend" value="50k_150k">₹50,000 – ₹1,50,000</label>
-          <label class="opt"><input type="radio" name="spend" value="150k_300k">₹1,50,000 – ₹3,00,000</label>
-          <label class="opt"><input type="radio" name="spend" value="300k_plus">Over ₹3,00,000</label>
+          <label class="opt"><input type="radio" name="media_budget" value="above_3l" required>Above ₹3 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="1_3l">₹1–3 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="ready_1l">Currently below ₹1 lakh, but ready to invest ₹1 lakh+</label>
+          <label class="opt"><input type="radio" name="media_budget" value="below_1l_not_ready">Below ₹1 lakh and not currently ready to increase</label>
+          <label class="opt"><input type="radio" name="media_budget" value="undecided">Budget has not been decided</label>
         </div>
         <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <div class="dq" data-dq="spend" role="status">
-          <b>Straight answer: we'd be a bad fit right now.</b> A funnel needs a budget behind it — we build and run the system, but we don't fund the media. Until you have something to commit, there's nothing for us to optimise.
-          <br><button class="alt-exit" type="button" data-remind>Just take my number for later</button>
-        </div>
+        <p class="cta-note">This is your advertising spend, paid directly to the platform.</p>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
       </div>
 
-      <!-- Q5 -->
+      <!-- Q5 · follow-up capacity -->
       <div class="step" data-step="4" role="group" aria-labelledby="q5">
         <p class="step__n">Question 5 of 6</p>
-        <p class="q" id="q5">How are you getting leads today?</p>
+        <p class="q" id="q5">How are new enquiries followed up today?</p>
         <div class="opts">
-          <label class="opt"><input type="radio" name="lead_source" value="portals" required>Portals — 99acres, MagicBricks, Housing</label>
-          <label class="opt"><input type="radio" name="lead_source" value="self_ads">Meta ads I run myself</label>
-          <label class="opt"><input type="radio" name="lead_source" value="freelancer">A freelancer or agency runs them</label>
-          <label class="opt"><input type="radio" name="lead_source" value="channel_partners">Channel partners and broker networks</label>
-          <label class="opt"><input type="radio" name="lead_source" value="referrals">Referrals and site walk-ins only</label>
-          <label class="opt"><input type="radio" name="lead_source" value="nothing">Nothing consistent right now</label>
+          <label class="opt"><input type="radio" name="followup" value="crm" required>Dedicated sales team with CRM and stage tracking</label>
+          <label class="opt"><input type="radio" name="followup" value="spreadsheet">Dedicated sales team using spreadsheets or manual updates</label>
+          <label class="opt"><input type="radio" name="followup" value="inconsistent">Two or three people follow up, but tracking is inconsistent</label>
+          <label class="opt"><input type="radio" name="followup" value="founder_only">One person or the founder handles most enquiries</label>
+          <label class="opt"><input type="radio" name="followup" value="none">There is no defined follow-up process</label>
         </div>
         <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
       </div>
 
-      <!-- Q6 -->
+      <!-- Q6 · bottleneck -->
       <div class="step" data-step="5" role="group" aria-labelledby="q6">
         <p class="step__n">Question 6 of 6</p>
-        <p class="q" id="q6">Do you know what a site visit currently costs you?</p>
+        <p class="q" id="q6">Where is the biggest problem in your current acquisition process?</p>
         <div class="opts">
-          <label class="opt"><input type="radio" name="cpql" value="tracked" required>Yes — I track it properly</label>
-          <label class="opt"><input type="radio" name="cpql" value="rough">Roughly, but not reliably</label>
-          <label class="opt"><input type="radio" name="cpql" value="unknown">No idea</label>
+          <label class="opt"><input type="radio" name="bottleneck" value="low_quality" required>Too many low-quality enquiries</label>
+          <label class="opt"><input type="radio" name="bottleneck" value="few_site_visits">Too few enquiries become site visits</label>
+          <label class="opt"><input type="radio" name="bottleneck" value="no_visibility">We cannot see what happens after the lead is generated</label>
+          <label class="opt"><input type="radio" name="bottleneck" value="slow_followup">Contact and follow-up are too slow or inconsistent</label>
+          <label class="opt"><input type="radio" name="bottleneck" value="too_few">We are not generating enough enquiries</label>
+          <label class="opt"><input type="radio" name="bottleneck" value="exploring">We are mainly exploring options</label>
         </div>
         <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
         <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
@@ -784,35 +825,44 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       <!-- contact -->
       <div class="step" data-step="6" role="group" aria-labelledby="q7">
         <p class="step__n">Your details</p>
-        <p class="q" id="q7">Where should we send the call link?</p>
+        <p class="q" id="q7">Where should we reach you?</p>
         <div class="field">
           <label for="name">Full name</label>
           <input type="text" id="name" name="name" autocomplete="name" required>
           <span class="err">Please enter your name.</span>
         </div>
         <div class="field">
-          <label for="business">Business name</label>
-          <input type="text" id="business" name="business" autocomplete="organization" required>
-          <span class="err">Please enter your business name.</span>
+          <label for="company">Company or developer name</label>
+          <input type="text" id="company" name="company" autocomplete="organization" required>
+          <span class="err">Please enter your company name.</span>
         </div>
         <div class="field">
-          <label for="phone">WhatsApp number</label>
-          <input type="tel" id="phone" name="phone" inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile number" required>
-          <span class="err">Enter a valid 10-digit Indian mobile number — this is where the call link goes.</span>
+          <label for="project_name">Project name <span class="opt-tag">optional</span></label>
+          <input type="text" id="project_name" name="project_name" autocomplete="off">
         </div>
         <div class="field">
-          <label for="email">Email address</label>
-          <input type="email" id="email" name="email" autocomplete="email" required>
+          <label for="project_city">Project city</label>
+          <input type="text" id="project_city" name="project_city" placeholder="e.g. Indore, Thane, Coimbatore" required>
+          <span class="err">Please enter the city the project is in.</span>
+        </div>
+        <div class="field">
+          <label for="email">Work email</label>
+          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
           <span class="err">Enter a valid email address.</span>
+        </div>
+        <div class="field">
+          <label for="phone">WhatsApp or phone number</label>
+          <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or +country code" required>
+          <span class="err">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
         </div>
         <label class="consent">
           <input type="checkbox" id="consent" name="consent" required>
-          <span>I agree to be contacted via phone or WhatsApp regarding this enquiry, and I have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+          <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
         </label>
         <div class="errbox" id="consent-err">
           <span class="err">Please tick the consent box so we're allowed to contact you.</span>
         </div>
-        <button class="cta cta--wide" type="submit">See Available Times</button>
+        <button class="cta cta--wide" type="submit">Check Fit</button>
         <div class="nav" style="justify-content:center"><button class="back" type="button" data-back>Back</button></div>
         <div class="errbox" id="submit-err">
           <span class="err">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span>
@@ -820,20 +870,30 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <p class="cta-note" id="contact-note">Six questions, then choose an available slot.</p>
       </div>
 
-      <!-- success -->
-      <div class="done" id="done" role="status" aria-live="polite" tabindex="-1">
+      <!-- outcome: qualified — Calendly is injected here, never before -->
+      <div class="done" id="done-qualified" role="status" aria-live="polite" tabindex="-1">
         <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <div id="done-booked">
-          <h3 class="h3">Answers received. Now pick your time.</h3>
-          <p class="lead lead--center">Choose a slot that suits you — you'll get the confirmation immediately, no waiting on us.</p>
-          <a class="book-slot" id="pick-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Pick My Slot →</a>
-          <p class="cta-note">Keep your ad account open during the call. The audit is far more useful with real numbers on the screen.<br>Scheduler not loading? <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
-        </div>
-        <div id="done-later" hidden>
-          <h3 class="h3">Details saved. We'll check back.</h3>
-          <p class="lead lead--center" id="done-later-why">We're not booking a call yet, because from your answers a funnel wouldn't yet have what it needs to work — or wouldn't yet be legal to run. When that changes, message us and we'll pick this up properly.</p>
-          <p class="cta-note">Nothing else to do right now. <a href="https://wa.me/917996112470">WhatsApp us any time on +91 79961 12470</a>.</p>
-        </div>
+        <h3 class="h3">You appear to be a fit. Choose a time.</h3>
+        <p class="lead lead--center">Select an available slot to discuss your project, current funnel and sales process.</p>
+        <div id="calendly-mount" class="cal"></div>
+        <p class="cta-note">Calendar not loading?
+          <a href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Open it in a new tab</a>,
+          or <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
+      </div>
+
+      <!-- outcome: manual review -->
+      <div class="done" id="done-review" role="status" aria-live="polite" tabindex="-1">
+        <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h3 class="h3">Thanks — your project needs a quick manual review.</h3>
+        <p class="lead lead--center">We have received your details. If the project appears suitable for the system, we will contact you using the information provided.</p>
+        <p class="cta-note"><a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a> if it is urgent.</p>
+      </div>
+
+      <!-- outcome: not currently a fit -->
+      <div class="done" id="done-nofit" role="status" aria-live="polite" tabindex="-1">
+        <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h3 class="h3">Thanks for sharing the details.</h3>
+        <p class="lead lead--center">Based on the current setup, a managed acquisition system may not be the right next step. Your information has been received, and we will contact you if there is a more suitable way to help.</p>
       </div>
     </form>
   </div>
@@ -961,6 +1021,11 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   /* ── VSL: reveal the agenda in place. Never a jump somewhere else. ── */
   var play = document.getElementById('play');
   var agenda = document.getElementById('agenda');
+  /* ══ VSL PROGRESS ═════════════════════════════════════════════════
+     When the real player is installed, attach its progress handlers here and
+     fire vsl_25_percent / vsl_50_percent / vsl_75_percent / vsl_complete,
+     each once. No progress event is fabricated while the placeholder stands.
+  ═════════════════════════════════════════════════════════════════════ */
   play.addEventListener('click', function(){
     var open = play.getAttribute('aria-expanded') === 'true';
     play.setAttribute('aria-expanded', String(!open));
@@ -1022,7 +1087,94 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   var bars  = Array.prototype.slice.call(form.querySelectorAll('.form__prog i'));
   var at    = 0;
 
-  var disqualified = false;
+  /* ── qualification model ──────────────────────────────────────────
+     Weights and hard restrictions are defined once, here. The visitor never
+     sees a score, and no scoring value is written to the DOM, the URL or an
+     analytics parameter. Only a coarse band leaves the page.
+  ─────────────────────────────────────────────────────────────────── */
+  var MODEL = {
+    role: {max:20, opts:{
+      founder:{s:20,l:'Founder / promoter / director at a residential developer'},
+      marketing_sales_lead:{s:18,l:'Marketing or sales leader at a residential developer'},
+      mandate_partner:{s:14,l:'Exclusive mandate or channel-partner firm with in-house sales'},
+      broker:{s:4,l:'Independent broker or property consultant',restrict:'role_broker'},
+      agency_other:{s:0,l:'Marketing agency, vendor or other',restrict:'role_agency'}
+    }},
+    inventory: {max:20, opts:{
+      '100_plus':{s:20,l:'100+ units'},
+      '50_99':{s:18,l:'50–99 units'},
+      '20_49':{s:14,l:'20–49 units'},
+      '1_19':{s:5,l:'1–19 units'},
+      none:{s:0,l:'No currently active project or inventory',restrict:'no_inventory'}
+    }},
+    price_band: {max:10, opts:{
+      above_150:{s:10,l:'Above ₹1.5 crore'},
+      '75_150':{s:10,l:'₹75 lakh – ₹1.5 crore'},
+      '50_75':{s:8,l:'₹50–75 lakh'},
+      below_50:{s:5,l:'Below ₹50 lakh'},
+      mixed:{s:7,l:'Mixed inventory or several price bands'}
+    }},
+    media_budget: {max:20, opts:{
+      above_3l:{s:20,l:'Above ₹3 lakh / month'},
+      '1_3l':{s:18,l:'₹1–3 lakh / month'},
+      ready_1l:{s:12,l:'Below ₹1 lakh now, ready to invest ₹1 lakh+'},
+      below_1l_not_ready:{s:0,l:'Below ₹1 lakh, not ready to increase',restrict:'no_budget'},
+      undecided:{s:4,l:'Budget not decided',forceReview:true}
+    }},
+    followup: {max:20, opts:{
+      crm:{s:20,l:'Dedicated sales team with CRM and stage tracking',team:true},
+      spreadsheet:{s:16,l:'Dedicated sales team using spreadsheets',team:true},
+      inconsistent:{s:12,l:'Two or three people, tracking inconsistent'},
+      founder_only:{s:5,l:'One person or the founder handles most enquiries'},
+      none:{s:0,l:'No defined follow-up process',restrict:'no_followup'}
+    }},
+    bottleneck: {max:10, opts:{
+      low_quality:{s:10,l:'Too many low-quality enquiries'},
+      few_site_visits:{s:10,l:'Too few enquiries become site visits'},
+      no_visibility:{s:10,l:'No visibility after the lead is generated'},
+      slow_followup:{s:8,l:'Contact and follow-up too slow or inconsistent'},
+      too_few:{s:6,l:'Not generating enough enquiries'},
+      exploring:{s:0,l:'Mainly exploring options'}
+    }}
+  };
+  var QUESTION_ORDER = ['role','inventory','price_band','media_budget','followup','bottleneck'];
+
+  function evaluate(answers){
+    var score = 0, restriction = null, forceReview = false, labels = {}, team = false;
+    QUESTION_ORDER.forEach(function(key){
+      var opt = MODEL[key].opts[answers[key]];
+      if (!opt) return;
+      score += opt.s;
+      labels[key] = opt.l;
+      if (opt.restrict && !restriction) restriction = opt.restrict;
+      if (opt.forceReview) forceReview = true;
+      if (opt.team) team = true;
+    });
+
+    var outcome;
+    if (restriction) {
+      outcome = 'not_current_fit';
+    } else if (answers.inventory === '1_19') {
+      // Boutique projects only clear on genuine premium economics — high unit value,
+      // real budget, and a dedicated sales team. Otherwise they go to manual review.
+      var premium = answers.price_band === 'above_150';
+      var funded  = ['above_3l','1_3l','ready_1l'].indexOf(answers.media_budget) > -1;
+      outcome = (premium && funded && team && score >= 65 && !forceReview)
+        ? 'qualified'
+        : (score >= 50 ? 'manual_review' : 'not_current_fit');
+    } else if (forceReview) {
+      outcome = score >= 50 ? 'manual_review' : 'not_current_fit';
+    } else if (score >= 65) {
+      outcome = 'qualified';
+    } else if (score >= 50) {
+      outcome = 'manual_review';
+    } else {
+      outcome = 'not_current_fit';
+    }
+
+    var band = score >= 65 ? 'high' : score >= 50 ? 'medium' : 'low';
+    return {score: score, band: band, outcome: outcome, restriction: restriction, labels: labels};
+  }
 
   function show(i){
     steps[at].classList.remove('on');
@@ -1030,31 +1182,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     steps[at].classList.add('on');
     bars.forEach(function(b,n){ b.classList.toggle('on', n <= at); });
     form.scrollIntoView({behavior:'smooth', block:'nearest'});
-    // Only pull focus on radio steps. On a text step this pops the Android keyboard
-    // mid-scroll, the visual viewport resizes, and the card lands somewhere arbitrary.
     var radio = steps[at].querySelector('input[type=radio]');
     if (radio) radio.focus({preventScroll:true});
-  }
-
-  // Disqualifiers render inside the step that caused them, the moment it is answered.
-  function syncDisqualify(){
-    form.querySelectorAll('.dq').forEach(function(box){
-      var key = box.getAttribute('data-dq');
-      var on = !!form.querySelector('input[data-disqualify="' + key + '"]:checked');
-      box.classList.toggle('on', on);
-    });
-    // Drives the ending. A visitor with no inventory or no budget still gets to leave
-    // their details — that lead is worth keeping — but they are never handed a slot in
-    // Aasim's calendar, because the page has just told them we cannot help them yet.
-    disqualified = !!form.querySelector('input[data-disqualify]:checked');
-    var submit = form.querySelector('button[type=submit]');
-    submit.textContent = disqualified ? 'Send My Details' : 'See Available Times';
-    var q7 = document.getElementById('q7');
-    q7.textContent = disqualified ? 'Where should we reach you when the time is right?'
-                                  : 'Where should we send the call link?';
-    document.getElementById('contact-note').textContent = disqualified
-      ? "We'll hold your details. No slot is being offered right now."
-      : 'Six questions, then choose an available slot.';
   }
 
   function validateStep(){
@@ -1067,22 +1196,30 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       if (!ok) step.querySelector('.opt').style.borderColor = 'var(--error)';
       return ok;
     }
-    var ok = true;
+    var ok2 = true;
     step.querySelectorAll('input[required]').forEach(function(el){
+      if (el.type === 'checkbox') return;
       var f = el.closest('.field');
       var bad = !el.value.trim();
-      if (el.type === 'tel')   bad = !/^[6-9]\d{9}$/.test(el.value.replace(/\D/g,'').slice(-10));
+      if (el.type === 'tel'){
+        var digits = el.value.replace(/[^\d]/g,'');
+        // 10-digit Indian mobile, or an international number with country code
+        bad = !(/^[6-9]\d{9}$/.test(digits) || (/^\+/.test(el.value.trim()) && digits.length >= 8 && digits.length <= 15));
+      }
       if (el.type === 'email') bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
       if (f) f.classList.toggle('invalid', bad);
-      if (bad) ok = false;
+      if (bad) ok2 = false;
     });
-    return ok;
+    return ok2;
   }
 
   form.querySelectorAll('[data-next]').forEach(function(b){
     b.addEventListener('click', function(){
       if (!validateStep()) return;
       track('qualification_form_start', null, true);
+      var key = QUESTION_ORDER[at];
+      var picked = key && form.querySelector('input[name="' + key + '"]:checked');
+      if (picked) track('qualification_question_complete', {question_number: at + 1, answer_key: picked.value});
       if (at < steps.length - 1) show(at + 1);
     });
   });
@@ -1090,23 +1227,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     b.addEventListener('click', function(){ if (at > 0) show(at - 1); });
   });
 
-  // "Just take my number" — skip the remaining qualification, go straight to contact.
-  form.querySelectorAll('[data-remind]').forEach(function(b){
-    b.addEventListener('click', function(){ show(steps.length - 1); });
-  });
-
-  // Clear the error as the user types, NOT on blur. Clearing on blur removes the error
-  // line at the moment the pointer goes down on the submit button — the button shifts up
-  // mid-click and the click lands on nothing. Clearing on input means the layout has
-  // already settled long before anyone reaches for the button.
   function clearError(e){
     if (e.target.type === 'radio'){
       var opt = e.target.closest('.opt');
       if (opt) opt.style.borderColor = '';
-      var step = e.target.closest('.step');
-      var box = step && step.querySelector('[data-radio-err]');
+      var st = e.target.closest('.step');
+      var box = st && st.querySelector('[data-radio-err]');
       if (box) box.classList.remove('invalid');
-      syncDisqualify();
     }
     var f = e.target.closest('.field');
     if (f) f.classList.remove('invalid');
@@ -1114,28 +1241,53 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   form.addEventListener('input', clearError);
   form.addEventListener('change', clearError);
 
-  // Opening the scheduler is NOT a booking. booked_call fires only from a confirmed
-  // booking callback — Calendly posts one to the opener when a slot is confirmed.
-  var slot = document.getElementById('pick-slot');
-  if (slot) slot.addEventListener('click', function(){ track('scheduler_opened', null, true); });
-  window.addEventListener('message', function(e){
-    if (!/calendly\.com$/.test((e.origin || '').replace(/^https?:\/\//, ''))) return;
-    if (e.data && e.data.event === 'calendly.event_scheduled') track('booked_call', null, true);
-  });
+  /* ── storage adapter ──────────────────────────────────────────────
+     CONFIGURE THIS. Set window.ADSCADE_ENDPOINT to the WordPress REST route
+     created by wordpress/adscade-lead-capture.php, e.g.
 
-  /* ── submission adapter ────────────────────────────────────────────
-     Everything that leaves this page goes through submitLead(). Wiring
-     Convex later replaces the body of this one function and nothing else.
+       window.ADSCADE_ENDPOINT = '/wp-json/adscade/v1/lead';
+       window.ADSCADE_NONCE    = '<?php echo wp_create_nonce("wp_rest"); ?>';
 
-     Payload shape (keep in sync with convex/schema.ts):
-       businessType, city, inventory, spend, leadSource, cpql,
-       name, business, phone, email, consent,
-       source, submittedAt
+     Until it is set, submitLead REJECTS. The form then shows its error state.
+     It must never report success for a lead that was not stored.
   ─────────────────────────────────────────────────────────────────── */
   async function submitLead(payload){
-    if (window.CONVEX_SUBMIT) return window.CONVEX_SUBMIT(payload);
-    console.info('[Adscade] lead captured (no backend wired yet)', payload);
-    return {ok:true, pending:true};
+    if (!window.ADSCADE_ENDPOINT) {
+      throw new Error('No submission endpoint configured — lead not stored.');
+    }
+    var res = await fetch(window.ADSCADE_ENDPOINT, {
+      method: 'POST',
+      headers: Object.assign(
+        {'Content-Type': 'application/json'},
+        window.ADSCADE_NONCE ? {'X-WP-Nonce': window.ADSCADE_NONCE} : {}
+      ),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Submission failed: ' + res.status);
+    return res.json();
+  }
+
+  /* ── Calendly, loaded only after a qualified lead is stored ──────── */
+  var CALENDLY_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
+  function mountCalendly(name, email){
+    var mount = document.getElementById('calendly-mount');
+    if (!mount || mount.dataset.mounted) return;
+    mount.dataset.mounted = '1';
+    // Name and email are prefill only. Phone, company and every scoring value
+    // are deliberately withheld from the query string.
+    var url = CALENDLY_URL + '?hide_gdpr_banner=1'
+            + '&name='  + encodeURIComponent(name || '')
+            + '&email=' + encodeURIComponent(email || '');
+    var css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = 'https://assets.calendly.com/assets/external/widget.css';
+    document.head.appendChild(css);
+    var js = document.createElement('script');
+    js.src = 'https://assets.calendly.com/assets/external/widget.js'; js.async = true;
+    js.onload = function(){
+      if (window.Calendly) window.Calendly.initInlineWidget({url: url, parentElement: mount});
+    };
+    document.head.appendChild(js);
+    track('calendar_view', null, true);
   }
 
   form.addEventListener('submit', async function(e){
@@ -1149,46 +1301,84 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     document.getElementById('submit-err').classList.remove('invalid');
 
     var d = new FormData(form);
+    var answers = {};
+    QUESTION_ORDER.forEach(function(k){ answers[k] = d.get(k); });
+    var verdict = evaluate(answers);
+
     var payload = {
-      businessType: d.get('business_type'),
-      city:         (d.get('city') || '').trim(),
-      inventory:    d.get('inventory'),
-      spend:        d.get('spend'),
-      leadSource:   d.get('lead_source'),
-      cpql:         d.get('cpql'),
-      name:         (d.get('name') || '').trim(),
-      business:     (d.get('business') || '').trim(),
-      phone:        (d.get('phone') || '').replace(/\D/g,'').slice(-10),
-      email:        (d.get('email') || '').trim(),
-      consent:      true,
-      source:       new URLSearchParams(location.search).get('utm_source') || 'direct',
-      submittedAt:  new Date().toISOString()
+      submission_id: (crypto.randomUUID ? crypto.randomUUID()
+                      : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
+      submitted_at:  new Date().toISOString(),
+      name:          (d.get('name') || '').trim(),
+      company:       (d.get('company') || '').trim(),
+      project_name:  (d.get('project_name') || '').trim(),
+      project_city:  (d.get('project_city') || '').trim(),
+      email:         (d.get('email') || '').trim(),
+      phone:         (d.get('phone') || '').trim(),
+      consent:       true,
+      answers:       answers,
+      answer_labels: verdict.labels,
+      score:         verdict.score,
+      outcome:       verdict.outcome,
+      restriction:   verdict.restriction,
+      website:       d.get('website') || '',      // honeypot — must arrive empty
+      landing_url:   location.href,
+      referrer:      document.referrer || null,
+      viewport:      window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
+      calendly_shown: verdict.outcome === 'qualified',
+      calendly_booked: false,
+      attribution:   attribution
     };
 
     var btn = form.querySelector('button[type=submit]');
     btn.disabled = true;
-    btn.textContent = 'Sending…';
+    btn.textContent = 'Checking…';
     try {
-      await submitLead(payload);
-      track('qualification_form_complete', {qualified: !disqualified}, true);
-      if (!disqualified) track('calendar_view', null, true);
+      var saved = await submitLead(payload);
+      window.__adscadeSubmissionId = payload.submission_id;
+
+      track('contact_details_submitted', null, true);
+      track('qualification_form_complete', null, true);
+      track('qualification_outcome', {outcome: verdict.outcome, score_band: verdict.band}, true);
+
       steps[at].classList.remove('on');
-      var done = document.getElementById('done');
-      document.getElementById('done-booked').hidden = disqualified;
-      document.getElementById('done-later').hidden = !disqualified;
-      done.classList.add('on');
-      submitted = true;
       bars.forEach(function(b){ b.classList.add('on'); });
       dock.classList.add('hide');
-      // The confirmation is the whole point of the tap — put it on screen.
-      done.scrollIntoView({behavior:'smooth', block:'center'});
-      done.focus({preventScroll:true});
+      submitted = true;
+
+      var panel = verdict.outcome === 'qualified' ? 'done-qualified'
+                : verdict.outcome === 'manual_review' ? 'done-review' : 'done-nofit';
+      var el = document.getElementById(panel);
+      el.classList.add('on');
+      if (verdict.outcome === 'qualified') mountCalendly(payload.name, payload.email);
+      el.scrollIntoView({behavior:'smooth', block:'start'});
+      el.focus({preventScroll:true});
     } catch (err){
       btn.disabled = false;
-      btn.textContent = disqualified ? 'Send My Details' : 'See Available Times';
+      btn.textContent = 'Check Fit';
       document.getElementById('submit-err').classList.add('invalid');
     }
   });
+
+  // booked_call fires only on a confirmed scheduling event from Calendly —
+  // never on embed load, calendar view, or date/time selection.
+  window.addEventListener('message', function(e){
+    if (!/^https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin || '')) return;
+    if (e.data && e.data.event === 'calendly.event_scheduled'){
+      track('booked_call', null, true);
+      if (window.ADSCADE_ENDPOINT && window.__adscadeSubmissionId){
+        fetch(window.ADSCADE_ENDPOINT, {
+          method: 'POST',
+          headers: Object.assign({'Content-Type':'application/json'},
+            window.ADSCADE_NONCE ? {'X-WP-Nonce': window.ADSCADE_NONCE} : {}),
+          body: JSON.stringify({submission_id: window.__adscadeSubmissionId, calendly_booked: true})
+        }).catch(function(){});
+      }
+    }
+  });
+
+  // expose for automated tests only — no scoring value is rendered to the page
+  window.__adscadeEvaluate = evaluate;
 })();
 </script>
 </body>
