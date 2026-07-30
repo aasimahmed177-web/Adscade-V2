@@ -4,7 +4,7 @@
 Meta ads, and automated WhatsApp qualification for Indian real estate businesses.
 
 **Traffic source:** YouTube / Google Demand Gen (Hinglish video ads)
-**Conversion event:** Booked free audit call
+**Conversion event:** Booked audit call (self-scheduled via Calendly)
 **Founder / on-camera:** Aasim Ahmed
 
 ---
@@ -30,7 +30,7 @@ fail the ICP.
 | Monthly marketing spend | ₹50,000 – ₹3,00,000 (ads + portals + freelancers, combined) |
 | Ticket size of what they sell | ₹40 lakh – ₹5 crore residential; commercial/plots secondary |
 | Decision maker | The founder/owner. One person. No procurement, no committee. |
-| Deal size for us | ₹20k–50k setup + ₹25k–50k/month retainer |
+| Deal size for us | One-time setup fee + monthly retainer (not published on the page — quoted on the call) |
 | Sales cycle | 3–14 days from call to signature |
 
 ### Geography — priority order
@@ -99,8 +99,8 @@ What they are afraid of:
 - **Zero ad budget.** We are not a performance-only shop. No budget, no funnel.
 - **No inventory.** Nothing to sell means nothing to advertise.
 - **Shopping on price alone.** "Kitna sasta kar sakte ho" is a losing client at any price.
-- **Wants leads by tomorrow.** The build is three weeks. Someone who cannot wait three weeks
-  will not survive the optimization period either.
+- **Wants leads by tomorrow.** The build is one week, but the optimisation period after
+  launch is two to three. Someone who cannot wait that out will not survive it either.
 - **Resale-only individual agents with no listings of their own.** Too small, wrong economics.
 - **Anyone asking for guaranteed closures.** We qualify leads. We do not close their deals.
 
@@ -133,9 +133,13 @@ This drives the entire page structure. The page does not argue "ads work." It ar
 | 4 — Death by a Thousand Freelancers | Overwhelm, coordination fatigue | Old Way vs Our Way comparison |
 | 5 — The Deal You Lost to Someone Faster | Competitive fear, speed | Timeline + automated follow-up |
 
-All five ads end on the same card: **"Book My Free Audit Call"**. That exact string is the
-only CTA text allowed on the page. Ad-to-page mismatch is the most common cause of Demand Gen
-disapproval, and the compliance checklist in the ad script calls for exact match.
+The page's only CTA string is **"Book My Audit Call"**, and it is the only CTA text allowed
+anywhere on the page. Ad-to-page mismatch is the most common cause of Demand Gen disapproval,
+and the compliance checklist in the ad script calls for exact match.
+
+> ⚠ **Open item.** All five ad end cards currently read "Book My Free Audit Call". The word
+> "free" was removed from the page on client instruction, so **the end cards must be re-cut**
+> before spend goes live.
 
 ---
 
@@ -147,11 +151,11 @@ disapproval, and the compliance checklist in the ad script calls for exact match
    without a funnel is pouring water into a leaking bucket.
 3. *"Pehle bhi agency try ki thi."* — Almost certainly one that ran ads and handed you raw
    form fills. We hand you leads whose budget, location and timeline are already on record.
-4. *"Kitne leads guarantee?"* — We guarantee the system goes live in three weeks and that we
-   keep optimizing free until it produces leads matching your criteria. We don't guarantee a
-   number, and anyone who does is guessing.
-5. *"Kitna time lagega?"* — Three weeks to live. Week one strategy and build, week two assets,
-   week three launch.
+4. *"Kitne leads guarantee?"* — We guarantee the system goes live in one week and that we
+   keep optimising at no extra charge until it produces leads matching your criteria. We don't
+   guarantee a number, and anyone who does is guessing.
+5. *"Kitna time lagega?"* — One week to live. Days 1–2 strategy, days 3–5 build, days 6–7 test
+   and launch. Then two to three weeks of optimisation while the campaigns settle.
 
 ---
 

@@ -27,7 +27,8 @@ Two additions of my own, both derived rather than invented:
 | Token | Hex | Why |
 |---|---|---|
 | `--cream-dim` | `#A9A290` | The reference leans on `rgba(cream, .6)` constantly; naming it avoids scattering alphas |
-| `--leak` | `#8E3B2E` | A darkened `--clay` for the money-leak diagram, so the signature element reads as loss without competing with live CTAs |
+| `--clay-text` | `#E8A395` | `--clay` is a surface colour; as text on our dark grounds it sits at 3.3:1. This is the same hue lifted until it clears AA everywhere (min 6.5:1). Reference uses this exact tint for the same job. |
+| `--leak` | `#D98A76` | The money-leak diagram's loss labels. Started at `#8E3B2E`, which read as loss but only reached 2.6:1 on `--ink-warm` — illegible. Lifted until it clears AA (7.3:1) while staying clearly rust rather than gold. |
 
 **Discipline:** gold is the only colour allowed on a call-to-action. Clay is for warnings and
 disqualifiers exclusively. If clay ever appears on something the user is supposed to click,

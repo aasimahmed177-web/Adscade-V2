@@ -40,8 +40,13 @@ node tools/e2e.mjs
 
 ## Where the run landed
 
-Baseline **962/1000** → final **1000/1000** over four experiments, all kept. The log is in
-`results.tsv`; the reasoning is in `program.md`.
+Baseline **962/1000** → **1000/1000**, then three rounds of LLM-council review and two rounds
+of client-directed change. The experiment log is in `results.tsv`; the reasoning is in
+`program.md`.
+
+Council scores across the rounds: **66 → 70/72 → 80** out of 100. Each round found things the
+deterministic harness is blind to — the harness scored 1000/1000 while the page was quietly
+handing disqualified leads a slot in the founder's calendar.
 
 Two things worth knowing about that number:
 
@@ -56,13 +61,15 @@ scored 100% on. Both are fixed. The number is a floor, not a verdict.
 
 ## Before this goes live
 
-Tracked in full in `docs/convex-schema.md`:
-
-- The VSL is not shot. The slot is built; clicking it scrolls to the form.
-- `hello@adscade.in` and `+91 90000 00000` are placeholders.
-- `privacy.html` and `terms.html` are linked but not written. Demand Gen will not approve the
-  page without a reachable privacy policy.
-- Convex is not wired. `submitLead()` logs and returns `{ok:true, pending:true}`.
+- **Re-cut the five YouTube end cards.** They say "Book My Free Audit Call"; the page now says
+  "Book My Audit Call". The ad scripts' own compliance checklist requires an exact match, and
+  mismatch is the most common Demand Gen disapproval.
+- **The VSL is not shot.** The slot is built and labelled "in production"; the play control
+  expands a text agenda in place rather than pretending to be a video.
+- **Convex is not wired.** `submitLead()` logs and returns `{ok:true, pending:true}`. Wiring it
+  is a one-function change — see `docs/convex-schema.md`.
+- **Confirm the Calendly event** at `calendly.com/aasim-ahmed177/realestate-growth-systems` is
+  set to 30 minutes and that its availability matches what the page promises.
 
 ## One thing to decide
 

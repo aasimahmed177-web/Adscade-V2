@@ -31,7 +31,7 @@ runs, or replace the body of `submitLead`. Nothing else changes.
   businessType: "independent_broker" | "brokerage_team" | "channel_partner" | "developer" | "other",
   city:         string,   // free text — "Thane West", "Gurugram Sector 79"
   inventory:    "active" | "launching" | "none",
-  spend:        "none" | "under_50k" | "50k_150k" | "150k_300k" | "300k_plus",
+  spend:        "none" | "ready_no_spend" | "under_50k" | "50k_150k" | "150k_300k" | "300k_plus",
   leadSource:   "portals" | "self_ads" | "freelancer" | "referrals" | "nothing",
   cpql:         "tracked" | "rough" | "unknown",
 
@@ -61,8 +61,8 @@ export default defineSchema({
     city:       v.string(),
     inventory:  v.union(v.literal("active"), v.literal("launching"), v.literal("none")),
     spend:      v.union(
-      v.literal("none"), v.literal("under_50k"), v.literal("50k_150k"),
-      v.literal("150k_300k"), v.literal("300k_plus")),
+      v.literal("none"), v.literal("ready_no_spend"), v.literal("under_50k"),
+      v.literal("50k_150k"), v.literal("150k_300k"), v.literal("300k_plus")),
     leadSource: v.union(
       v.literal("portals"), v.literal("self_ads"), v.literal("freelancer"),
       v.literal("referrals"), v.literal("nothing")),
@@ -94,7 +94,9 @@ export default defineSchema({
 The six questions exist to sort leads before Aasim's calendar is touched. Compute `tier` in
 the mutation, not on the client — a client-side tier is a client-editable tier.
 
-- **disqualified** — `inventory === "none"` **or** `spend === "none"`. These are the two hard
+- **disqualified** — `inventory === "none"` **or** `spend === "none"`. Note `ready_no_spend`
+  ("nothing yet, but I have a budget ready") is **not** a disqualifier — the ICP screens on
+  budget, not on current spend, and the page's own FAQ says you needn't be running ads today. These are the two hard
   disqualifiers from `docs/ICP.md` §4. The page already tells these visitors honestly that
   they're a bad fit, and still lets them submit; the tier keeps them out of the booking queue.
 - **A** — `spend` is `50k_150k` or higher, **and** `inventory === "active"`, **and** `cpql` is
