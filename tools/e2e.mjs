@@ -228,6 +228,32 @@ await m.evaluate(() => {
   document.getElementById('book').scrollIntoView();
 });
 await m.waitForTimeout(700);
+// A CTA card partly on screen is not a CTA on screen. The dock must only stand down
+// when a tappable button is actually visible.
+await m.evaluate(() => window.scrollTo(0, 0));
+await m.waitForTimeout(500);
+const firstScreen = await m.evaluate(() => {
+  const btn = document.querySelector('.rail .cta').getBoundingClientRect();
+  const btnVisible = btn.top < innerHeight && btn.bottom > 0;
+  const dockHidden = document.getElementById('dock').classList.contains('hide');
+  return { btnVisible, dockHidden };
+});
+t('a tappable CTA is reachable on the first screen',
+  firstScreen.btnVisible || !firstScreen.dockHidden);
+// restore the scroll position the following tests expect
+await m.evaluate(() => document.getElementById('book').scrollIntoView());
+await m.waitForTimeout(600);
+
+t('no decorative red outside error states', await m.evaluate(() => {
+  const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n');
+  return css.split('\n')
+    .filter(l => /#D25242|210,\s*82,\s*66|142,\s*59,\s*46/.test(l))
+    .every(l => /--error|\.dq\{|invalid/.test(l));
+}));
+
+t('banned vocabulary absent', await m.evaluate(() =>
+  !/done-for-you|\b10X\b|revolutionary|dominate|game-changing/i.test(document.body.textContent)));
+
 t('dock stands down when the form is on screen',
   await m.evaluate(() => document.getElementById('dock').classList.contains('hide')));
 

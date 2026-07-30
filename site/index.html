@@ -46,7 +46,10 @@
   --hair:1px solid var(--adscade-border);
 
   /* red is an ERROR colour only — never decorative. Lifted for AA as text. */
-  --error:#D25242; --error-text:#E8A395; --leak:#D98A76;
+  --error:#D25242; --error-text:#E8A395;
+  /* loss/attrition tone for the leak diagram. Deliberately bronze, NOT in the error
+     hue family — red must stay meaningful. */
+  --loss:#C2A17B;
 
   /* ─── type scale ─── */
   --t-micro:.75rem; --t-label:.75rem; --t-small:1rem;
@@ -247,7 +250,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   border-right:2px solid var(--gold-deep);
 }
 .leak__stage:nth-child(4) .leak__bar{background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-right:none}
-.leak__drip{display:block;margin-top:.45rem;font-family:var(--serif);font-size:1.0625rem;color:var(--leak)}
+.leak__drip{display:block;margin-top:.45rem;font-family:var(--serif);font-size:1.0625rem;color:var(--loss)}
 .leak__stage:nth-child(4) .leak__drip{color:var(--gold)}
 .deliv{list-style:none;margin:1.2rem 0 0;padding:0;display:grid;gap:.7rem}
 .deliv li{
@@ -267,7 +270,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   position:relative;padding-left:1.1rem;font-size:var(--t-small);line-height:1.5;
   color:rgba(234,224,200,.82);
 }
-.pains li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--leak)}
+.pains li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--adscade-border-strong)}
 .pains b{color:var(--cream);font-weight:600}
 .leak__cap{
   font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
@@ -282,7 +285,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   padding:1.1rem 1.4rem;font-size:var(--t-label);font-weight:800;
   letter-spacing:.14em;text-transform:uppercase;
 }
-.cmp__head--old{background:rgba(142,59,46,.28);color:var(--error-text)}
+.cmp__head--old{background:rgba(226,185,91,.04);color:var(--adscade-muted)}
 .cmp__head--new{background:rgba(224,184,101,.16);color:var(--gold)}
 .cmp__grid{display:grid;grid-template-columns:1fr 1fr}
 .cmp__col{display:flex;flex-direction:column}
@@ -411,13 +414,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 
 /* ─── sticky mobile cta ──────────────────────────────────────────────── */
 .dock{
-  display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;
+  display:none;align-items:center;gap:.6rem;position:fixed;left:0;right:0;bottom:0;z-index:40;
   padding:.7rem 4vw calc(.7rem + env(safe-area-inset-bottom));
   background:rgba(5,16,10,.96);border-top:var(--hair);backdrop-filter:blur(8px);
   transition:transform .25s ease;
 }
 .dock.hide{transform:translateY(110%)}
-.dock{display:none;align-items:center;gap:.6rem}
 .dock__x{
   background:none;border:1px solid var(--adscade-border);color:var(--cream-dim);
   width:48px;height:48px;flex:none;border-radius:999px;cursor:pointer;font-size:1.1rem;line-height:1;
@@ -438,7 +440,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 }
 @media(max-width:560px){
   :root{--pad:3.5rem}
-  .grid{gap:.8rem}
   .dock{display:flex}
   body{padding-bottom:calc(5.5rem + env(safe-area-inset-bottom))}
   .hero{padding-top:1.4rem}
@@ -524,7 +525,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 <div class="wrap">
   <div class="trust">
     <span>Funnel live in <b>one week</b></span>
-    <span>Weekly <b>cost-per-qualified-lead</b> reporting</span>
+    <span>Weekly <b>cost-per-site-visit</b> reporting</span>
   </div>
 </div>
 
@@ -625,7 +626,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Reporting</p>
     <h2 class="h2 h2--center" style="max-width:20ch">Every Monday, know where <em>every enquiry stands.</em></h2>
-    <p class="lead lead--center">One concise report covering spend, enquiries, qualified leads, booked calls, follow-up status and the actions being taken next.</p>
+    <p class="lead lead--center">One concise report: spend, enquiries, qualified leads, site visits booked, cost per site visit and cost per qualified lead, and what we are changing next.</p>
 
     <div class="card report">
       <div class="report__head">
@@ -636,7 +637,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
         <div class="report__row"><span>Enquiries generated</span><b>68</b></div>
         <div class="report__row"><span>Qualified enquiries</span><b>41</b></div>
         <div class="report__row"><span>Site visits booked</span><b>14</b></div>
-        <div class="report__row"><span>Cost per qualified lead</span><b>₹ 1,960</b></div>
+        <div class="report__row"><span>Cost per site visit</span><b>₹ 5,740</b></div>
         <div class="report__row"><span>Follow-up status</span><b>9 awaiting</b></div>
       </div>
       <p class="report__foot">Illustrative layout, not a client's data. Your numbers replace these from week one.</p>
@@ -874,7 +875,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     <div class="foot__top">
       <div>
         <p class="foot__brand"><img class="foot__mark" src="assets/adscade-mark.png" alt="" width="146" height="132" loading="lazy">Adscade</p>
-        <p class="dim" style="margin:0;max-width:36ch">Done-for-you buyer funnels for real estate developers across India. Landing page, video, Meta ads and automated lead qualification — built and run by one team.</p>
+        <p class="dim" style="margin:0;max-width:36ch">Built and managed as one system — landing page, video, Meta ads and automated lead qualification for real estate developers across India.</p>
       </div>
       <div>
         <p class="foot__k">Contact</p>
@@ -985,9 +986,14 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     // list silently rots the moment a new CTA is added, which is exactly what happened
     // when the mid-page section gained one. A second gold pill on screen beside the dock
     // reads as a duplication bug.
-    var watched = [document.querySelector('.rail'), document.getElementById('book')];
-    document.querySelectorAll('a[href="#book"]').forEach(function(a){
-      if (!a.closest('.dock')) watched.push(a);
+    // Observe the CTA buttons themselves, never their containers. Watching the .rail
+    // card meant a sliver of visible card counted as "a CTA is on screen" while the
+    // button inside it was still 200px below the fold — so the first screen had no
+    // tappable CTA at all and the dock stayed hidden.
+    var watched = [document.getElementById('book')];
+    document.querySelectorAll('a[href="#book"], form button[type=submit]').forEach(function(el){
+      // the header pill is a shortcut, not the hero CTA — it must not suppress the dock
+      if (!el.closest('.dock') && !el.classList.contains('brandbar__fit')) watched.push(el);
     });
     watched.forEach(function(el){ if (el) io.observe(el); });
   }
