@@ -207,35 +207,37 @@ a{color:var(--gold);text-underline-offset:3px}
 .rail__meta b{color:var(--cream);font-weight:700}
 
 /* ─── signature: the leak diagram ────────────────────────────────────── */
-.leak{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,4rem);align-items:center}
-.leak__fig{position:relative;padding:1rem 0}
+.leak{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,4rem);align-items:start}
+.leak__fig{position:relative;padding:.5rem 0}
+/* Bars are left-aligned and shrink stage by stage. The triangular void that opens on the
+   right is not empty space — it is where each stage's loss is labelled. */
 .leak__stage{
   position:relative;border:1px solid rgba(201,160,74,.3);
-  background:linear-gradient(90deg,rgba(26,51,34,.85),rgba(26,51,34,.35));
-  padding:1.05rem 1.3rem;margin:0 auto .95rem;
+  background:linear-gradient(90deg,rgba(26,51,34,.9),rgba(26,51,34,.4));
+  padding:1rem 1.2rem;margin:0 auto .8rem 0;
   display:flex;justify-content:space-between;align-items:baseline;gap:1rem;
 }
-.leak__stage:nth-child(1){width:100%}
-.leak__stage:nth-child(2){width:82%}
-.leak__stage:nth-child(3){width:64%}
-.leak__stage:nth-child(4){width:46%;border-color:var(--gold);background:rgba(224,184,101,.12)}
+.leak__stage:nth-child(1){width:70%}
+.leak__stage:nth-child(2){width:57%}
+.leak__stage:nth-child(3){width:44%}
+.leak__stage:nth-child(4){width:31%;border-color:var(--gold);background:rgba(224,184,101,.12)}
 .leak__name{font-size:var(--t-small);font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .leak__val{font-family:var(--serif);font-size:1.15rem;color:var(--gold);white-space:nowrap}
 .leak__drip{
-  position:absolute;right:-14px;top:50%;font-family:var(--serif);
-  font-size:.95rem;color:var(--leak);white-space:nowrap;
-  animation:drip 3.4s ease-in-out infinite;
+  position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
+  font-family:var(--serif);font-size:.92rem;color:var(--leak);white-space:nowrap;
+  animation:drip 3.6s ease-in-out infinite;
 }
-.leak__stage:nth-child(2) .leak__drip{animation-delay:.5s}
-.leak__stage:nth-child(3) .leak__drip{animation-delay:1s}
+.leak__stage:nth-child(2) .leak__drip{animation-delay:.6s}
+.leak__stage:nth-child(3) .leak__drip{animation-delay:1.2s}
+/* never fades to nothing — the labels are content, the motion is only emphasis */
 @keyframes drip{
-  0%,100%{opacity:0;transform:translateY(-6px)}
-  35%{opacity:1;transform:translateY(0)}
-  70%{opacity:0;transform:translateY(16px)}
+  0%,100%{opacity:.5;transform:translateY(-50%)}
+  40%{opacity:1;transform:translateY(calc(-50% + 3px))}
 }
 .leak__cap{
   font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--cream-dim);text-align:center;margin:1.2rem 0 0;
+  color:var(--cream-dim);margin:1.4rem 0 0;border-top:var(--hair);padding-top:1rem;
 }
 
 /* ─── generic grids ──────────────────────────────────────────────────── */
@@ -362,7 +364,7 @@ a{color:var(--gold);text-underline-offset:3px}
   .cred{justify-content:flex-start}
   .founder__img{max-width:280px}
   .leak__stage:nth-child(n){width:100%}
-  .leak__drip{position:static;display:block;margin-top:.4rem;animation:none;opacity:1}
+  .leak__drip{position:static;transform:none;display:block;margin-top:.4rem;animation:none;opacity:1}
   .leak__stage{flex-wrap:wrap}
 }
 @media(max-width:560px){
@@ -483,7 +485,7 @@ a{color:var(--gold);text-underline-offset:3px}
       <p class="lead">A hundred people click. Sixty land on a page that doesn't answer the question the ad raised. Twenty fill a form. Nobody follows up until evening. Four are still interested by then, and one of those was never going to buy in your city anyway.</p>
       <p class="lead dim">Nothing in that sequence shows up in your ad account. The ad account says the ad worked. Which is why the leak survives for months.</p>
       <div class="rule"></div>
-      <p class="lead">Every stage below is a place your money can quietly go missing. We rebuild all four as one system, and report on each of them every week.</p>
+      <p class="lead">Each of those four stages is a place your money can quietly go missing. We rebuild all four as one system, and report on every one of them each week.</p>
     </div>
     <div class="leak__fig">
       <div class="leak__stage">
@@ -944,14 +946,20 @@ a{color:var(--gold);text-underline-offset:3px}
     b.addEventListener('click', function(){ if (at > 0) show(at - 1); });
   });
 
-  form.addEventListener('change', function(e){
+  // Clear the error as the user types, NOT on blur. Clearing on blur removes the error
+  // line at the moment the pointer goes down on the submit button — the button shifts up
+  // mid-click and the click lands on nothing. Clearing on input means the layout has
+  // already settled long before anyone reaches for the button.
+  function clearError(e){
     if (e.target.type === 'radio'){
       var opt = e.target.closest('.opt');
       if (opt) opt.style.borderColor = '';
     }
     var f = e.target.closest('.field');
     if (f) f.classList.remove('invalid');
-  });
+  }
+  form.addEventListener('input', clearError);
+  form.addEventListener('change', clearError);
 
   /* ── submission adapter ────────────────────────────────────────────
      Everything that leaves this page goes through submitLead(). Wiring
