@@ -1,7 +1,7 @@
 # AdScade — real estate client acquisition funnel
 
 A VSL-style booking funnel for **AdScade**, founded by **Aasim Ahmed**. Traffic comes from
-Hinglish YouTube / Demand Gen ads; the page's only job is one booked free audit call.
+YouTube / Demand Gen ads; the page's only job is one booked free audit call.
 
 ## Layout
 

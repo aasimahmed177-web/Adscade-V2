@@ -3,7 +3,7 @@
 **Offer:** The Complete Buyer Funnel System — done-for-you landing page, video creative,
 Meta ads, and automated WhatsApp qualification for Indian real estate developers.
 
-**Traffic source:** YouTube / Google Demand Gen (Hinglish video ads)
+**Traffic source:** YouTube / Google Demand Gen (English video ads)
 **Conversion event:** Booked audit call (self-scheduled via Calendly)
 **Founder / on-camera:** Aasim Ahmed
 
@@ -70,12 +70,14 @@ inventory but no in-house marketing function — exactly the gap we fill.
 
 ### Language
 
-Hinglish in ads and on calls, but a **more formal register** than for a young broker. This is a
-man called *sir* by twenty people a day, who has been in business longer than the person selling
-to him has been working. Respect without deference. No slang, no matey tone.
+**English throughout** — ads, page and calls — in an Indian business register, and a **more
+formal one** than a young broker would want. This is a man called *sir* by twenty people a day,
+who has been in business longer than the person selling to him has been working. Respect without
+deference. No slang, no matey tone.
 
-The page stays in English — it is a vendor-evaluation document that may be forwarded to a
-marketing manager or a CA — but the ads should sound like a peer, not a vendor.
+English is the right call for this buyer specifically. He runs a firm, deals with banks, RERA
+filings and contractors in English, and the page is a vendor-evaluation document that may be
+forwarded to a marketing manager or a CA. The ads should sound like a peer, not a vendor.
 
 ---
 
@@ -221,19 +223,21 @@ deliverables list. Show it early.
 
 ## 8. Objections, in the order they arrive
 
-1. *"Portal pe already listed hai, aur agency bhi try ki thi."* — Both give you enquiries. This
-   gives you site visits, and tells you what each one cost. A different unit of measurement.
-2. *"Channel partners already bech rahe hain."* — And they will keep selling. This is demand you
+1. *"We're already listed on the portals, and we've tried an agency."* — Both give you
+   enquiries. This gives you site visits, and tells you what each one cost. A different unit of
+   measurement entirely.
+2. *"Channel partners are already selling it."* — And they will keep selling. This is demand you
    own, so their commission buys incremental volume instead of the whole pipeline.
-3. *"Setup fee kyun?"* — The landing page, video and automation are built for your project, not
+3. *"Why a setup fee?"* — The landing page, video and automation are built for your project, not
    templated. It also means both sides are committed before a rupee goes to media.
-4. *"Kitni bookings guarantee?"* — None, and anyone quoting a number before seeing your
-   inventory, price and market is guessing. What we commit to is the system live in a week and
-   optimisation at no extra charge until it produces leads matching your criteria.
-5. *"Mere paas already marketing manager hai."* — Good — he is who we report to. We are the
-   build and the media, not a replacement for him.
-6. *"Price kam karna padega to?"* — That is the outcome this exists to avoid. Buying demand is
-   cheaper than a 5% cut across every unsold unit. Run the arithmetic together on the call.
+4. *"How many bookings can you guarantee?"* — None, and anyone quoting a number before seeing
+   your inventory, price and market is guessing. What we commit to is the system live in a week
+   and optimisation at no extra charge until it produces leads matching your criteria.
+5. *"I already have a marketing manager."* — Good — he is who we report to. We are the build and
+   the media, not a replacement for him.
+6. *"What if we have to drop the price?"* — That is the outcome this exists to avoid. Buying
+   demand is usually cheaper than a 5% cut across every unsold unit. Run the arithmetic together
+   on the call.
 
 ---
 

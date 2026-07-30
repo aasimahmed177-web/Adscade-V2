@@ -237,7 +237,7 @@ const banned = await m.evaluate(() => {
   const t = document.body.textContent;
   const rules = {
     'free': /\bfree\b/i,
-    'hinglish': /hinglish/i,
+    'hinglish': /hinglish/i,   // client removed the term entirely
     '3-week build': /(live|built|ready)[^.]{0,20}three weeks/i,
     // scoped outside the form — the form's ₹ brackets are the broker's own spend, not our price
     'published pricing': null,

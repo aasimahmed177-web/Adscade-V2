@@ -1,3 +1,8 @@
+> **SUPERSEDED — archive only.** This is the original client PDF, extracted verbatim.
+> It was written for a broker ICP and in a mixed-language register, both of which have
+> since changed. The live scripts are `docs/ad-scripts-v2.md` — English, written for the
+> developer ICP in `docs/ICP.md`. Kept unedited as a record of what was supplied.
+
 # Youtube Ad Scripts
 
 (extracted from client PDF)
