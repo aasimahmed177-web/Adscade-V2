@@ -22,7 +22,10 @@
 :root{
   --ink:#05100A; --ink-warm:#0F0D08; --forest:#1A3322;
   --cream:#EAE0C8; --cream-dim:#A9A290;
-  --gold:#E0B865; --gold-deep:#C9A04A; --clay:#D25242; --leak:#8E3B2E;
+  --gold:#E0B865; --gold-deep:#C9A04A;
+  /* clay is a *surface* colour — as text on any of our dark grounds it sits at 3.3:1.
+     --clay-text is the same hue lifted until it clears AA everywhere (min 6.5:1). */
+  --clay:#D25242; --clay-text:#E8A395; --leak:#D98A76;
   --hair:1px solid rgba(201,160,74,.22);
   --t-micro:.66rem; --t-label:.72rem; --t-small:.84rem;
   --t-body:1rem; --t-lead:1.18rem; --t-h3:1.6rem;
@@ -103,7 +106,8 @@ a{color:var(--gold);text-underline-offset:3px}
 }
 .cred__mark{
   width:44px;height:44px;border-radius:10px;flex:none;
-  background:linear-gradient(150deg,var(--gold),var(--gold-deep));
+  background-color:var(--gold);
+  background-image:linear-gradient(150deg,var(--gold),var(--gold-deep));
   color:#1A1204;font-family:var(--serif);font-size:1.15rem;
   display:grid;place-items:center;letter-spacing:.02em;
 }
@@ -153,7 +157,7 @@ a{color:var(--gold);text-underline-offset:3px}
   border-radius:10px;padding:1rem 1.3rem;max-width:60ch;margin:0 auto;
   font-size:var(--t-small);color:rgba(234,224,200,.86);
 }
-.notice b{color:var(--clay)}
+.notice b{color:var(--clay-text)}
 
 /* ─── VSL + booking rail ─────────────────────────────────────────────── */
 .stage{
@@ -307,7 +311,7 @@ a{color:var(--gold);text-underline-offset:3px}
 }
 .field input::placeholder{color:rgba(169,162,144,.6)}
 .field input:focus,.field select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(224,184,101,.16)}
-.field .err{display:none;color:var(--clay);font-size:var(--t-small);margin-top:.4rem;letter-spacing:0;text-transform:none;font-weight:400}
+.field .err{display:none;color:var(--clay-text);font-size:var(--t-small);margin-top:.4rem;letter-spacing:0;text-transform:none;font-weight:400}
 .field.invalid .err{display:block}
 .field.invalid input{border-color:var(--clay)}
 .consent{display:flex;gap:.75rem;align-items:flex-start;font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:1.3rem 0}
