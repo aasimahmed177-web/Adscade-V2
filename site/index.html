@@ -51,6 +51,17 @@ img{max-width:100%;display:block}
 a{color:var(--gold);text-underline-offset:3px}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:2px}
 
+/* When this page is embedded in a WordPress/Elementor/Astra site, the theme adds a body
+   class (e.g. ast-page-builder-template) carrying its own background colour, and
+   Elementor's global kit CSS sets an explicit colour on every heading and label. Both
+   have higher priority than our plain-element rules above — a class beats an element
+   selector on specificity, and an explicit rule always beats inherited colour — so this
+   page can render with the wrong background and invisible headings on such a host with
+   no visible error. These two rules force our design back over the host theme's. Safe
+   and inert when this file runs standalone with no surrounding theme. */
+body{background:var(--ink) !important;color:var(--cream) !important}
+h1,h2,h3,h4,h5,h6,label{color:inherit !important}
+
 /* ─── primitives ─────────────────────────────────────────────────────── */
 .wrap{width:var(--col);margin-inline:auto}
 .band{padding-block:var(--pad);position:relative}
