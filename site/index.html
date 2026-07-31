@@ -121,7 +121,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 /* Re-point --gold rather than restyling each gold component. Every light-band use of
    --gold is text, a hairline or a small solid shape; the one gold *fill* with text on it
    is .cta, which is overridden to dark-green below. */
-.band--light{--gold:var(--adscade-light-gold);--gold-deep:#5C4310;--loss:#7A3B2C}
+/* --loss is a muted tan in the dark design; the light equivalent must stay a warm brown.
+   A red here would read as an error state, which the brand rules forbid as decoration. */
+.band--light{--gold:var(--adscade-light-gold);--gold-deep:#5C4310;--loss:#6B4A2A}
+/* The dark track is near-black at 55% alpha; over cream it composites to a mid grey that
+   reads as a second filled bar and kills the taper the diagram exists to show. */
+.band--light .leak__track{background:rgba(20,36,26,.06);border-color:rgba(20,36,26,.18)}
+.band--light .leak__bar{background:linear-gradient(90deg,rgba(122,90,18,.85),rgba(122,90,18,.5))}
 /* These carry hardcoded translucent cream from the dark design and cannot inherit their
    way to legibility on cream — they need explicit light values. */
 .band--light .lead,
@@ -518,6 +524,10 @@ body.modal-open{overflow:hidden}
   transition:transform .25s ease;
 }
 .dock.hide{transform:translateY(110%)}
+/* The dock sits below the modal overlay, so it only ever showed through dimmed — but a
+   dimmed gold pill under an open dialog is still a second call to action competing with
+   the one the visitor is filling in. */
+body.modal-open .dock{transform:translateY(110%)}
 .dock__x{
   background:none;border:1px solid var(--adscade-border);color:var(--cream-dim);
   width:48px;height:48px;flex:none;border-radius:999px;cursor:pointer;font-size:1.1rem;line-height:1;

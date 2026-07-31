@@ -6,6 +6,23 @@ const URL = 'file://' + process.cwd() + '/site/index.html';
 let fails = 0;
 const t = (n,c) => { if(!c) fails++; return (c?'ok':'FAIL'); };
 
+
+/* Fill and submit the lead modal. Replaces the seven-step walk the old form required. */
+async function submitLead(pg) {
+  await pg.evaluate(() => {
+    window.ADSCADE_ENDPOINT = '/stub';
+    window.fetch = async () => ({ok:true, json: async()=>({ok:true, submissionId:'s-1'})});
+  });
+  await pg.evaluate(() => document.querySelector('.js-cta').click());
+  await pg.fill('#name','Rajesh Kumar'); await pg.fill('#email','rajesh@kumardev.in');
+  await pg.fill('#phone','9876543210');
+  await pg.check('input[name="inventory"][value="100_plus"]');
+  await pg.check('input[name="media_budget"][value="above_5l"]');
+  await pg.check('#consent');
+  await pg.click('#lead-form button[type=submit]');
+  await pg.waitForTimeout(900);
+}
+
 console.log('\nwidth      ovf  height  <16px tap<48  h1  CTA  errors');
 console.log('─'.repeat(58));
 for (const [w,h] of [[360,800],[375,812],[390,844],[430,932],[768,1024],[1440,900]]) {
@@ -37,21 +54,35 @@ await p.goto(URL); await p.waitForTimeout(600);
 await p.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';
   document.getElementById('book').scrollIntoView();});
 await p.waitForTimeout(700);
-console.log(' ', t('dock hides while the form is on screen',
+console.log(' ', t('dock hides while a real CTA is on screen',
   await p.evaluate(()=>document.getElementById('dock').classList.contains('hide'))),
-  '— dock hides while the form is on screen');
+  '— dock hides while a real CTA is on screen');
 
-await p.evaluate(() => {
-  window.ADSCADE_ENDPOINT='/stub';
-  window.fetch = async () => ({ok:true, json: async()=>({ok:true, outcome:'qualified'})});
-});
-const keys=[['role','founder'],['inventory','100_plus'],['price_band','above_150'],
-            ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
-for (let i=0;i<keys.length;i++){ await p.check(`input[name="${keys[i][0]}"][value="${keys[i][1]}"]`); await p.click(`[data-step="${i}"] [data-next]`); }
-await p.fill('#name','A'); await p.fill('#company','B'); await p.fill('#project_city','C');
-await p.fill('#email','a@b.in'); await p.fill('#phone','9876543210');
-await p.check('input[name="rera"][value="yes"]'); await p.check('#consent');
-await p.click('button[type=submit]'); await p.waitForTimeout(900);
+await p.evaluate(()=>{window.scrollTo(0,0);});
+await p.waitForTimeout(400);
+await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.waitForTimeout(400);
+console.log(' ', t('dock is suppressed while the modal is open',
+  await p.evaluate(()=>{
+    const d = document.getElementById('dock');
+    return d.classList.contains('hide') || document.body.classList.contains('modal-open');
+  })),
+  '— dock is suppressed while the modal is open');
+console.log(' ', t('modal fits the viewport without page overflow',
+  await p.evaluate(()=>document.documentElement.scrollWidth - document.documentElement.clientWidth <= 1)),
+  '— modal fits the viewport without page overflow');
+console.log(' ', t('modal content is reachable by scrolling inside the panel',
+  await p.evaluate(()=>{
+    const pn = document.querySelector('#lead-modal .modal__panel');
+    return pn.scrollHeight <= pn.clientHeight + 1 || getComputedStyle(pn).overflowY !== 'visible';
+  })),
+  '— modal content is reachable by scrolling inside the panel');
+await p.keyboard.press('Escape');
+await p.waitForTimeout(300);
+
+await submitLead(p);
+await p.evaluate(()=>document.getElementById('schedule').scrollIntoView());
+await p.waitForTimeout(900);
 console.log(' ', t('dock stays hidden over the calendar',
   await p.evaluate(()=>document.getElementById('dock').classList.contains('hide'))),
   '— dock stays hidden over the calendar');
@@ -67,15 +98,8 @@ console.log(' ', t('no horizontal page overflow after calendar mounts',
 const f = await (await b.newContext({viewport:{width:390,height:844}})).newPage();
 await f.route('**/assets.calendly.com/**', r => r.abort());
 await f.goto(URL); await f.waitForTimeout(400);
-await f.evaluate(()=>{ window.ADSCADE_ENDPOINT='/stub';
-  window.fetch = async () => ({ok:true, json: async()=>({ok:true, outcome:'qualified'})}); });
-const A=[['role','founder'],['inventory','100_plus'],['price_band','above_150'],
-        ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
-for (let i=0;i<A.length;i++){ await f.check(`input[name="${A[i][0]}"][value="${A[i][1]}"]`); await f.click(`[data-step="${i}"] [data-next]`); }
-await f.fill('#name','T'); await f.fill('#company','T'); await f.fill('#project_city','Indore');
-await f.fill('#email','t@t.in'); await f.fill('#phone','9876543210');
-await f.check('input[name="rera"][value="yes"]'); await f.check('#consent');
-await f.click('button[type=submit]'); await f.waitForTimeout(1400);
+await submitLead(f);
+await f.waitForTimeout(1200);
 const fb = await f.evaluate(()=>({
   shown: document.getElementById('cal-fallback').classList.contains('on'),
   box: Math.round(document.querySelector('.cal').getBoundingClientRect().height),
