@@ -45,6 +45,17 @@
   --gold:var(--adscade-gold); --gold-deep:var(--adscade-gold-hover);
   --hair:1px solid var(--adscade-border);
 
+  /* light surfaces — the page alternates dark and light so it never reads as one slab */
+  --adscade-light:#F4EEDF;
+  --adscade-light-elevated:#FFF9ED;
+  --adscade-light-text:#14241A;
+  --adscade-light-muted:#5E675F;
+  --adscade-light-border:rgba(20,36,26,.16);
+  /* Gold-on-cream. #E2B95B is 1.6:1 on the light grounds — unreadable. This is the
+     darkest point of the same hue that still reads as the brand gold, at 6.1:1 on
+     #FFF9ED (the lighter of the two light grounds), so it clears AA on both. */
+  --adscade-light-gold:#7A5A12;
+
   /* red is an ERROR colour only — never decorative. Lifted for AA as text. */
   --error:#D25242; --error-text:#E8A395;
   /* loss/attrition tone for the leak diagram. Deliberately bronze, NOT in the error
@@ -91,6 +102,54 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .wrap{width:var(--col);margin-inline:auto}
 .band{padding-block:var(--pad);position:relative}
 .band--warm{background:var(--ink-warm)}
+
+/* A light band re-points the shared tokens rather than restyling every component, so
+   cards, rules, eyebrows and buttons inherit the light palette automatically. */
+.band--light{
+  background:var(--adscade-light);
+  --text:var(--adscade-light-text);
+  --cream:var(--adscade-light-text);
+  --cream-dim:var(--adscade-light-muted);
+  --forest:var(--adscade-light-elevated);
+  --elev:var(--adscade-light-elevated);
+  --ink-warm:var(--adscade-light-elevated);
+  --hair:1px solid var(--adscade-light-border);
+  --adscade-border:rgba(20,36,26,.16);
+  --adscade-border-strong:rgba(20,36,26,.34);
+  color:var(--adscade-light-text);
+}
+/* Re-point --gold rather than restyling each gold component. Every light-band use of
+   --gold is text, a hairline or a small solid shape; the one gold *fill* with text on it
+   is .cta, which is overridden to dark-green below. */
+.band--light{--gold:var(--adscade-light-gold);--gold-deep:#5C4310;--loss:#7A3B2C}
+/* These carry hardcoded translucent cream from the dark design and cannot inherit their
+   way to legibility on cream — they need explicit light values. */
+.band--light .lead,
+.band--light .rail__list li,
+.band--light .vsl__agenda ol,
+.band--light .deliv li,
+.band--light .pains li,
+.band--light .faq__a,
+.band--light .consent{color:var(--adscade-light-muted)}
+.band--light .h2 em{color:#8A6B1F}
+.band--light .cta{background:#14241A;color:var(--adscade-light);border-color:#14241A}
+/* The only other gold *fill* carrying text. It is the fallback link for a blocked embed,
+   so it should not compete with the primary CTA — outline rather than a second solid. */
+.band--light .book-slot{background:transparent;color:#14241A;border-color:#14241A}
+.band--light .book-slot:hover{background:rgba(20,36,26,.08)}
+.band--light .cta:hover{background:#1E3527}
+.band--light .cta--ghost{background:transparent;color:#14241A;border-color:var(--adscade-light-border)}
+.band--light .cta--ghost:hover{background:rgba(20,36,26,.06)}
+.band--light .card{background:var(--adscade-light-elevated);border-color:var(--adscade-light-border)}
+
+/* supplied imagery */
+.figure{margin:0}
+.figure img{width:100%;height:auto;display:block;border-radius:14px;border:var(--hair)}
+.figure figcaption{
+  font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);
+  margin-top:.8rem;text-align:center;
+}
+.band--visual{padding-block:clamp(2.5rem,5vw,4rem)}
 .eyebrow{
   font-size:var(--t-label);font-weight:700;letter-spacing:.14em;
   text-transform:uppercase;color:var(--gold);margin:0 0 1.1rem;
@@ -406,6 +465,26 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 }
 .alt-exit:hover{background:rgba(224,184,101,.1)}
 
+/* ─── lead modal ─────────────────────────────────────────────────── */
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:1rem}
+.modal[hidden]{display:none}
+.modal__backdrop{position:absolute;inset:0;background:rgba(3,20,13,.82);backdrop-filter:blur(3px)}
+.modal__panel{
+  position:relative;width:min(560px,100%);max-height:90vh;overflow-y:auto;
+  padding:clamp(1.4rem,4vw,2.2rem);-webkit-overflow-scrolling:touch;
+}
+.modal__x{
+  position:absolute;top:.7rem;right:.7rem;width:48px;height:48px;border-radius:999px;
+  background:none;border:1px solid var(--adscade-border);color:var(--cream-dim);
+  font-size:1.4rem;line-height:1;cursor:pointer;
+}
+.modal__x:hover{color:var(--cream)}
+.qgroup{border:none;padding:0;margin:0 0 1.2rem}
+.qgroup legend{
+  padding:0;margin-bottom:.7rem;font-size:var(--t-small);line-height:1.45;color:var(--text);
+}
+body.modal-open{overflow:hidden}
+
 /* ─── faq ────────────────────────────────────────────────────────────── */
 .faq{border-top:var(--hair)}
 .faq__q{
@@ -581,8 +660,19 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   </div>
 </div>
 
+<!-- ═══ residential visual transition ═════════════════════════════ -->
+<section class="band band--light band--visual">
+  <div class="wrap">
+    <figure class="figure">
+      <img src="assets/residential.webp" width="1200" height="675" loading="lazy" decoding="async"
+           alt="Modern residential development with prospective buyers meeting a property representative.">
+      <figcaption>Illustrative imagery. Not an Adscade client project.</figcaption>
+    </figure>
+  </div>
+</section>
+
 <!-- ═══ signature: the leak ══════════════════════════════════════════ -->
-<section class="band band--warm">
+<section class="band band--light">
   <div class="wrap leak">
     <div>
       <p class="eyebrow">The leak</p>
@@ -648,6 +738,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       </div>
     </div>
 
+    <figure class="figure" style="margin-top:2.2rem">
+      <img src="assets/before-after.webp" width="1200" height="675" loading="lazy" decoding="async"
+           alt="Side-by-side diagram: fragmented marketing with disconnected ads, landing page, enquiries and reporting, versus one connected Adscade system with structured follow-up, qualified enquiries and sales feedback.">
+      <figcaption>Illustrative diagram of the two approaches.</figcaption>
+    </figure>
+
     <p class="lead" style="margin-top:2.2rem">Adscade builds and manages four things, as one system:</p>
     <ul class="deliv">
       <li><b>Offer and messaging</b> — positioning built around your project and price band, not swapped from another account.</li>
@@ -671,7 +767,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 </section>
 
 <!-- ═══ sample report — proof of the differentiator ══════════════════ -->
-<section class="band band--warm">
+<section class="band band--light">
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Reporting</p>
     <h2 class="h2 h2--center" style="max-width:20ch">Every Monday, know where <em>every enquiry stands.</em></h2>
@@ -692,13 +788,19 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       </div>
       <p class="report__foot">Figures shown are illustrative. Available reporting depends on the sales stages and outcome data maintained by the client's team.</p>
     </div>
+
+    <figure class="figure" style="margin-top:2.4rem">
+      <img src="assets/pipeline.webp" width="1200" height="675" loading="lazy" decoding="async"
+           alt="Pipeline diagram: ads, landing page, enquiries, qualification, follow-up, site visits and sales conversations, with weekly reporting at each stage.">
+      <figcaption>Illustrative pipeline and reporting view. Figures are examples, not client results.</figcaption>
+    </figure>
   </div>
 </section>
 
 <!-- ═══ founder — deliberately its own section ═══════════════════════ -->
 <section class="band">
   <div class="wrap founder">
-    <img class="founder__img" src="assets/asim-ahmed.jpg" alt="Aasim Ahmed, founder of Adscade" width="480" height="600" loading="lazy" decoding="async">
+    <img class="founder__img" src="assets/asim-ahmed.webp" alt="Aasim Ahmed, founder of Adscade" width="480" height="600" loading="lazy" decoding="async">
     <div>
       <p class="eyebrow">Built and managed by</p>
       <h2 class="h2">Aasim Ahmed<br><em>Founder, Adscade</em></h2>
@@ -709,8 +811,8 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   </div>
 </section>
 
-<!-- ═══ guarantee ════════════════════════════════════════════════════ -->
-<section class="band band--warm">
+<!-- ═══ qualification before volume ══════════════════════════════════ -->
+<section class="band band--light">
   <div class="wrap">
     <div class="guarantee">
       <p class="eyebrow">Qualification before volume</p>
@@ -722,231 +824,65 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 </section>
 
 <!-- ═══ booking form ═════════════════════════════════════════════════ -->
-<section class="band form-band" id="book">
+<!-- ═══ CTA band ══════════════════════════════════════════════════ -->
+<section class="band" id="book">
+  <div class="wrap" style="text-align:center">
+    <p class="eyebrow" style="text-align:center">Next step</p>
+    <h2 class="h2 h2--center" style="max-width:20ch">Tell us about your project.</h2>
+    <p class="lead lead--center">Five quick details — enough for us to look at your setup properly before we speak.</p>
+    <div class="cta-wrap" style="margin-top:1.6rem">
+      <button class="cta js-cta" type="button">Tell Us About Your Project</button>
+    </div>
+    <p class="cta-note" id="cta-success" hidden>Thanks. When you're ready, choose a suitable time.</p>
+  </div>
+</section>
+
+<!-- ═══ Calendly — hidden until a lead is stored ════════════════════ -->
+<section class="band band--light" id="schedule" hidden>
   <div class="wrap">
-    <p class="eyebrow" style="text-align:center">Check fit</p>
-    <h2 class="h2 h2--center" style="max-width:20ch">Six questions. Then <em>choose a time.</em></h2>
-    <p class="lead lead--center">Tell us what you are currently running and where the funnel is breaking. If the engagement appears suitable, you will be able to choose an available call slot.</p>
-
-    <form class="card form" id="lead-form" novalidate>
-      <!-- honeypot: hidden from people, tempting to bots -->
-      <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
-        <label>Company website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
-      </div>
-
-      <div class="form__prog" aria-hidden="true">
-        <i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i>
-      </div>
-
-      <!-- Q1 · role -->
-      <div class="step on" data-step="0" role="group" aria-labelledby="q1">
-        <p class="step__n">Question 1 of 6</p>
-        <p class="q" id="q1">Which best describes your role and business?</p>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="role" value="founder" required>Founder, promoter or director at a residential developer</label>
-          <label class="opt"><input type="radio" name="role" value="marketing_sales_lead">Marketing or sales leader at a residential developer</label>
-          <label class="opt"><input type="radio" name="role" value="mandate_partner">Exclusive mandate or channel-partner firm with an in-house sales team</label>
-          <label class="opt"><input type="radio" name="role" value="broker">Independent broker or property consultant</label>
-          <label class="opt"><input type="radio" name="role" value="agency_other">Marketing agency, vendor or other</label>
-        </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <div class="nav"><button class="cta" type="button" data-next>Continue</button></div>
-      </div>
-
-      <!-- Q2 · inventory -->
-      <div class="step" data-step="1" role="group" aria-labelledby="q2">
-        <p class="step__n">Question 2 of 6</p>
-        <p class="q" id="q2">How much residential inventory are you responsible for marketing over the next 6–12 months?</p>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="inventory" value="100_plus" required>100+ units</label>
-          <label class="opt"><input type="radio" name="inventory" value="50_99">50–99 units</label>
-          <label class="opt"><input type="radio" name="inventory" value="20_49">20–49 units</label>
-          <label class="opt"><input type="radio" name="inventory" value="1_19">1–19 units</label>
-          <label class="opt"><input type="radio" name="inventory" value="none">No currently active project or inventory</label>
-        </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </div>
-
-      <!-- Q3 · price band -->
-      <div class="step" data-step="2" role="group" aria-labelledby="q3">
-        <p class="step__n">Question 3 of 6</p>
-        <p class="q" id="q3">What is the typical selling price per unit?</p>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="price_band" value="above_150" required>Above ₹1.5 crore</label>
-          <label class="opt"><input type="radio" name="price_band" value="75_150">₹75 lakh – ₹1.5 crore</label>
-          <label class="opt"><input type="radio" name="price_band" value="50_75">₹50–75 lakh</label>
-          <label class="opt"><input type="radio" name="price_band" value="below_50">Below ₹50 lakh</label>
-          <label class="opt"><input type="radio" name="price_band" value="mixed">Mixed inventory or several price bands</label>
-        </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </div>
-
-      <!-- Q4 · media budget -->
-      <div class="step" data-step="3" role="group" aria-labelledby="q4">
-        <p class="step__n">Question 4 of 6</p>
-        <p class="q" id="q4">What are you currently spending — or prepared to invest — on digital advertising each month?</p>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="media_budget" value="above_3l" required>Above ₹3 lakh</label>
-          <label class="opt"><input type="radio" name="media_budget" value="1_3l">₹1–3 lakh</label>
-          <label class="opt"><input type="radio" name="media_budget" value="ready_1l">Currently below ₹1 lakh, but ready to invest ₹1 lakh+</label>
-          <label class="opt"><input type="radio" name="media_budget" value="below_1l_not_ready">Below ₹1 lakh and not currently ready to increase</label>
-          <label class="opt"><input type="radio" name="media_budget" value="undecided">Budget has not been decided</label>
-        </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <p class="cta-note">This is your advertising spend, paid directly to the platform.</p>
-        <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </div>
-
-      <!-- Q5 · follow-up capacity -->
-      <div class="step" data-step="4" role="group" aria-labelledby="q5">
-        <p class="step__n">Question 5 of 6</p>
-        <p class="q" id="q5">How are new enquiries followed up today?</p>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="followup" value="crm" required>Dedicated sales team with CRM and stage tracking</label>
-          <label class="opt"><input type="radio" name="followup" value="spreadsheet">Dedicated sales team using spreadsheets or manual updates</label>
-          <label class="opt"><input type="radio" name="followup" value="inconsistent">Two or three people follow up, but tracking is inconsistent</label>
-          <label class="opt"><input type="radio" name="followup" value="founder_only">One person or the founder handles most enquiries</label>
-          <label class="opt"><input type="radio" name="followup" value="none">There is no defined follow-up process</label>
-        </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </div>
-
-      <!-- Q6 · bottleneck -->
-      <div class="step" data-step="5" role="group" aria-labelledby="q6">
-        <p class="step__n">Question 6 of 6</p>
-        <p class="q" id="q6">Where is the biggest problem in your current acquisition process?</p>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="bottleneck" value="low_quality" required>Too many low-quality enquiries</label>
-          <label class="opt"><input type="radio" name="bottleneck" value="few_site_visits">Too few enquiries become site visits</label>
-          <label class="opt"><input type="radio" name="bottleneck" value="no_visibility">We cannot see what happens after the lead is generated</label>
-          <label class="opt"><input type="radio" name="bottleneck" value="slow_followup">Contact and follow-up are too slow or inconsistent</label>
-          <label class="opt"><input type="radio" name="bottleneck" value="too_few">We are not generating enough enquiries</label>
-          <label class="opt"><input type="radio" name="bottleneck" value="exploring">We are mainly exploring options</label>
-        </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick one so we can point the call at the right thing.</span></div>
-        <div class="nav"><button class="cta" type="button" data-next>Continue</button><button class="back" type="button" data-back>Back</button></div>
-      </div>
-
-      <!-- contact -->
-      <div class="step" data-step="6" role="group" aria-labelledby="q7">
-        <p class="step__n">Your details</p>
-        <p class="q" id="q7">Where should we reach you?</p>
-        <div class="field">
-          <label for="name">Full name</label>
-          <input type="text" id="name" name="name" autocomplete="name" required>
-          <span class="err" role="alert">Please enter your name.</span>
-        </div>
-        <div class="field">
-          <label for="company">Company or developer name</label>
-          <input type="text" id="company" name="company" autocomplete="organization" required>
-          <span class="err" role="alert">Please enter your company name.</span>
-        </div>
-        <div class="field">
-          <label for="project_name">Project name <span class="opt-tag">optional</span></label>
-          <input type="text" id="project_name" name="project_name" autocomplete="off">
-        </div>
-        <div class="field">
-          <label for="project_city">Project city</label>
-          <input type="text" id="project_city" name="project_city" placeholder="e.g. Indore, Thane, Coimbatore" required>
-          <span class="err" role="alert">Please enter the city the project is in.</span>
-        </div>
-        <div class="field">
-          <label for="email">Work email</label>
-          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
-          <span class="err" role="alert">Enter a valid email address.</span>
-        </div>
-        <div class="field">
-          <label for="phone">WhatsApp or phone number</label>
-          <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or +country code" required>
-          <span class="err" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
-        </div>
-        <div class="rera" role="group" aria-labelledby="rera-q">
-          <p class="rera__q" id="rera-q">Is the project you want to advertise RERA registered or legally exempt from registration?</p>
-          <div class="opts">
-            <label class="opt"><input type="radio" name="rera" value="yes" required>Yes — registered or legally exempt</label>
-            <label class="opt"><input type="radio" name="rera" value="no">No — registration is pending or not yet complete</label>
-          </div>
-          <div class="errbox" data-radio-err><span class="err" role="alert">Please confirm the registration status before we go further.</span></div>
-          <p class="rera__note">Advertising eligibility is subject to the applicable project and platform requirements.</p>
-        </div>
-
-        <label class="consent">
-          <input type="checkbox" id="consent" name="consent" required>
-          <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
-        </label>
-        <div class="errbox" id="consent-err">
-          <span class="err" role="alert">Please tick the consent box so we're allowed to contact you.</span>
-        </div>
-        <button class="cta cta--wide" type="submit">Check Fit</button>
-        <div class="nav" style="justify-content:center"><button class="back" type="button" data-back>Back</button></div>
-        <div class="errbox" id="submit-err">
-          <span class="err" role="alert">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span>
-        </div>
-        <p class="cta-note" id="contact-note">Six questions, then choose an available slot.</p>
-      </div>
-
-      <!-- outcome: qualified — Calendly is injected here, never before -->
-      <div class="done" id="done-qualified" role="status" aria-live="polite" tabindex="-1">
-        <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3 class="h3">You appear to be a fit. Choose a time.</h3>
-        <p class="lead lead--center">Select an available slot to discuss your project, current funnel and sales process.</p>
-        <div id="calendly-mount" class="cal"></div>
-        <div class="cal-fallback" id="cal-fallback">
-          <p class="lead lead--center lead--sm">The booking calendar could not load in this browser.</p>
-          <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Open the calendar in a new tab</a>
-        </div>
-        <p class="cta-note">Prefer to message instead?
-          <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
-      </div>
-
-      <!-- outcome: manual review -->
-      <div class="done" id="done-review" role="status" aria-live="polite" tabindex="-1">
-        <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3 class="h3">Thanks — your project needs a quick manual review.</h3>
-        <p class="lead lead--center">We have received your details. If the project appears suitable for the system, we will contact you using the information provided.</p>
-        <p class="cta-note"><a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a> if it is urgent.</p>
-      </div>
-
-      <!-- outcome: not currently a fit -->
-      <div class="done" id="done-nofit" role="status" aria-live="polite" tabindex="-1">
-        <div class="done__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3 class="h3">Thanks for sharing the details.</h3>
-        <p class="lead lead--center">Based on the current setup, a managed acquisition system may not be the right next step. Your information has been received, and we will contact you if there is a more suitable way to help.</p>
-      </div>
-    </form>
+    <p class="eyebrow" style="text-align:center">Scheduling</p>
+    <h2 class="h2 h2--center" style="max-width:18ch">Choose a suitable time.</h2>
+    <p class="lead lead--center">Select a time to discuss your project, current marketing setup and enquiry process with Aasim.</p>
+    <div id="calendly-mount" class="cal"></div>
+    <div class="cal-fallback" id="cal-fallback">
+      <p class="lead lead--center lead--sm">The booking calendar could not load in this browser.</p>
+      <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Open the calendar in a new tab</a>
+    </div>
+    <p class="cta-note" style="text-align:center">Prefer to message instead?
+      <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
   </div>
 </section>
 
 <!-- ═══ faq ══════════════════════════════════════════════════════════ -->
-<section class="band">
+<section class="band band--light">
   <div class="wrap" style="max-width:840px">
     <p class="eyebrow">Common questions</p>
     <h2 class="h2">Before you book.</h2>
     <div class="faq" style="margin-top:2rem">
-      <button class="faq__q" aria-expanded="false" aria-controls="a1">Who is this designed for?</button>
-      <div class="faq__a" id="a1" hidden><p>Developers with unsold inventory in a RERA-registered project, a sales team waiting on footfall, and a budget they can commit to media. If the project isn't registered yet, we legally cannot advertise it. If there is nothing unsold, there is nothing for a funnel to sell.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a1">Who is this system designed for?</button>
+      <div class="faq__a" id="a1" hidden><p>Regional residential developers with an actively marketed project, inventory to sell over the next six to twelve months, and a sales team or structured follow-up already in place. It also suits exclusive mandate holders and channel-partner firms with direct control over a project's marketing.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a2">What does Adscade actually manage?</button>
-      <div class="faq__a" id="a2" hidden><p>Five things, run as one system: offer and messaging, campaign management, the landing page and qualification, tracking and attribution, and weekly reporting and optimisation. Nothing is subcontracted to someone who has never seen the rest of your funnel. Running ads without the rest of it is pouring water into a leaking bucket — which is usually what has already been tried.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a2">What does Adscade manage?</button>
+      <div class="faq__a" id="a2" hidden><p>Four things, run as one system: offer and messaging, campaign management, the landing page and qualification, and tracking, reporting and optimisation. Nothing is subcontracted to someone who has never seen the rest of your funnel. Running ads without the rest of it is pouring water into a leaking bucket.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a3">Do we need an existing funnel?</button>
-      <div class="faq__a" id="a3" hidden><p>No. Plenty of developers come from portal enquiries or channel partners only. What you do need is unsold inventory and a media budget — the funnel is built for your project rather than adapted from something you already have.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a3">Do we need an existing advertising account or landing page?</button>
+      <div class="faq__a" id="a3" hidden><p>No. Many developers come from portal enquiries or channel partners only. The landing page, video creative and follow-up sequence are built for your project rather than adapted from something you already have. If you do have an existing account, we work inside it so the history stays with you.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a4">What budget is normally required?</button>
-      <div class="faq__a" id="a4" hidden><p>Our fee is a one-time setup fee plus a monthly retainer; media budget sits outside it and is paid by you directly to the platform. The setup fee covers real production before a rupee goes to ads — the page built, the video shot, the qualification configured for your project. Exact numbers depend on your city and price point and are agreed on the call.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a4">What monthly advertising budget should we be prepared for?</button>
+      <div class="faq__a" id="a4" hidden><p>Media budget sits separately from our fee and is paid by you directly to the platform. The right level depends on your city, price point and how much inventory you are moving. Most projects of this type are working with a meaningful monthly commitment rather than a trial amount — we will be specific on the call.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a5">Who creates the video and advertising assets?</button>
-      <div class="faq__a" id="a5" hidden><p>We do, for your project specifically. The landing page, the video creative and the qualification sequence are produced together by one team so the message holds from the ad through to the sales conversation.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a5">How quickly can the system be launched?</button>
+      <div class="faq__a" id="a5" hidden><p>The build runs about a week once onboarding is complete — strategy agreed, campaigns built, landing page and qualification live, tracking connected. Delays in project details, account access or creative approvals extend it. After launch there is an optimisation period while the campaigns find the right audience.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a6">What happens after the qualification form?</button>
-      <div class="faq__a" id="a6" hidden><p>If the answers indicate a suitable engagement, you go straight to the calendar and choose a slot. If they don't, we say so on the page rather than book a call neither of us needs — and you can still leave your details for later. If you have been burned by an agency before, judge us on the weekly reporting rather than the promise: you will see the drop-off before you have to ask about it.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a6">Who follows up with the enquiries?</button>
+      <div class="faq__a" id="a6" hidden><p>Your sales team does. Adscade builds the automated first response and the qualification that reaches them, so the enquiry arrives with budget, location and timeline already on record. We do not sell on your behalf or take over your buyer relationships.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="a7">What happens after we complete the form?</button>
+      <div class="faq__a" id="a7" hidden><p>A booking calendar appears on this page and you choose a time that suits you. Before the call we look at what you are running now. On the call we go through your current setup, where the drop-off is, and what a connected system would look like for your project.</p></div>
     </div>
 
     <div class="faq-cta" style="text-align:center;margin-top:2.4rem">
-      <a class="cta" href="#book">Book a Fit Call</a>
+      <button class="cta js-cta" type="button">Tell Us About Your Project</button>
     </div>
   </div>
 </section>
@@ -981,6 +917,69 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     </p>
   </div>
 </footer>
+
+<!-- ═══ lead modal ═════════════════════════════════════════════════ -->
+<div class="modal" id="lead-modal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel card" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+    <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
+    <p class="eyebrow">Tell us about your project</p>
+    <h2 class="h3" id="modal-title">Five details, then pick a time.</h2>
+
+    <form id="lead-form" novalidate>
+      <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
+        <label>Company website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" autocomplete="name" required>
+        <span class="err" role="alert">Please enter your name.</span>
+      </div>
+      <div class="field">
+        <label for="email">Work email</label>
+        <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+        <span class="err" role="alert">Enter a valid email address.</span>
+      </div>
+      <div class="field">
+        <label for="phone">WhatsApp or phone number</label>
+        <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or include country code" required>
+        <span class="err" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
+      </div>
+
+      <fieldset class="qgroup">
+        <legend>How many residential units are you actively marketing over the next 6&ndash;12 months?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="inventory" value="1_19" required>1&ndash;19</label>
+          <label class="opt"><input type="radio" name="inventory" value="20_49">20&ndash;49</label>
+          <label class="opt"><input type="radio" name="inventory" value="50_99">50&ndash;99</label>
+          <label class="opt"><input type="radio" name="inventory" value="100_plus">100+</label>
+        </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick the closest range.</span></div>
+      </fieldset>
+
+      <fieldset class="qgroup">
+        <legend>What are you currently spending &mdash; or prepared to invest &mdash; on digital advertising each month?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="media_budget" value="below_1l" required>Below &#8377;1 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="1_3l">&#8377;1&ndash;3 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="3_5l">&#8377;3&ndash;5 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="above_5l">Above &#8377;5 lakh</label>
+        </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick the closest range.</span></div>
+      </fieldset>
+
+      <label class="consent">
+        <input type="checkbox" id="consent" name="consent" required>
+        <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+      </label>
+      <div class="errbox" id="consent-err"><span class="err" role="alert">Please tick the consent box so we're allowed to contact you.</span></div>
+
+      <button class="cta cta--wide" type="submit">Continue</button>
+      <div class="errbox" id="submit-err"><span class="err" role="alert">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span></div>
+    </form>
+  </div>
+</div>
 
 <!-- ═══ sticky mobile dock ═══════════════════════════════════════════ -->
 <div class="dock" id="dock">
@@ -1024,14 +1023,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   }
   window.adscadeTrack = track;
 
-  // Page CTAs only. The in-form "Continue" and "Check Fit" buttons also carry .cta,
-  // and counting them would inflate this event by up to seven per completed form.
-  document.querySelectorAll('a[href="#book"], .cta').forEach(function(el){
-    if (el.closest('#lead-form')) return;
-    el.addEventListener('click', function(){
-      track('primary_cta_click', {cta_text: el.innerText.trim()});
-    });
-  });
+  // CTA events are emitted by the state machine below — initial_cta_click before a
+  // lead is stored, scheduling_cta_click afterwards. One generic primary_cta_click
+  // would conflate two different intents.
 
   /* ── FAQ ───────────────────────────────────────────────────────── */
   document.querySelectorAll('.faq__q').forEach(function(btn){
@@ -1056,7 +1050,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     agenda.classList.toggle('on', !open);
     // Fires once. When the real video lands, replace this with the player's own
     // play event and add the 25/50/75/complete progress handlers alongside it.
-    if (!open) track('vsl_play', null, true);
+    if (!open) track('main_vsl_play', null, true);
   });
 
   /* ── sticky dock: stand down whenever a real CTA is on screen ───── */
@@ -1079,407 +1073,308 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     // card meant a sliver of visible card counted as "a CTA is on screen" while the
     // button inside it was still 200px below the fold — so the first screen had no
     // tappable CTA at all and the dock stayed hidden.
-    var watched = [document.getElementById('book')];
-    document.querySelectorAll('a[href="#book"], form button[type=submit]').forEach(function(el){
-      // the header pill is a shortcut, not the hero CTA — it must not suppress the dock
-      if (!el.closest('.dock') && !el.classList.contains('brandbar__fit')) watched.push(el);
+    var watched = [document.getElementById('book'), document.getElementById('schedule')];
+    document.querySelectorAll('.cta').forEach(function(el){
+      // the header pill is a shortcut, not a primary CTA — it must not suppress the dock
+      if (!el.closest('.dock') && !el.closest('#lead-modal')
+          && !el.classList.contains('brandbar__fit')) watched.push(el);
     });
     watched.forEach(function(el){ if (el) io.observe(el); });
   }
 
-  // A 1.6s smooth flight across 11,000px is a long blurred nothing on a mid-range phone.
-  // Short hops keep the animation; long ones jump.
   var dockX = document.getElementById('dock-x');
   if (dockX) dockX.addEventListener('click', function(){
     dock.classList.add('hide');
     submitted = true;              // stops the observer bringing it back
   });
 
-  document.querySelectorAll('a[href="#book"]').forEach(function(a){
-    a.addEventListener('click', function(e){
-      var target = document.getElementById('book');
-      if (Math.abs(target.getBoundingClientRect().top) > window.innerHeight * 3){
-        e.preventDefault();
-        target.scrollIntoView({block:'start'});
-      }
+  /* ══ CTA state machine ═══════════════════════════════════════════
+     Two states, one source of truth. Every CTA on the page — hero rail,
+     mid-page, FAQ closer, sticky dock, CTA band — is driven from here, so a
+     new CTA can never end up with stale copy or the wrong behaviour.
+
+       before storage : "Tell Us About Your Project"  → opens the modal
+       after  storage : "Choose a Time"               → scrolls to Calendly
+  ═══════════════════════════════════════════════════════════════════ */
+  var LABEL_BEFORE = 'Tell Us About Your Project';
+  var LABEL_AFTER  = 'Choose a Time';
+  var leadStored   = false;
+
+  function ctaButtons(){
+    return Array.prototype.slice.call(
+      document.querySelectorAll('.cta:not([type=submit]):not([data-next]):not([data-back]), .js-cta')
+    ).filter(function(el){ return !el.closest('#lead-modal'); });
+  }
+
+  function paintCtas(){
+    ctaButtons().forEach(function(el){
+      el.textContent = leadStored ? LABEL_AFTER : LABEL_BEFORE;
+      el.setAttribute('aria-haspopup', leadStored ? 'false' : 'dialog');
     });
+  }
+
+  function onCtaClick(e){
+    var el = e.currentTarget;
+    if (leadStored) {
+      track('scheduling_cta_click', {cta_text: el.textContent.trim()});
+      document.getElementById('schedule').scrollIntoView({behavior:'smooth', block:'start'});
+    } else {
+      track('initial_cta_click', {cta_text: el.textContent.trim()});
+      openModal(el);
+    }
+  }
+
+  ctaButtons().forEach(function(el){
+    // anchors become buttons in behaviour: they must not navigate
+    el.addEventListener('click', function(e){ e.preventDefault(); onCtaClick(e); });
+  });
+  paintCtas();
+
+  /* ══ modal ═══════════════════════════════════════════════════════ */
+  var modal   = document.getElementById('lead-modal');
+  var panel   = modal.querySelector('.modal__panel');
+  var opener  = null;
+
+  function focusables(){
+    return Array.prototype.slice.call(panel.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+    )).filter(function(el){ return el.offsetParent !== null; });
+  }
+
+  function openModal(from){
+    opener = from || null;
+    modal.hidden = false;
+    document.body.classList.add('modal-open');
+    dock.classList.add('hide');
+    track('lead_modal_open', null, true);
+    var first = panel.querySelector('input');
+    if (first) first.focus({preventScroll:true}); else panel.focus({preventScroll:true});
+  }
+
+  function closeModal(){
+    modal.hidden = true;
+    document.body.classList.remove('modal-open');
+    if (!leadStored) dock.classList.remove('hide');
+    // returning focus to the control that opened it is what makes this usable
+    // without a mouse — without it the caret lands back at the top of the document
+    if (opener && document.contains(opener)) opener.focus({preventScroll:true});
+    opener = null;
+  }
+
+  modal.querySelectorAll('[data-close]').forEach(function(el){
+    el.addEventListener('click', closeModal);
   });
 
-  /* ── multi-step form ───────────────────────────────────────────── */
-  var form  = document.getElementById('lead-form');
-  var steps = Array.prototype.slice.call(form.querySelectorAll('.step'));
-  var bars  = Array.prototype.slice.call(form.querySelectorAll('.form__prog i'));
-  var at    = 0;
+  document.addEventListener('keydown', function(e){
+    if (modal.hidden) return;
+    if (e.key === 'Escape'){ e.preventDefault(); return closeModal(); }
+    if (e.key !== 'Tab') return;
+    var f = focusables();
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
 
-  /* ── qualification model ──────────────────────────────────────────
-     Weights and hard restrictions are defined once, here. The visitor never
-     sees a score, and no scoring value is written to the DOM, the URL or an
-     analytics parameter. Only a coarse band leaves the page.
-  ─────────────────────────────────────────────────────────────────── */
-  var MODEL = {
-    role: {max:20, opts:{
-      founder:{s:20,l:'Founder / promoter / director at a residential developer'},
-      marketing_sales_lead:{s:18,l:'Marketing or sales leader at a residential developer'},
-      mandate_partner:{s:14,l:'Exclusive mandate or channel-partner firm with in-house sales'},
-      broker:{s:4,l:'Independent broker or property consultant',restrict:'role_broker'},
-      agency_other:{s:0,l:'Marketing agency, vendor or other',restrict:'role_agency'}
-    }},
-    inventory: {max:20, opts:{
-      '100_plus':{s:20,l:'100+ units'},
-      '50_99':{s:18,l:'50–99 units'},
-      '20_49':{s:14,l:'20–49 units'},
-      '1_19':{s:5,l:'1–19 units'},
-      none:{s:0,l:'No currently active project or inventory',restrict:'no_inventory'}
-    }},
-    price_band: {max:10, opts:{
-      above_150:{s:10,l:'Above ₹1.5 crore'},
-      '75_150':{s:10,l:'₹75 lakh – ₹1.5 crore'},
-      '50_75':{s:8,l:'₹50–75 lakh'},
-      below_50:{s:5,l:'Below ₹50 lakh'},
-      mixed:{s:7,l:'Mixed inventory or several price bands'}
-    }},
-    media_budget: {max:20, opts:{
-      above_3l:{s:20,l:'Above ₹3 lakh / month'},
-      '1_3l':{s:18,l:'₹1–3 lakh / month'},
-      ready_1l:{s:12,l:'Below ₹1 lakh now, ready to invest ₹1 lakh+'},
-      below_1l_not_ready:{s:0,l:'Below ₹1 lakh, not ready to increase',restrict:'no_budget'},
-      undecided:{s:4,l:'Budget not decided',cap:true}
-    }},
-    followup: {max:20, opts:{
-      crm:{s:20,l:'Dedicated sales team with CRM and stage tracking',team:true},
-      spreadsheet:{s:16,l:'Dedicated sales team using spreadsheets',team:true},
-      inconsistent:{s:12,l:'Two or three people, tracking inconsistent'},
-      founder_only:{s:5,l:'One person or the founder handles most enquiries',cap:true},
-      none:{s:0,l:'No defined follow-up process',restrict:'no_followup'}
-    }},
-    bottleneck: {max:10, opts:{
-      low_quality:{s:10,l:'Too many low-quality enquiries'},
-      few_site_visits:{s:10,l:'Too few enquiries become site visits'},
-      no_visibility:{s:10,l:'No visibility after the lead is generated'},
-      slow_followup:{s:8,l:'Contact and follow-up too slow or inconsistent'},
-      too_few:{s:6,l:'Not generating enough enquiries'},
-      exploring:{s:0,l:'Mainly exploring options',cap:true}
-    }}
-  };
-  var QUESTION_ORDER = ['role','inventory','price_band','media_budget','followup','bottleneck'];
+  /* ══ form ════════════════════════════════════════════════════════ */
+  var form = document.getElementById('lead-form');
 
-  function evaluate(answers){
-    var score = 0, restriction = null, cap = false, labels = {}, team = false;
-    var answered = 0;
+  function validate(){
+    var ok = true;
 
-    QUESTION_ORDER.forEach(function(key){
-      var opt = MODEL[key].opts[answers[key]];
-      // Unknown or missing answers contribute nothing and are counted as unanswered —
-      // a partial or tampered submission can never reach the qualifying threshold.
-      if (!opt) return;
-      answered++;
-      score += opt.s;
-      labels[key] = opt.l;
-      if (opt.restrict && !restriction) restriction = opt.restrict;
-      if (opt.cap)  cap  = true;
-      if (opt.team) team = true;
-    });
-
-    var complete = answered === QUESTION_ORDER.length;
-    // RERA: the project must be legally advertisable. Anything other than an explicit
-    // "yes" is a hard restriction — this is a legal gate, not a commercial preference.
-    if (!restriction && answers.rera !== 'yes') restriction = 'rera_ineligible';
-
-    var outcome;
-    if (restriction || !complete) {
-      outcome = 'not_current_fit';
-    } else if (answers.inventory === '1_19') {
-      // Premium low-inventory exception. Every condition is required; removing any one
-      // must drop the submission out of "qualified".
-      var premium = answers.price_band === 'above_150';
-      var funded  = ['above_3l','1_3l','ready_1l'].indexOf(answers.media_budget) > -1;
-      outcome = (premium && funded && team && score >= 65 && !cap)
-        ? 'qualified'
-        : (score >= 50 ? 'manual_review' : 'not_current_fit');
-    } else if (cap) {
-      // A manual-review cap can never produce a calendar, whatever the score.
-      outcome = score >= 50 ? 'manual_review' : 'not_current_fit';
-    } else if (score >= 65) {
-      outcome = 'qualified';
-    } else if (score >= 50) {
-      outcome = 'manual_review';
-    } else {
-      outcome = 'not_current_fit';
-    }
-
-    var band = score >= 65 ? 'high' : score >= 50 ? 'medium' : 'low';
-    return {score: score, band: band, outcome: outcome,
-            restriction: restriction, cap: cap, complete: complete, labels: labels};
-  }
-
-  function show(i){
-    steps[at].classList.remove('on');
-    at = i;
-    steps[at].classList.add('on');
-    bars.forEach(function(b,n){ b.classList.toggle('on', n <= at); });
-    form.scrollIntoView({behavior:'smooth', block:'nearest'});
-    var radio = steps[at].querySelector('input[type=radio]');
-    if (radio) radio.focus({preventScroll:true});
-  }
-
-  function validateStep(){
-    var step = steps[at];
-    var ok2 = true;
-
-    // Every radio group in the step, not just the first — the contact step carries both
-    // text fields and the RERA confirmation, and an earlier version validated only one.
-    var groups = {};
-    step.querySelectorAll('input[type=radio]').forEach(function(r){ groups[r.name] = true; });
-    Object.keys(groups).forEach(function(nm){
-      var picked = !!step.querySelector('input[name="' + nm + '"]:checked');
-      var holder = step.querySelector('input[name="' + nm + '"]').closest('.opts');
-      var box = holder && holder.parentElement.querySelector('[data-radio-err]');
-      if (box) box.classList.toggle('invalid', !picked);
-      if (!picked){
-        ok2 = false;
-        var first = holder && holder.querySelector('.opt');
-        if (first) first.style.borderColor = 'var(--error)';
-      }
-    });
-    // A pure question step has no text inputs; return as soon as the radios are judged.
-    if (!step.querySelector('input[required]:not([type=radio])')) return ok2;
-
-    step.querySelectorAll('input[required]').forEach(function(el){
-      if (el.type === 'checkbox') return;
+    form.querySelectorAll('input[required]').forEach(function(el){
+      if (el.type === 'checkbox' || el.type === 'radio') return;
       var f = el.closest('.field');
       var bad = !el.value.trim();
       if (el.type === 'tel'){
         var digits = el.value.replace(/[^\d]/g,'');
-        // Accept: bare 10-digit Indian mobile; 91- or 0-prefixed Indian mobile typed
-        // without a "+" (very common on mobile); or any explicit international number.
-        var indian10  = /^[6-9]\d{9}$/.test(digits);
-        var indian91  = /^91[6-9]\d{9}$/.test(digits);
-        var indian0   = /^0[6-9]\d{9}$/.test(digits);
-        var intl      = /^\+/.test(el.value.trim()) && digits.length >= 8 && digits.length <= 15;
-        bad = !(indian10 || indian91 || indian0 || intl);
+        // A 10-digit Indian mobile, the same number with 91 or a leading 0, or any
+        // explicit international number. Requiring a "+" would reject the format most
+        // Indian visitors actually type.
+        bad = !(/^[6-9]\d{9}$/.test(digits) || /^91[6-9]\d{9}$/.test(digits)
+             || /^0[6-9]\d{9}$/.test(digits)
+             || (/^\+/.test(el.value.trim()) && digits.length >= 8 && digits.length <= 15));
       }
       if (el.type === 'email') bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
       if (f) f.classList.toggle('invalid', bad);
-      if (bad) ok2 = false;
+      if (bad) ok = false;
     });
-    return ok2;
+
+    ['inventory','media_budget'].forEach(function(nm){
+      var picked = !!form.querySelector('input[name="' + nm + '"]:checked');
+      var box = form.querySelector('input[name="' + nm + '"]').closest('.qgroup')
+                    .querySelector('[data-radio-err]');
+      if (box) box.classList.toggle('invalid', !picked);
+      if (!picked) ok = false;
+    });
+
+    var consent = document.getElementById('consent');
+    var cErr = document.getElementById('consent-err');
+    cErr.classList.toggle('invalid', !consent.checked);
+    if (!consent.checked) ok = false;
+
+    return ok;
   }
 
-  form.querySelectorAll('[data-next]').forEach(function(b){
-    b.addEventListener('click', function(){
-      if (!validateStep()) return;
-      track('qualification_form_start', null, true);
-      var key = QUESTION_ORDER[at];
-      var picked = key && form.querySelector('input[name="' + key + '"]:checked');
-      if (picked) track('qualification_question_complete', {question_number: at + 1, answer_key: picked.value});
-      if (at < steps.length - 1) show(at + 1);
-    });
-  });
-  form.querySelectorAll('[data-back]').forEach(function(b){
-    b.addEventListener('click', function(){ if (at > 0) show(at - 1); });
-  });
-
-  function clearError(e){
-    if (e.target.type === 'radio'){
-      var opt = e.target.closest('.opt');
-      if (opt) opt.style.borderColor = '';
-      var st = e.target.closest('.step');
-      var box = st && st.querySelector('[data-radio-err]');
-      if (box) box.classList.remove('invalid');
-    }
+  form.addEventListener('input', function(e){
     var f = e.target.closest('.field');
     if (f) f.classList.remove('invalid');
-  }
-  form.addEventListener('input', clearError);
-  form.addEventListener('change', clearError);
+    if (e.target.type === 'radio'){
+      var g = e.target.closest('.qgroup');
+      var b = g && g.querySelector('[data-radio-err]');
+      if (b) b.classList.remove('invalid');
+    }
+    if (e.target.id === 'consent') document.getElementById('consent-err').classList.remove('invalid');
+    track('lead_form_start', null, true);
+  });
 
   /* ── storage adapter ──────────────────────────────────────────────
-     ONE configuration value. Set it to the deployed Convex HTTP action URL:
+     ONE configuration value. Point it at the deployed Convex HTTP action:
 
        window.ADSCADE_ENDPOINT = 'https://<deployment>.convex.site/lead';
 
-     Full contract: docs/CONVEX_LEAD_CAPTURE_SPEC.md (§2 action, §3 request,
-     §4 response, §13 migration steps).
-
+     Contract: docs/CONVEX_LEAD_CAPTURE_SPEC.md
      Until it is set, submitLead REJECTS and the form shows its error state.
-     It must never report success for a lead that was not stored.
-
-     No secret belongs here. The action URL is public; every key
-     (rate-limit salt, webhook secret, mail provider) stays server-side.
-
-     NOTE: wordpress/SUPERSEDED-do-not-install/ is quarantined prototype work.
-     Do not point this at it.
+     A lead that was not stored must never produce a calendar.
+     No secret belongs here — the action URL is public, every key stays server-side.
   ─────────────────────────────────────────────────────────────────── */
-  var VALID_OUTCOMES = ['qualified','manual_review','not_current_fit'];
-
   async function submitLead(payload){
     if (!window.ADSCADE_ENDPOINT) {
       throw new Error('No submission endpoint configured — lead not stored.');
     }
-    // 12s ceiling: a hung request must surface as an error, never as a silent success.
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
     var timer = ctrl && setTimeout(function(){ ctrl.abort(); }, 12000);
     try {
       var res = await fetch(window.ADSCADE_ENDPOINT, {
         method: 'POST',
-        headers: Object.assign({'Content-Type':'application/json'},
-          window.ADSCADE_NONCE ? {'X-WP-Nonce': window.ADSCADE_NONCE} : {}),
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload),
         signal: ctrl ? ctrl.signal : undefined
       });
       if (!res.ok) throw new Error('Submission failed: ' + res.status);
       var data = await res.json();
-      // The backend is authoritative. A 200 that does not carry a recognised outcome is
-      // an invalid response, not permission to fall back to the browser's own verdict —
-      // falling back is exactly how an unqualified visitor would reach the calendar.
-      if (!data || data.ok !== true || VALID_OUTCOMES.indexOf(data.outcome) === -1) {
-        throw new Error('Invalid response from submission endpoint.');
-      }
+      if (!data || data.ok !== true) throw new Error('Invalid response from submission endpoint.');
       return data;
     } finally { if (timer) clearTimeout(timer); }
   }
 
-  /* ── Calendly, loaded only after a qualified lead is stored ──────── */
+  /* ── Calendly ─────────────────────────────────────────────────────
+     CALENDLY_PHONE_ANSWER maps the phone number onto Calendly's invitee
+     questions. Calendly numbers them a1…a10 in the order they appear on the
+     event. The owner must add "What is your WhatsApp or phone number?" FIRST.
+     If that order ever changes, change this ONE value.
+  ─────────────────────────────────────────────────────────────────── */
   var CALENDLY_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
+  var CALENDLY_PHONE_ANSWER = 'a1';
+  var calendlyInit = false;
+
   function failCalendar(){
-    var mount = document.getElementById('calendly-mount');
-    var note  = document.getElementById('cal-fallback');
-    if (mount) { mount.classList.add('cal--failed'); }
-    if (note)  { note.classList.add('on'); }
+    var m = document.getElementById('calendly-mount');
+    var n = document.getElementById('cal-fallback');
+    if (m) m.classList.add('cal--failed');
+    if (n) n.classList.add('on');
   }
 
-  function mountCalendly(name, email, calendarToken){
+  function mountCalendly(lead){
+    if (calendlyInit) return;
+    calendlyInit = true;
     var mount = document.getElementById('calendly-mount');
-    if (!mount || mount.dataset.mounted) return;
-    mount.dataset.mounted = '1';
-    // Name and email are prefill only. Phone, company, the numeric score and every
-    // restriction reason are deliberately withheld from the query string.
-    // calendarToken is minted server-side and is the ONLY key the Calendly webhook
-    // will accept when marking a lead booked — see CONVEX_LEAD_CAPTURE_SPEC.md §9.
-    var url = CALENDLY_URL + '?hide_gdpr_banner=1'
-            + '&name='  + encodeURIComponent(name || '')
-            + '&email=' + encodeURIComponent(email || '')
-            + (calendarToken ? '&utm_content=' + encodeURIComponent(calendarToken) : '');
-    window.__calUrl = url;          // test hook: lets the suite verify what was requested
+    if (!mount) return;
+
+    var prefill = {name: lead.name || '', email: lead.email || '', customAnswers: {}};
+    prefill.customAnswers[CALENDLY_PHONE_ANSWER] = lead.phone || '';
+
     var css = document.createElement('link');
     css.rel = 'stylesheet'; css.href = 'https://assets.calendly.com/assets/external/widget.css';
     document.head.appendChild(css);
+
     var js = document.createElement('script');
     js.src = 'https://assets.calendly.com/assets/external/widget.js'; js.async = true;
+    js.onerror = failCalendar;
     js.onload = function(){
       if (!window.Calendly) return failCalendar();
-      window.Calendly.initInlineWidget({url: url, parentElement: mount});
-      // Fire only once the iframe is genuinely present — the spec defines this event
-      // as "embed actually rendered", and the 8s failure path must not have counted.
+      // Advanced inline embed: name, email and the phone custom answer are passed
+      // through the API, never through a visible query string.
+      window.Calendly.initInlineWidget({
+        url: CALENDLY_URL + '?hide_gdpr_banner=1',
+        parentElement: mount,
+        prefill: prefill
+      });
       var tries = 0;
       var poll = setInterval(function(){
-        if (mount.querySelector('iframe')) { clearInterval(poll); track('calendar_view', null, true); }
+        if (mount.querySelector('iframe')){ clearInterval(poll); track('calendar_view', null, true); }
         else if (++tries > 40) clearInterval(poll);
       }, 200);
     };
-    js.onerror = failCalendar;
     document.head.appendChild(js);
 
-    // If the widget has not rendered an iframe within 8s — blocked script, offline,
-    // corporate firewall — collapse the reserved 900px box and surface the direct
-    // link instead of leaving the visitor staring at an empty panel.
-    setTimeout(function(){
-      if (!mount.querySelector('iframe')) failCalendar();
-    }, 8000);
+    setTimeout(function(){ if (!mount.querySelector('iframe')) failCalendar(); }, 8000);
   }
+
+  /* ══ submit ══════════════════════════════════════════════════════ */
+  var submitting = false;
 
   form.addEventListener('submit', async function(e){
     e.preventDefault();
-    if (!validateStep()) return;
+    if (submitting) return;                       // a double click must not double-post
+    if (!validate()) return;
 
-    var consent = document.getElementById('consent');
-    var cErr = document.getElementById('consent-err');
-    if (!consent.checked){ cErr.classList.add('invalid'); consent.focus(); return; }
-    cErr.classList.remove('invalid');
     document.getElementById('submit-err').classList.remove('invalid');
-
     var d = new FormData(form);
-    var answers = {};
-    QUESTION_ORDER.forEach(function(k){ answers[k] = d.get(k); });
-    var rera = d.get('rera');
-    // evaluate() needs rera, but payload.answers must contain exactly the six scored
-    // keys — the Convex schema defines answers with six fields and would reject a
-    // seventh on every insert.
-    var verdict = evaluate(Object.assign({}, answers, {rera: rera}));
-
     var payload = {
-      submission_id: (crypto.randomUUID ? crypto.randomUUID()
-                      : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
-      submitted_at:  new Date().toISOString(),
-      name:          (d.get('name') || '').trim(),
-      company:       (d.get('company') || '').trim(),
-      project_name:  (d.get('project_name') || '').trim(),
-      project_city:  (d.get('project_city') || '').trim(),
-      email:         (d.get('email') || '').trim(),
-      phone:         (d.get('phone') || '').trim(),
-      consent:       true,
-      rera:          rera,
-      answers:       answers,
-      answer_labels: verdict.labels,
-      // score, outcome, restriction and the booking flags are DELIBERATELY not sent.
-      // The backend recomputes every one of them from the raw answer keys and rejects
-      // any payload that supplies them (CONVEX_LEAD_CAPTURE_SPEC.md §3, §5). Sending a
-      // client-computed verdict is the whole attack this design exists to prevent.
-      website:       d.get('website') || '',      // honeypot — must arrive empty
-      landing_url:   location.href,
-      referrer:      document.referrer || null,
-      viewport:      window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
-      attribution:   attribution
+      submissionId: (crypto.randomUUID ? crypto.randomUUID()
+                     : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
+      timestamp:    new Date().toISOString(),
+      name:         (d.get('name')  || '').trim(),
+      email:        (d.get('email') || '').trim(),
+      phone:        (d.get('phone') || '').trim(),
+      activeInventory:    d.get('inventory'),
+      monthlyMediaBudget: d.get('media_budget'),
+      consent:      true,
+      website:      d.get('website') || '',       // honeypot — must arrive empty
+      landingPage:  location.href,
+      referrer:     document.referrer || null,
+      device:       window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
+      attribution:  attribution
     };
 
     var btn = form.querySelector('button[type=submit]');
+    submitting = true;
     btn.disabled = true;
-    btn.textContent = 'Checking…';
+    btn.textContent = 'Sending…';
+    track('lead_form_submit', null, true);
+
     try {
-      var saved = await submitLead(payload);
-      window.__adscadeSubmissionId = payload.submission_id;
+      await submitLead(payload);
+      track('lead_form_stored', null, true);
 
-      // submitLead() has already rejected anything without a recognised outcome, so
-      // this is always the server's verdict — the browser never decides.
-      var outcome = saved.outcome;
-
-      track('contact_details_submitted', null, true);
-      track('qualification_form_complete', null, true);
-      track('qualification_outcome', {outcome: outcome, score_band: verdict.band}, true);
-
-      steps[at].classList.remove('on');
-      bars.forEach(function(b){ b.classList.add('on'); });
-      dock.classList.add('hide');
-      submitted = true;
-
-      var panel = outcome === 'qualified' ? 'done-qualified'
-                : outcome === 'manual_review' ? 'done-review' : 'done-nofit';
-      var el = document.getElementById(panel);
-      el.classList.add('on');
-      if (outcome === 'qualified') mountCalendly(payload.name, payload.email, saved.calendarToken);
-      el.scrollIntoView({behavior:'smooth', block:'start'});
-      el.focus({preventScroll:true});
+      // Same page, same scroll position. Reloading here would interrupt the VSL and
+      // throw away the visitor's place in it.
+      leadStored = true;
+      closeModal();
+      paintCtas();
+      document.getElementById('cta-success').hidden = false;
+      var sched = document.getElementById('schedule');
+      sched.hidden = false;
+      mountCalendly(payload);
+      dock.classList.remove('hide');
+      // deliberately NOT scrolled to — the visitor may still be watching the video
     } catch (err){
-      btn.disabled = false;
-      btn.textContent = 'Check Fit';
       document.getElementById('submit-err').classList.add('invalid');
+    } finally {
+      submitting = false;
+      btn.disabled = false;
+      btn.textContent = 'Continue';
     }
   });
 
-  // booked_call fires only on a confirmed scheduling event from Calendly —
-  // never on embed load, calendar view, or date/time selection.
   window.addEventListener('message', function(e){
     if (!/^https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin || '')) return;
-    if (e.data && e.data.event === 'calendly.event_scheduled'){
-      // Analytics signal only. The authoritative booking record is written by the
-      // Calendly webhook, keyed on the server-minted calendarToken — never on a
-      // submission id that travelled through the browser. See spec §9.
-      track('booked_call', null, true);
-    }
+    if (e.data && e.data.event === 'calendly.event_scheduled') track('booked_call', null, true);
   });
 
-  // expose for automated tests only — no scoring value is rendered to the page
-  window.__adscadeEvaluate = evaluate;
+  // test hooks — no scoring exists to expose
+  window.__adscadeState = function(){ return {leadStored: leadStored, calendlyInit: calendlyInit}; };
 })();
 </script>
 </body>

@@ -112,10 +112,13 @@ console.log('\n— production paste safety —');
 // with asset paths substituted. Checking the source instead would pass while the paste
 // file 404s every image — which is exactly the class of defect this catches.
 const WP = {
-  'assets/asim-ahmed.jpg':   'https://adscade.com/wp-content/uploads/2026/07/aasim.jpg',
-  'assets/adscade-mark.png': 'https://adscade.com/wp-content/uploads/2026/07/logo.png',
-  'href="privacy.html"':     'href="/privacy/"',
-  'href="terms.html"':       'href="/terms/"',
+  'assets/asim-ahmed.webp':   'https://adscade.com/wp-content/uploads/2026/07/aasim.webp',
+  'assets/adscade-mark.png':  'https://adscade.com/wp-content/uploads/2026/07/logo.png',
+  'assets/residential.webp':  'https://adscade.com/wp-content/uploads/2026/07/residential.webp',
+  'assets/before-after.webp': 'https://adscade.com/wp-content/uploads/2026/07/before-after.webp',
+  'assets/pipeline.webp':     'https://adscade.com/wp-content/uploads/2026/07/pipeline.webp',
+  'href="privacy.html"':      'href="/privacy/"',
+  'href="terms.html"':        'href="/terms/"',
 };
 // Build the widget exactly as the paste-file generator does: the <style> block plus
 // the body contents, never the </head><body> boundary that a naive slice would include.
@@ -128,7 +131,11 @@ for (const [from, to] of Object.entries(WP)) widget = widget.split(from).join(to
 t('paste file has no local asset paths',   !/(?:src|href)="assets\//.test(widget));
 t('paste file has no document wrapper',    !/<(html|head|body)[\s>]/i.test(widget) && !/<!doctype/i.test(widget));
 t('paste file carries the storage adapter', /window\.ADSCADE_ENDPOINT/.test(widget));
-t('paste file carries the scoring model',   /__adscadeEvaluate/.test(widget));
+// Scoring was removed on 31 Jul 2026 — every stored lead now reaches the calendar.
+// What must be present instead is the CTA state machine and the modal.
+t('paste file carries the CTA state machine', /leadStored/.test(widget));
+t('paste file carries the lead modal',        /id="lead-modal"/.test(widget));
+t('no scoring model remains',                 !/__adscadeEvaluate|score_band/.test(widget));
 t('privacy link resolves to a WP path',     /href="\/privacy\/"/.test(widget));
 t('terms link resolves to a WP path',       /href="\/terms\/"/.test(widget));
 t('no hard-coded /vsl- path anywhere',      !/\/vsl-\d/.test(widget));

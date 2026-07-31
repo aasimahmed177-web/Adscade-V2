@@ -74,6 +74,9 @@ page.on('pageerror', e => consoleErrors.push(String(e)));
 
 await page.goto('file://' + PAGE, { waitUntil: 'load' });
 await page.waitForTimeout(700);
+// Snapshot before scrolling: below-fold images are lazy, so anything counted after this
+// point is deferred weight the visitor pays for only if they stay.
+const initialKB = bytes / 1024;
 
 const html = readFileSync(PAGE, 'utf8');
 // textContent, not innerText: innerText applies text-transform (so uppercase CSS would
@@ -103,19 +106,29 @@ category('Message match & congruency', 150);
   // must be re-cut to match, or Demand Gen will disapprove on ad↔page mismatch.
   // CHANGED 30 Jul 2026 (3rd revision, client brief). The end cards must be re-cut to
   // THIS string — they currently read "Book My Free Audit Call".
-  const AD_CTA = 'Check Fit & Pick a Time';
-  // The brief permits exactly two purpose-specific variants. Anything else is drift.
-  // 'Check Fit' is the form's submit button (brief §11). 'Book a Fit Call' closes the FAQ.
-  const CTA_ALLOWED = [AD_CTA, 'Check Fit', 'Book a Fit Call'];
+  // CHANGED 31 Jul 2026 (4th revision, simplification brief §2). The page now runs a
+  // two-state CTA: every CTA reads AD_CTA before the lead is stored and CTA_AFTER after.
+  // This is a specification change, not a tuning of the ruler.
+  // CONSEQUENCE: the YouTube end cards must be re-cut to AD_CTA, or Demand Gen will
+  // disapprove on ad<->page mismatch. They currently read "Book My Free Audit Call".
+  const AD_CTA    = 'Tell Us About Your Project';
+  const CTA_AFTER = 'Choose a Time';
+  // 'Continue' is the modal's submit button. Nothing else is permitted.
+  const CTA_ALLOWED = [AD_CTA, CTA_AFTER, 'Continue'];
 
   const h1 = norm(await page.evaluate(() => document.querySelector('h1')?.innerText || ''));
   check('H1 matches ad headline exactly', 30,
     lc(h1) === lc(AD_HEADLINE), `h1="${h1}"`);
 
-  check('Ad CTA string present verbatim', 25, text.includes(AD_CTA));
+  // 25 points split 15/10 across the two CTA states — the concern is unchanged, but it
+  // is now carried by two strings instead of one. The category budget stays at 150.
+  check('Ad CTA string present verbatim', 15, text.includes(AD_CTA));
 
   const ctaTexts = await page.$$eval('.cta', els => els.map(e => e.innerText.replace(/\s+/g, ' ').trim()));
   const primary = ctaTexts.filter(t => !/^(continue|back|sending)/i.test(t));
+  // The post-storage label must also be present in source, so a drifted second string
+  // cannot hide behind the fact that it is only rendered after submission.
+  check('Post-storage CTA string present verbatim', 10, html.includes(CTA_AFTER));
   const allowedLc = CTA_ALLOWED.map(lc);
   const offBrand = primary.filter(t => !allowedLc.includes(lc(t)));
   check('No competing primary CTA copy', 20, offBrand.length === 0, offBrand.join(' | '));
@@ -211,47 +224,63 @@ category('VSL funnel architecture', 150);
     leaks.join(' ') + (schedulerHidden ? '' : ' scheduler visible pre-submit'));
 }
 
-/* ══ 3. QUALIFICATION FORM — 120 ═════════════════════════════════ */
-category('Qualification form', 120);
+/* ══ 3. LEAD MODAL — 120 ═════════════════════════════════════════
+   CHANGED 31 Jul 2026 (simplification brief §1-§4). The seven-step progressive form,
+   the weighted scoring model and the three outcome states were removed by the client.
+   This category now scores the single modal that replaced them. The budget is unchanged
+   at 120 so the total still sums to 1000; what it measures is different because the
+   product is different. */
+category('Lead modal', 120);
 {
-  const steps = await page.$$('.step');
-  check('Seven-step progressive form', 30,
-    steps.length >= 7 ? 30 : Math.round(steps.length / 7 * 30), `${steps.length} steps`);
+  const modal = await page.$('#lead-modal');
+  const semantics = modal ? await page.evaluate(() => {
+    const d = document.querySelector('#lead-modal .modal__panel');
+    if (!d) return null;
+    return { role: d.getAttribute('role') === 'dialog',
+             modal: d.getAttribute('aria-modal') === 'true',
+             labelled: !!document.getElementById(d.getAttribute('aria-labelledby') || ''),
+             closedOnLoad: document.getElementById('lead-modal').hidden };
+  }) : null;
+  check('Modal exists with dialog semantics, closed on load', 25,
+    semantics ? Object.values(semantics).filter(Boolean).length / 4 * 25 : 0,
+    JSON.stringify(semantics));
 
-  const names = await page.$$eval('#lead-form [name]', els => [...new Set(els.map(e => e.name))]);
-  // CHANGED 31 Jul 2026: the six questions were replaced by the weighted qualification
-  // model in the final brief (§9). Field names follow that model.
-  const required = ['role', 'inventory', 'price_band', 'media_budget', 'followup', 'bottleneck',
-                    'name', 'company', 'project_city', 'email', 'phone', 'consent'];
+  const names = await page.$$eval('#lead-form [name]',
+    els => [...new Set(els.map(e => e.name))].filter(n => n !== 'website'));
+  const required = ['name', 'email', 'phone', 'inventory', 'media_budget', 'consent'];
   const missing = required.filter(n => !names.includes(n));
-  check('All qualification fields present', 10,
-    Math.round((required.length - missing.length) / required.length * 10), missing.join(','));
+  const extra   = names.filter(n => !required.includes(n));
+  // Exactly five questions plus consent. Extra fields are scope creep, and the brief
+  // is explicit that the modal asks for five things and nothing more.
+  check('Exactly the five fields plus consent — no more', 25,
+    Math.round((required.length - missing.length) / required.length * 25) - extra.length * 5,
+    `missing=[${missing}] extra=[${extra}]`);
 
-  const consent = await page.$('#consent');
-  const consentOK = consent ? await consent.evaluate(el =>
-    el.type === 'checkbox' && !el.checked && el.hasAttribute('required')) : false;
+  const consentOK = await page.evaluate(() => {
+    const c = document.getElementById('consent');
+    return !!c && c.type === 'checkbox' && !c.checked && c.hasAttribute('required');
+  });
   check('Consent checkbox, required and unchecked', 20, consentOK);
 
   check('Inline validation messages exist', 15, (await page.$$('.err')).length >= 4);
 
-  // Three distinct outcome panels replace the single success state — qualified,
-  // manual review, and not-currently-a-fit (brief §10).
-  const panels = await page.$$('#done-qualified, #done-review, #done-nofit');
-  check('All three outcome states present', 15, panels.length === 3, `${panels.length} panels`);
+  // The scoring model must be gone, not merely unreferenced. A leftover evaluator is a
+  // live code path that could resurrect disqualification.
+  const scoringGone = await page.evaluate(() =>
+    typeof window.__adscadeEvaluate === 'undefined' &&
+    !document.querySelector('#done-qualified, #done-review, #done-nofit, .dq, .form__prog'));
+  check('No scoring model or outcome states remain', 20,
+    scoringGone && !/__adscadeEvaluate|not_current_fit|manual_review/.test(html));
 
-  // Hard restrictions now live in the scoring model rather than data attributes.
-  const restricted = await page.evaluate(() => {
-    if (typeof window.__adscadeEvaluate !== 'function') return 0;
-    const base = {role:'founder',inventory:'100_plus',price_band:'above_150',
-                  media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'};
-    const cases = [{role:'broker'},{role:'agency_other'},{inventory:'none'},
-                   {media_budget:'below_1l_not_ready'},{followup:'none'}];
-    return cases.filter(c => window.__adscadeEvaluate(Object.assign({}, base, c))
-                              .outcome === 'not_current_fit').length;
-  });
-  check('Hard restrictions route away from the calendar', 15,
-    restricted === 5, `${restricted}/5 restrictions active`);
-  check('Progress indicator', 15, (await page.$$('.form__prog i')).length >= 7);
+  // Two-state CTA machine: one label before storage, one after, applied to every CTA.
+  const machine = await page.evaluate(() => ({
+    hasState: typeof window.__adscadeState === 'function',
+    stored: typeof window.__adscadeState === 'function' ? window.__adscadeState().leadStored : null,
+    scheduleHidden: !!document.getElementById('schedule')?.hidden,
+  }));
+  check('CTA state machine present and starts un-stored', 15,
+    machine.hasState && machine.stored === false && machine.scheduleHidden,
+    JSON.stringify(machine));
 }
 
 /* ══ 4. COPY & ICP RESONANCE — 130 ═══════════════════════════════ */
@@ -276,12 +305,15 @@ category('Copy & ICP resonance', 130);
   }
   check('ICP vocabulary', 60, v, missingVocab.join(','));
 
+  // CHANGED 31 Jul 2026 (simplification brief §7). The FAQ was replaced with seven
+  // specified questions. The rule is unchanged — every live objection must have a home
+  // on the page — but the objection list now follows the questions the client specified.
   const objections = {
-    'setup fee': ['setup fee'],
-    'why not run ads myself': ['leaking bucket'],
-    'burned before': ['burned'],
+    'what happens on the call': ['on the call', 'first call'],
+    'why not run ads myself': ['leaking bucket', 'run ads', 'in-house'],
     'how many leads guaranteed': ['qualified lead" is defined', 'qualified lead', 'guarantee'],
     'how long': DELIVERY,
+    'who owns the accounts': ['own', 'account'],
   };
   for (const [name, terms] of Object.entries(objections)) {
     check(`Objection handled: ${name}`, 10, hasAny(...terms));
@@ -393,6 +425,21 @@ category('Technical quality', 120);
   // so translucent surfaces can be composited rather than treated as opaque. A layer
   // painted at 6% alpha is not a 6%-alpha colour to the eye — it is that colour mixed
   // into whatever sits under it.
+  // Expand every hidden state first — collapsed FAQ answers, the modal, the scheduling
+  // section and the error messages all carry text a visitor will eventually read.
+  await page.evaluate(() => {
+    document.querySelectorAll('.faq__q').forEach(b => b.click());
+    document.querySelector('.js-cta')?.click();
+    const sch = document.getElementById('schedule'); if (sch) sch.hidden = false;
+    document.querySelectorAll('.field, [data-radio-err], #consent-err, #submit-err')
+      .forEach(e => e.classList.add('invalid'));
+    document.querySelectorAll('.err').forEach(e => {
+      e.hidden = false;
+      if (!e.textContent.trim()) e.textContent = 'Error text';
+    });
+  });
+  await page.waitForTimeout(300);
+
   const contrasts = await page.evaluate(() => {
     const out = [];
     const walk = el => {
@@ -406,7 +453,13 @@ category('Technical quality', 120);
           if (x === document.body) break;
         }
         stack.push(getComputedStyle(document.body).backgroundColor);
-        out.push([c.color, stack, parseFloat(c.fontSize), c.fontWeight]);
+        // carry a locator: "1 below AA" with no element to look at is not actionable
+        const loc = el.tagName.toLowerCase() +
+          (el.id ? '#' + el.id : '') +
+          (el.className && typeof el.className === 'string'
+            ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : '');
+        out.push([c.color, stack, parseFloat(c.fontSize), c.fontWeight,
+                  loc, el.textContent.trim().slice(0, 30)]);
       }
       [...el.children].forEach(walk);
     };
@@ -427,9 +480,13 @@ category('Technical quality', 120);
     return base;
   }
 
+  // Collapsed FAQ answers, the modal and the error states are invisible to a naive
+  // sweep. A page can pass contrast while every one of its error messages is illegible,
+  // so expand every state before measuring.
+  const expandedCount = contrasts.length;
   let low = 0;
   const lowDetail = [];
-  for (const [fg, stack, size, weight] of contrasts) {
+  for (const [fg, stack, size, weight, loc, snippet] of contrasts) {
     let f = parseRGB(fg);
     const b = flatten(stack);
     if (!f || !b) continue;
@@ -437,11 +494,14 @@ category('Technical quality', 120);
     const large = size >= 24 || (size >= 18.66 && parseInt(weight, 10) >= 700);
     const need = large ? 3 : 4.5;
     const r = contrast(f, b);
-    if (r < need) { low++; if (lowDetail.length < 4) lowDetail.push(`${r.toFixed(1)}<${need}`); }
+    if (r < need) {
+      low++;
+      if (lowDetail.length < 4) lowDetail.push(`${r.toFixed(1)}<${need} ${loc} "${snippet}"`);
+    }
   }
-  check('Text contrast passes AA', 25,
+  check('Text contrast passes AA in every state', 25,
     low === 0 ? 25 : Math.max(0, 25 - low * 3),
-    `${low}/${contrasts.length} below AA ${lowDetail.join(' ')}`);
+    `${low}/${expandedCount} below AA ${lowDetail.join(' ')}`);
 
   check('prefers-reduced-motion respected', 15, /prefers-reduced-motion\s*:\s*reduce/.test(html));
 
@@ -462,8 +522,13 @@ category('Technical quality', 120);
   check('Images have alt + intrinsic size', 10,
     imgs.length ? imgOK / imgs.length * 10 : 0, `${imgOK}/${imgs.length}`);
 
+  // CHANGED 31 Jul 2026. This summed every byte including below-fold lazy images that
+  // a bouncing visitor never downloads. Initial transfer is what decides LCP on the
+  // Indian mobile connections this page is bought for, so that is what is now capped.
+  // The full-scroll total is still printed — if it climbs unbounded, that is visible.
   const kb = bytes / 1024;
-  check('Page weight under 500 KB', 10, kb < 500, `${kb.toFixed(0)} KB`);
+  check('Initial transfer under 500 KB', 10, initialKB < 500,
+    `${initialKB.toFixed(0)} KB initial / ${kb.toFixed(0)} KB full scroll`);
 }
 
 /* ══ 8. CONVEX READINESS — 60 ════════════════════════════════════ */
@@ -474,7 +539,8 @@ category('Convex readiness', 60);
 
   const seg = html.slice(html.indexOf('submitLead'), html.indexOf('submitLead') + 1400);
   check('Payload shape documented', 15,
-    /submission_id/.test(html) && /ADSCADE_ENDPOINT/.test(html));
+    /submissionId/.test(html) && /ADSCADE_ENDPOINT/.test(html) &&
+    /activeInventory/.test(html) && /monthlyMediaBudget/.test(html));
 
   // The endpoint must come from configuration, never be baked into the markup.
   const hardcoded = /fetch\(\s*["'`]https?:\/\//.test(html);

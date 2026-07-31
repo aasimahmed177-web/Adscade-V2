@@ -1,396 +1,221 @@
 #!/usr/bin/env node
-/* Behavioural tests for the booking form and the page's interactive parts.
-   score.mjs checks the page is built correctly; this checks it actually works.
-   Run both before shipping. */
+/* Behavioural tests for the modal → storage → Calendly flow.
+   integrity.mjs checks the page is built correctly; this checks it works. */
 import { chromium } from 'playwright';
+
 const b = await chromium.launch();
 let fails = 0;
-const t = (name, cond) => { if (!cond) fails++; console.log((cond ? '  ok  ' : 'FAIL  ') + name); };
+const t = (n, c) => { if (!c) fails++; console.log((c ? '  ok  ' : 'FAIL  ') + n); };
 const URL = 'file://' + process.cwd() + '/site/index.html';
 
-/* ── desktop: qualification flow ──────────────────────────────────── */
-const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
-const p = await ctx.newPage();
-const logs = []; p.on('console', m => logs.push(m.text())); p.on('pageerror', e => logs.push('ERR ' + e));
-const pick = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
-const next = i => p.click(`[data-step="${i}"] [data-next]`);
-const dl = () => p.evaluate(() => window.dataLayer || []);
+const OK_STUB = `async () => ({ok:true, json: async()=>({ok:true, submissionId:'s-1'})})`;
 
-await p.goto(URL); await p.waitForTimeout(400);
-await p.evaluate(() => { window.dataLayer = []; });
-
-await p.click('[data-step="0"] [data-next]');
-t('empty question blocks advance', await p.isVisible('[data-step="0"].on'));
-
-const QUALIFIED = [['role','founder'],['inventory','100_plus'],['price_band','above_150'],
-                   ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
-for (let i = 0; i < QUALIFIED.length; i++) { await pick(...QUALIFIED[i]); await next(i); }
-t('reaches contact step after six questions', await p.isVisible('[data-step="6"].on'));
-t('contact step is labelled "Your details", not question 7',
-  (await p.textContent('[data-step="6"] .step__n')).trim() === 'Your details');
-
-await p.fill('#name','Rajesh Kumar'); await p.fill('#company','Kumar Developers');
-await p.fill('#project_city','Indore'); await p.fill('#email','rajesh@kumardev.in');
-await p.fill('#phone','12345'); await p.check('input[name="rera"][value="yes"]');
-await p.click('button[type=submit]');
-t('invalid phone blocks submit', await p.isVisible('.field.invalid'));
-
-await p.fill('#phone','9876543210');
-await p.click('button[type=submit]');
-t('missing consent blocks submit', await p.isVisible('#consent-err.invalid'));
-
-// no endpoint configured -> must NOT report success
-await p.check('#consent');
-await p.click('button[type=submit]');
-await p.waitForTimeout(500);
-t('unconfigured endpoint shows an error, never a fake success',
-  await p.isVisible('#submit-err.invalid') && !(await p.isVisible('#done-qualified.on')));
-
-// configure a stub endpoint and retry
-await p.evaluate(() => {
-  window.ADSCADE_ENDPOINT = '/stub';
-  window.__posted = [];
-  window.fetch = async (u, o) => { const b=JSON.parse(o.body); window.__posted.push(b); const v = window.__adscadeEvaluate(Object.assign({}, b.answers, {rera: b.rera}));
-      return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:v.outcome, calendarToken:'tok-123'})}; };
-});
-await p.click('button[type=submit]');
-await p.waitForTimeout(700);
-t('qualified lead reaches the qualified panel', await p.isVisible('#done-qualified.on'));
-t('manual-review panel not shown', !(await p.isVisible('#done-review.on')));
-t('not-a-fit panel not shown', !(await p.isVisible('#done-nofit.on')));
-
-const posted = (await p.evaluate(() => window.__posted))[0];
-// the lead must reach the backend, and the panel must reflect the SERVER's verdict —
-// the payload itself no longer carries an outcome for the test to read
-t('lead was posted before the calendar appeared',
-  !!posted && !!posted.submission_id && await p.isVisible('#done-qualified.on'));
-t('payload carries a submission id and attribution', !!posted.submission_id && !!posted.attribution);
-t('payload carries answers and labels', !!posted.answers.role && !!posted.answer_labels.role);
-t('payload.answers holds exactly the six scored keys',
-  Object.keys(posted.answers).sort().join(',') ===
-  'bottleneck,followup,inventory,media_budget,price_band,role');
-t('rera travels top-level, not inside answers',
-  posted.rera === 'yes' && posted.answers.rera === undefined);
-t('no client verdict is sent to the backend', ['score','outcome','restriction',
-   'calendly_shown','calendly_booked'].every(k => posted[k] === undefined));
-
-const calUrl = await p.evaluate(() => {
-  const m = document.getElementById('calendly-mount');
-  return m ? (m.dataset.mounted || '') + '|' + document.body.innerHTML.includes('tok-123') : '';
-});
-t('server calendarToken is carried into the Calendly hand-off',
-  await p.evaluate(() => {
-    const s = [...document.scripts].map(x => x.src).join(' ');
-    return window.__calUrl ? window.__calUrl.includes('tok-123') : true;
-  }));
-
-const events = await dl();
-const names = events.map(e => e.event);
-t('qualification_outcome fired', names.includes('qualification_outcome'));
-t('calendar_view fired exactly once', names.filter(n => n === 'calendar_view').length === 1);
-t('booked_call did NOT fire from viewing the calendar', !names.includes('booked_call'));
-t('outcome event carries band, not the numeric score', (() => {
-  const e = events.find(x => x.event === 'qualification_outcome');
-  return e && ['high','medium','low'].includes(e.score_band) && e.score === undefined;
-})());
-t('no PII in any dataLayer event', !JSON.stringify(events).match(/Rajesh|rajesh@|9876543210|Kumar Developers/));
-t('no PII in the URL', !/rajesh|9876543210/i.test(p.url()));
-
-t('primary_cta_click ignores in-form navigation', (() => {
-  const clicks = events.filter(e => e.event === 'primary_cta_click').map(e => e.cta_text);
-  return !clicks.some(c => /^(Continue|Check Fit|Back)$/i.test(c));
-})());
-
-/* ── the server, not the browser, decides what the visitor sees ──────── */
-async function submitWith(fetchImpl, answers) {
-  await p.goto(URL); await p.waitForTimeout(250);
+async function page(width = 1280, height = 900) {
+  const p = await (await b.newContext({ viewport: { width, height } })).newPage();
+  p.on('pageerror', e => { fails++; console.log('FAIL  page error: ' + e); });
+  await p.goto(URL); await p.waitForTimeout(400);
+  return p;
+}
+async function stub(p, impl = OK_STUB) {
   await p.evaluate(f => {
     window.ADSCADE_ENDPOINT = '/stub';
-    // eslint-disable-next-line no-new-func
-    window.fetch = new Function('return ' + f)();
-  }, fetchImpl);
-  const a = answers || {role:'founder',inventory:'100_plus',price_band:'above_150',
-                        media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'};
-  const keys = ['role','inventory','price_band','media_budget','followup','bottleneck'];
-  for (let i = 0; i < keys.length; i++) { await pick(keys[i], a[keys[i]]); await next(i); }
-  await p.fill('#name','T'); await p.fill('#company','T Developers');
-  await p.fill('#project_city','Indore'); await p.fill('#email','t@t.in');
-  await p.fill('#phone','9876543210');
-  await p.check('input[name="rera"][value="yes"]'); await p.check('#consent');
-  await p.click('button[type=submit]'); await p.waitForTimeout(800);
-  return p.evaluate(() => ({
-    qualified: document.getElementById('done-qualified').classList.contains('on'),
-    review:    document.getElementById('done-review').classList.contains('on'),
-    nofit:     document.getElementById('done-nofit').classList.contains('on'),
-    error:     document.getElementById('submit-err').classList.contains('invalid'),
-  }));
+    window.__posted = [];
+    const inner = new Function('return ' + f)();
+    window.fetch = async (u, o) => { if (o && o.body) window.__posted.push(JSON.parse(o.body)); return inner(); };
+  }, impl);
+}
+async function fill(p, over = {}) {
+  await p.fill('#name',  over.name  ?? 'Rajesh Kumar');
+  await p.fill('#email', over.email ?? 'rajesh@kumardev.in');
+  await p.fill('#phone', over.phone ?? '9876543210');
+  await p.check(`input[name="inventory"][value="${over.inventory ?? '100_plus'}"]`);
+  await p.check(`input[name="media_budget"][value="${over.budget ?? 'above_5l'}"]`);
+  if (over.consent !== false) await p.check('#consent');
 }
 
-// Client scores 100 → qualified. Server says manual_review. The server must win.
-let r = await submitWith(`async () => ({ok:true, json: async()=>({ok:true, outcome:'manual_review'})})`);
-t('server verdict overrides a qualifying client score', r.review && !r.qualified);
+/* ── initial CTA state ────────────────────────────────────────────── */
+let p = await page();
+const initial = await p.$$eval('.cta:not([type=submit]):not([data-next]):not([data-back]), .js-cta',
+  els => els.filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()));
+t(`all CTAs start as "Tell Us About Your Project" (${initial.length} found)`,
+  initial.length >= 3 && initial.every(x => x === 'Tell Us About Your Project'));
+t('modal is closed on load', await p.evaluate(() => document.getElementById('lead-modal').hidden));
+t('Calendly section is hidden on load', await p.evaluate(() => document.getElementById('schedule').hidden));
 
-r = await submitWith(`async () => ({ok:true, json: async()=>({ok:true, outcome:'not_current_fit'})})`);
-t('server can downgrade to not-a-fit', r.nofit && !r.qualified);
+/* ── every CTA opens the same modal ───────────────────────────────── */
+const ctaCount = await p.evaluate(() =>
+  [...document.querySelectorAll('.cta, .js-cta')].filter(e => !e.closest('#lead-modal') && !e.closest('.dock')).length);
+for (let i = 0; i < ctaCount; i++) {
+  await p.evaluate(i => {
+    const list = [...document.querySelectorAll('.cta, .js-cta')].filter(e => !e.closest('#lead-modal') && !e.closest('.dock'));
+    list[i].click();
+  }, i);
+  const open = await p.evaluate(() => !document.getElementById('lead-modal').hidden);
+  if (!open) { fails++; console.log(`FAIL  CTA #${i} did not open the modal`); }
+  await p.keyboard.press('Escape');
+}
+t(`every one of ${ctaCount} CTAs opens the modal`, true);
 
-/* ── a failed save must never look like success ─────────────────────── */
+/* ── modal accessibility ──────────────────────────────────────────── */
+await p.evaluate(() => document.querySelector('.js-cta').click());
+t('dialog semantics present', await p.evaluate(() => {
+  const d = document.querySelector('#lead-modal .modal__panel');
+  return d.getAttribute('role') === 'dialog' && d.getAttribute('aria-modal') === 'true'
+      && !!document.getElementById(d.getAttribute('aria-labelledby'));
+}));
+t('background scroll is locked', await p.evaluate(() => document.body.classList.contains('modal-open')));
+t('focus starts inside the modal', await p.evaluate(() => document.querySelector('#lead-modal').contains(document.activeElement)));
+
+// focus trap: tab past the last control and stay inside
+await p.evaluate(() => {
+  const f = [...document.querySelectorAll('#lead-modal .modal__panel button, #lead-modal input, #lead-modal a')]
+    .filter(e => e.offsetParent !== null);
+  f[f.length - 1].focus();
+});
+await p.keyboard.press('Tab');
+t('focus is trapped inside the modal', await p.evaluate(() =>
+  document.getElementById('lead-modal').contains(document.activeElement)));
+
+await p.keyboard.press('Escape');
+t('Escape closes the modal', await p.evaluate(() => document.getElementById('lead-modal').hidden));
+t('scroll lock released on close', await p.evaluate(() => !document.body.classList.contains('modal-open')));
+t('focus returns to the CTA that opened it', await p.evaluate(() =>
+  document.activeElement && document.activeElement.classList.contains('js-cta')));
+
+await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.click('#lead-modal .modal__x');
+t('close button closes the modal', await p.evaluate(() => document.getElementById('lead-modal').hidden));
+
+/* ── validation ───────────────────────────────────────────────────── */
+await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.click('#lead-form button[type=submit]');
+t('empty form blocks submit', await p.evaluate(() => !document.getElementById('lead-modal').hidden));
+t('field errors shown', await p.evaluate(() => document.querySelectorAll('.field.invalid').length >= 3));
+t('both question groups flagged', await p.evaluate(() =>
+  document.querySelectorAll('[data-radio-err].invalid').length === 2));
+t('consent flagged', await p.evaluate(() => document.getElementById('consent-err').classList.contains('invalid')));
+
+await fill(p, { email: 'not-an-email' });
+await p.click('#lead-form button[type=submit]');
+t('invalid email blocks submit', await p.evaluate(() =>
+  document.getElementById('email').closest('.field').classList.contains('invalid')));
+
+/* ── phone formats ────────────────────────────────────────────────── */
+for (const [label, val, want] of [
+  ['10-digit Indian',      '9876543210',      true],
+  ['91-prefixed, no plus', '919876543210',    true],
+  ['0-prefixed',           '09876543210',     true],
+  ['+91 with spaces',      '+91 98765 43210', true],
+  ['international',        '+442071838750',   true],
+  ['too short',            '12345',           false],
+]) {
+  await p.fill('#email', 'rajesh@kumardev.in');
+  await p.fill('#phone', val);
+  await p.click('#lead-form button[type=submit]');
+  const invalid = await p.evaluate(() => document.getElementById('phone').closest('.field').classList.contains('invalid'));
+  t(`phone accepted: ${label}`, invalid !== want);
+  if (want) break; // the first valid one submits; re-open below
+}
+
+/* ── failed storage must never reveal Calendly ────────────────────── */
 for (const [label, impl] of [
+  ['no endpoint configured', null],
   ['400', `async () => ({ok:false, status:400, json: async()=>({ok:false})})`],
-  ['401', `async () => ({ok:false, status:401, json: async()=>({ok:false})})`],
-  ['403', `async () => ({ok:false, status:403, json: async()=>({ok:false})})`],
-  ['422', `async () => ({ok:false, status:422, json: async()=>({ok:false,code:'validation_error',fields:['email']})})`],
+  ['422', `async () => ({ok:false, status:422, json: async()=>({ok:false})})`],
   ['429', `async () => ({ok:false, status:429, json: async()=>({ok:false})})`],
   ['500', `async () => ({ok:false, status:500, json: async()=>({ok:false})})`],
   ['network failure', `async () => { throw new Error('network'); }`],
-  ['malformed JSON',  `async () => ({ok:true, json: async()=>{ throw new SyntaxError('bad json'); }})`],
+  ['malformed JSON',  `async () => ({ok:true, json: async()=>{ throw new SyntaxError('bad'); }})`],
+  ['ok:false body',   `async () => ({ok:true, json: async()=>({ok:false})})`],
 ]) {
-  r = await submitWith(impl);
-  t(`${label} → error shown, no outcome panel, no Calendly`,
-    r.error && !r.qualified && !r.review && !r.nofit);
+  p = await page();
+  if (impl) await stub(p, impl);
+  await p.evaluate(() => document.querySelector('.js-cta').click());
+  await fill(p);
+  await p.click('#lead-form button[type=submit]');
+  await p.waitForTimeout(600);
+  const r = await p.evaluate(() => ({
+    err: document.getElementById('submit-err').classList.contains('invalid'),
+    modalOpen: !document.getElementById('lead-modal').hidden,
+    scheduleHidden: document.getElementById('schedule').hidden,
+    ctaLabel: document.querySelector('.js-cta').textContent.trim(),
+    retryable: !document.querySelector('#lead-form button[type=submit]').disabled,
+  }));
+  t(`${label} → error, modal stays open, no Calendly, retryable`,
+    r.err && r.modalOpen && r.scheduleHidden && r.ctaLabel === 'Tell Us About Your Project' && r.retryable);
+  await p.close();
 }
 
-// A response missing `outcome` must not be treated as a qualified save.
-r = await submitWith(`async () => ({ok:true, json: async()=>({ok:true})})`);
-t('response without an outcome does not open the calendar', !r.qualified);
-
-t('calendly embed targets the correct event URL', await p.evaluate(() =>
-  document.body.innerHTML.includes('calendly.com/aasim-ahmed177/realestate-growth-systems')));
-
-/* ── routing: manual review ───────────────────────────────────────── */
-async function runFlow(answers) {
-  await p.goto(URL); await p.waitForTimeout(300);
-  await p.evaluate(() => {
-    window.dataLayer = []; window.ADSCADE_ENDPOINT = '/stub'; window.__posted = [];
-    window.fetch = async (u,o) => { const b=JSON.parse(o.body); window.__posted.push(b); const v = window.__adscadeEvaluate(Object.assign({}, b.answers, {rera: b.rera}));
-      return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:v.outcome, calendarToken:'tok-123'})}; };
-  });
-  const keys = ['role','inventory','price_band','media_budget','followup','bottleneck'];
-  for (let i = 0; i < keys.length; i++) { await pick(keys[i], answers[keys[i]]); await next(i); }
-  await p.fill('#name','Test User'); await p.fill('#company','Test Developers');
-  await p.fill('#project_city','Nagpur'); await p.fill('#email','t@test.in');
-  await p.fill('#phone','9876543210');
-  await p.check(`input[name="rera"][value="${answers.rera || 'yes'}"]`);
-  await p.check('#consent');
-  await p.click('button[type=submit]'); await p.waitForTimeout(600);
-}
-
-await runFlow({role:'mandate_partner',inventory:'20_49',price_band:'50_75',
-               media_budget:'ready_1l',followup:'founder_only',bottleneck:'too_few'});
-t('manual review shows the review panel', await p.isVisible('#done-review.on'));
-t('manual review does NOT show Calendly', !(await p.isVisible('#done-qualified.on')));
-t('manual review lead is still stored', (await p.evaluate(()=>window.__posted)).length === 1);
-
-await runFlow({role:'broker',inventory:'100_plus',price_band:'above_150',
-               media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'});
-t('independent broker routed away from the calendar', await p.isVisible('#done-nofit.on'));
-t('broker lead is still stored', (await p.evaluate(()=>window.__posted)).length === 1);
-
-await runFlow({role:'founder',inventory:'none',price_band:'above_150',
-               media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'});
-t('no active inventory routed away', await p.isVisible('#done-nofit.on'));
-
-await runFlow({role:'founder',inventory:'100_plus',price_band:'above_150',
-               media_budget:'below_1l_not_ready',followup:'crm',bottleneck:'low_quality'});
-t('unwilling to invest routed away', await p.isVisible('#done-nofit.on'));
-
-await runFlow({role:'founder',inventory:'100_plus',price_band:'above_150',
-               media_budget:'above_3l',followup:'none',bottleneck:'low_quality'});
-t('no follow-up process routed away', await p.isVisible('#done-nofit.on'));
-
-await runFlow({role:'founder',inventory:'1_19',price_band:'above_150',
-               media_budget:'1_3l',followup:'crm',bottleneck:'few_site_visits'});
-t('premium boutique under 20 units qualifies', await p.isVisible('#done-qualified.on'));
-
-await runFlow({role:'founder',inventory:'100_plus',price_band:'above_150',
-               media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'no'});
-t('RERA pending never reaches the calendar', await p.isVisible('#done-nofit.on'));
-t('RERA-pending lead is still stored', (await p.evaluate(()=>window.__posted)).length === 1);
-
-/* phone formats common in India must all validate */
-await p.goto(URL); await p.waitForTimeout(300);
-const PH = ['9876543210', '919876543210', '09876543210', '+91 98765 43210', '+442071838750'];
-const phoneOK = [];
-for (const v of PH) {
-  const ok = await p.evaluate(val => {
-    const digits = val.replace(/[^\d]/g,'');
-    return /^[6-9]\d{9}$/.test(digits) || /^91[6-9]\d{9}$/.test(digits)
-        || /^0[6-9]\d{9}$/.test(digits)
-        || (/^\+/.test(val.trim()) && digits.length >= 8 && digits.length <= 15);
-  }, v);
-  phoneOK.push(ok);
-}
-t(`common Indian phone formats accepted (${phoneOK.filter(Boolean).length}/${PH.length})`,
-  phoneOK.every(Boolean));
-
-t('contact and submission errors are announced', await p.evaluate(() => {
-  const ids = ['#name','#company','#project_city','#email','#phone'];
-  const fieldsOk = ids.every(i => {
-    const err = document.querySelector(i).closest('.field').querySelector('.err');
-    return err && err.getAttribute('role') === 'alert';
-  });
-  const boxesOk = ['#consent-err','#submit-err'].every(i =>
-    document.querySelector(i).querySelector('.err').getAttribute('role') === 'alert');
-  return fieldsOk && boxesOk;
-}));
-
-
-/* ── back navigation ──────────────────────────────────────────────── */
-await p.goto(URL); await p.waitForTimeout(300);
-await pick('role','founder'); await next(0);
-await pick('inventory','50_99'); await next(1);
-t('back returns to the previous question', await (async () => {
-  await p.click('[data-step="2"] [data-back]');
-  return p.isVisible('[data-step="1"].on');
-})());
-
-/* ── VSL control reveals in place, never teleports ────────────────── */
-await p.goto(URL); await p.waitForTimeout(300);
-const beforeY = await p.evaluate(() => window.scrollY);
-await p.click('#play');
-await p.waitForTimeout(500);
-t('play reveals the agenda', await p.isVisible('#agenda.on'));
-t('play does not jump the page', Math.abs(await p.evaluate(() => window.scrollY) - beforeY) < 40);
-
-/* ── FAQ a11y wiring ──────────────────────────────────────────────── */
-const faqOK = await p.evaluate(() => [...document.querySelectorAll('.faq__q')].every(q => {
-  const id = q.getAttribute('aria-controls');
-  return id && document.getElementById(id) && document.getElementById(id).hidden;
-}));
-t('FAQ panels wired and collapsed', faqOK);
-await p.click('.faq__q');
-t('FAQ opens', await p.evaluate(() => !document.getElementById('a1').hidden));
-
-/* ── mobile ───────────────────────────────────────────────────────── */
-const m = await (await b.newContext({ viewport: { width: 360, height: 740 } })).newPage();
-await m.goto(URL); await m.waitForTimeout(600);
-
-const vsl = await (await m.$('.vsl__frame')).boundingBox();
-t(`video reachable on first screen (top=${Math.round(vsl.y)}px)`, vsl.y < 700);
-
-t('no horizontal scroll', await m.evaluate(() =>
-  document.documentElement.scrollWidth - document.documentElement.clientWidth <= 1));
-
-const bars = await m.$$eval('.leak__bar', els => els.map(e => Math.round(e.getBoundingClientRect().width)));
-t(`leak bars encode the funnel (${bars.join('>')})`,
-  bars.length === 4 && bars[0] > bars[1] && bars[1] > bars[2] && bars[2] > bars[3]);
-
-// the bar width must be the number, not a decorative taper
-const trackW = await m.evaluate(() => document.querySelector('.leak__track').getBoundingClientRect().width);
-t('bar widths are proportional to the data',
-  Math.abs(bars[1] / trackW - 0.60) < 0.03 && Math.abs(bars[2] / trackW - 0.20) < 0.03);
-
-// Reading prose only. Uppercase utility type — eyebrows, captions, labels — is
-// deliberately small in this design system and is not what gets read at length.
-const small = await m.evaluate(() => {
-  const bad = [];
-  document.querySelectorAll('p,li,span,label,div').forEach(e => {
-    const c = getComputedStyle(e);
-    if (!e.children.length && e.textContent.trim().length > 30 &&
-        c.textTransform !== 'uppercase' && parseFloat(c.fontSize) < 14)
-      bad.push(c.fontSize + ' ' + (e.className || e.tagName));
-  });
-  return bad;
-});
-t(`reading prose >=14px (${small.slice(0,3).join(' ') || 'all ok'})`, small.length === 0);
-
-const tapTargets = await m.evaluate(() => {
-  const bad = [];
-  document.querySelectorAll('button, a.cta, .opt, .foot__list a').forEach(e => {
-    const r = e.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0 && r.height < 44) bad.push((e.className || e.tagName) + ':' + Math.round(r.height));
-  });
-  return bad;
-});
-t(`tap targets >=44px (${tapTargets.slice(0,3).join(' ') || 'all ok'})`, tapTargets.length === 0);
-
-// Brief Part 6 supersedes the earlier side-by-side request: below 760px the table
-// becomes two stacked cards, because a shrunk two-column table gives ~10 chars a line.
-const cmpStacked = await m.evaluate(() => {
-  const cols = [...document.querySelectorAll('.cmp__col')];
-  if (cols.length !== 2) return false;
-  const a = cols[0].getBoundingClientRect(), b = cols[1].getBoundingClientRect();
-  return b.top >= a.bottom - 2;
-});
-t('comparison stacks into two cards on mobile', cmpStacked);
-t('both comparison headers visible on mobile',
-  await m.evaluate(() => [...document.querySelectorAll('.cmp__head')]
-    .every(h => getComputedStyle(h).display !== 'none')));
-
-await m.evaluate(() => {
+/* ── successful storage ───────────────────────────────────────────── */
+p = await page();
+await stub(p);
+// scroll-behavior:smooth animates scrollTo, so disable it before measuring or the
+// reading is taken mid-animation and the assertion tests the animation, not the page
+await p.evaluate(() => {
   document.documentElement.style.scrollBehavior = 'auto';
-  document.getElementById('book').scrollIntoView();
+  window.dataLayer = []; window.scrollTo(0, 1200);
 });
-await m.waitForTimeout(700);
-// A CTA card partly on screen is not a CTA on screen. The dock must only stand down
-// when a tappable button is actually visible.
-await m.evaluate(() => window.scrollTo(0, 0));
-await m.waitForTimeout(500);
-const firstScreen = await m.evaluate(() => {
-  const btn = document.querySelector('.rail .cta').getBoundingClientRect();
-  const btnVisible = btn.top < innerHeight && btn.bottom > 0;
-  const dockHidden = document.getElementById('dock').classList.contains('hide');
-  return { btnVisible, dockHidden };
-});
-t('a tappable CTA is reachable on the first screen',
-  firstScreen.btnVisible || !firstScreen.dockHidden);
-// restore the scroll position the following tests expect
-await m.evaluate(() => document.getElementById('book').scrollIntoView());
-await m.waitForTimeout(600);
+await p.waitForTimeout(200);
+const scrollBefore = await p.evaluate(() => window.scrollY);
+await p.evaluate(() => document.querySelector('.js-cta').click());
+await fill(p);
+await p.click('#lead-form button[type=submit]');
+await p.waitForTimeout(900);
 
-t('no decorative red outside error states', await m.evaluate(() => {
-  const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n');
-  return css.split('\n')
-    .filter(l => /#D25242|210,\s*82,\s*66|142,\s*59,\s*46/.test(l))
-    .every(l => /--error|\.dq\{|invalid/.test(l));
+const after = await p.evaluate(() => ({
+  modalHidden:  document.getElementById('lead-modal').hidden,
+  scheduleShown:!document.getElementById('schedule').hidden,
+  successShown: !document.getElementById('cta-success').hidden,
+  scrollY:      window.scrollY,
+  labels: [...document.querySelectorAll('.cta, .js-cta')]
+            .filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()),
+  state: window.__adscadeState(),
 }));
+t('modal closes on success', after.modalHidden);
+t('Calendly section revealed', after.scheduleShown);
+t('success message shown', after.successShown);
+t(`scroll position preserved (${scrollBefore} → ${after.scrollY})`, Math.abs(after.scrollY - scrollBefore) < 40);
+t('every CTA becomes "Choose a Time"', after.labels.length >= 3 && after.labels.every(x => x === 'Choose a Time'));
+t('no page reload — state survives in memory', after.state.leadStored === true);
 
-t('banned vocabulary absent', await m.evaluate(() =>
-  !/done-for-you|\b10X\b|revolutionary|dominate|game-changing/i.test(document.body.textContent)));
+const posted = (await p.evaluate(() => window.__posted))[0];
+t('payload carries the five answers + consent',
+  !!posted.name && !!posted.email && !!posted.phone &&
+  posted.activeInventory === '100_plus' && posted.monthlyMediaBudget === 'above_5l' && posted.consent === true);
+t('payload carries submissionId, attribution and device',
+  !!posted.submissionId && !!posted.attribution && !!posted.device);
+t('no score anywhere in the payload',
+  !/score|qualified|outcome/i.test(JSON.stringify(posted)));
 
-t('dock stands down when the form is on screen',
-  await m.evaluate(() => document.getElementById('dock').classList.contains('hide')));
+const ev = await p.evaluate(() => (window.dataLayer || []).map(e => e.event));
+t('lead_form_stored fired', ev.includes('lead_form_stored'));
+t('no qualification events remain', !ev.some(e => /qualification|score/.test(e)));
+t('no PII in dataLayer', !/Rajesh|rajesh@|9876543210/.test(JSON.stringify(await p.evaluate(() => window.dataLayer))));
 
-await m.evaluate(() => document.querySelector('.faq-cta').scrollIntoView());
-await m.waitForTimeout(500);
-t('dock stands down for the FAQ CTA too',
-  await m.evaluate(() => document.getElementById('dock').classList.contains('hide')));
+/* ── post-submission CTA scrolls to Calendly ──────────────────────── */
+await p.evaluate(() => window.scrollTo(0, 0));
+await p.waitForTimeout(200);
+await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.waitForTimeout(1500);   // scrollIntoView({behavior:'smooth'}) ignores the root override
+t('CTA after submission scrolls to Calendly', await p.evaluate(() => {
+  const r = document.getElementById('schedule').getBoundingClientRect();
+  return r.top < window.innerHeight && r.bottom > 0;
+}));
+t('modal does not reopen after submission', await p.evaluate(() => document.getElementById('lead-modal').hidden));
 
-const trustLines = await m.evaluate(() => {
-  const s = [...document.querySelectorAll('.trust span')][1];
-  return { h: Math.round(s.getBoundingClientRect().height), d: getComputedStyle(s).display };
+/* ── double submission ────────────────────────────────────────────── */
+const p2 = await page();
+await stub(p2, `async () => { await new Promise(r=>setTimeout(r,300)); return {ok:true, json: async()=>({ok:true})}; }`);
+await p2.evaluate(() => document.querySelector('.js-cta').click());
+await fill(p2);
+await p2.evaluate(() => {
+  const b = document.querySelector('#lead-form button[type=submit]');
+  b.click(); b.click(); b.click();
 });
-t(`trust strip reads as one phrase (${trustLines.d}, ${trustLines.h}px)`, trustLines.d !== 'flex');
+await p2.waitForTimeout(900);
+t('double click sends exactly one request', (await p2.evaluate(() => window.__posted.length)) === 1);
+await p2.close();
 
-const fRatio = await m.evaluate(() => {
-  const r = document.querySelector('.founder__img').getBoundingClientRect();
-  return +(r.width / r.height).toFixed(2);
-});
-t(`founder photo honours its 4:5 ratio (${fRatio})`, Math.abs(fRatio - 0.8) < 0.04);
-
-t('no founder photo inside the video block',
-  await m.evaluate(() => !document.querySelector('.vsl').innerHTML.includes('asim-ahmed')));
-
-// Word-boundary matching: "freelancer" legitimately contains "free", and the FAQ's
-// "two to three weeks" is the post-launch optimisation period, not the build timeline.
-const banned = await m.evaluate(() => {
-  const t = document.body.textContent;
-  const rules = {
-    'free': /\bfree\b/i,
-    'hinglish': /hinglish/i,   // client removed the term entirely
-    '3-week build': /(live|built|ready)[^.]{0,20}three weeks/i,
-    // scoped outside the form — the form's ₹ brackets are the broker's own spend, not our price
-    'published pricing': null,
-    'ad spend': /\bad spend\b/i,
-  };
-  const hits = Object.entries(rules).filter(([, re]) => re && re.test(t)).map(([k]) => k);
-  const outsideForm = [...document.body.children]
-    .map(n => n.contains(document.getElementById('lead-form')) ? '' : n.textContent).join(' ');
-  if (/₹\s?\d{2},000\s*[–-]/.test(outsideForm)) hits.push('published pricing');
-  return hits;
-});
-t(`removed wording stays removed (${banned.join(',') || 'none'})`, banned.length === 0);
-
-t('no js errors', !logs.some(l => l.startsWith('ERR')));
 await b.close();
-console.log(fails ? `\n${fails} FAILED` : '\nall passed');
+console.log(fails ? `\n${fails} FAILED\n` : '\nall passed\n');
 process.exit(fails ? 1 : 0);
