@@ -1520,6 +1520,18 @@ body.modal-open .dock{transform:translateY(110%)}
       // deliberately NOT scrolled to — the visitor may still be watching the video
     } catch (err){
       document.getElementById('submit-err').classList.add('invalid');
+      // The visitor sees one calm, recoverable message whatever went wrong. The precise
+      // reason goes to the console and to window.__adscadeLastError so a failure on a
+      // real device can be identified without guessing. No PII is logged.
+      var reason = !leadEndpoint()                       ? 'NO_ENDPOINT: window.ADSCADE_LEAD_ENDPOINT is not set — the header snippet is missing or was not loaded'
+                 : (err && err.name === 'AbortError')    ? 'TIMEOUT: no response within 12s'
+                 : (err && err.name === 'TypeError')     ? 'NETWORK_OR_CORS: request never completed — blocked by the network, an extension, or a disallowed origin'
+                 : String(err && err.message || err);
+      window.__adscadeLastError = {reason: reason, endpoint: leadEndpoint(), at: new Date().toISOString()};
+      if (window.console && console.error) {
+        console.error('[Adscade] lead not stored — ' + reason);
+        console.error('[Adscade] endpoint =', leadEndpoint() || '(none)');
+      }
     } finally {
       submitting = false;
       btn.disabled = false;
