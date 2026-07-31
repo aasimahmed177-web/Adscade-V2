@@ -50,7 +50,8 @@ t('unconfigured endpoint shows an error, never a fake success',
 await p.evaluate(() => {
   window.ADSCADE_ENDPOINT = '/stub';
   window.__posted = [];
-  window.fetch = async (u, o) => { const b=JSON.parse(o.body); window.__posted.push(b); return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:b.outcome})}; };
+  window.fetch = async (u, o) => { const b=JSON.parse(o.body); window.__posted.push(b); const v = window.__adscadeEvaluate(Object.assign({}, b.answers, {rera: b.rera}));
+      return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:v.outcome, calendarToken:'tok-123'})}; };
 });
 await p.click('button[type=submit]');
 await p.waitForTimeout(700);
@@ -59,9 +60,29 @@ t('manual-review panel not shown', !(await p.isVisible('#done-review.on')));
 t('not-a-fit panel not shown', !(await p.isVisible('#done-nofit.on')));
 
 const posted = (await p.evaluate(() => window.__posted))[0];
-t('lead was posted before the calendar appeared', !!posted && posted.outcome === 'qualified');
+// the lead must reach the backend, and the panel must reflect the SERVER's verdict —
+// the payload itself no longer carries an outcome for the test to read
+t('lead was posted before the calendar appeared',
+  !!posted && !!posted.submission_id && await p.isVisible('#done-qualified.on'));
 t('payload carries a submission id and attribution', !!posted.submission_id && !!posted.attribution);
 t('payload carries answers and labels', !!posted.answers.role && !!posted.answer_labels.role);
+t('payload.answers holds exactly the six scored keys',
+  Object.keys(posted.answers).sort().join(',') ===
+  'bottleneck,followup,inventory,media_budget,price_band,role');
+t('rera travels top-level, not inside answers',
+  posted.rera === 'yes' && posted.answers.rera === undefined);
+t('no client verdict is sent to the backend', ['score','outcome','restriction',
+   'calendly_shown','calendly_booked'].every(k => posted[k] === undefined));
+
+const calUrl = await p.evaluate(() => {
+  const m = document.getElementById('calendly-mount');
+  return m ? (m.dataset.mounted || '') + '|' + document.body.innerHTML.includes('tok-123') : '';
+});
+t('server calendarToken is carried into the Calendly hand-off',
+  await p.evaluate(() => {
+    const s = [...document.scripts].map(x => x.src).join(' ');
+    return window.__calUrl ? window.__calUrl.includes('tok-123') : true;
+  }));
 
 const events = await dl();
 const names = events.map(e => e.event);
@@ -140,7 +161,8 @@ async function runFlow(answers) {
   await p.goto(URL); await p.waitForTimeout(300);
   await p.evaluate(() => {
     window.dataLayer = []; window.ADSCADE_ENDPOINT = '/stub'; window.__posted = [];
-    window.fetch = async (u,o) => { const b=JSON.parse(o.body); window.__posted.push(b); return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:b.outcome})}; };
+    window.fetch = async (u,o) => { const b=JSON.parse(o.body); window.__posted.push(b); const v = window.__adscadeEvaluate(Object.assign({}, b.answers, {rera: b.rera}));
+      return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:v.outcome, calendarToken:'tok-123'})}; };
   });
   const keys = ['role','inventory','price_band','media_budget','followup','bottleneck'];
   for (let i = 0; i < keys.length; i++) { await pick(keys[i], answers[keys[i]]); await next(i); }

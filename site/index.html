@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stop Losing Money on Scattered Real Estate Marketing — Adscade</title>
-<meta name="description" content="Adscade builds and runs the entire buyer lead funnel for Indian real estate developers — landing page, video, Meta ads and automated WhatsApp qualification. Book an audit call.">
+<meta name="description" content="Adscade connects ads, landing pages, qualification, follow-up and sales feedback into one managed acquisition system for Indian residential developers. Answer six questions to check fit and pick a time.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://adscade.com/">
 <meta property="og:type" content="website">
@@ -1192,7 +1192,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       // Premium low-inventory exception. Every condition is required; removing any one
       // must drop the submission out of "qualified".
       var premium = answers.price_band === 'above_150';
-      var funded  = true;
+      var funded  = ['above_3l','1_3l','ready_1l'].indexOf(answers.media_budget) > -1;
       outcome = (premium && funded && team && score >= 65 && !cap)
         ? 'qualified'
         : (score >= 50 ? 'manual_review' : 'not_current_fit');
@@ -1294,14 +1294,21 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   form.addEventListener('change', clearError);
 
   /* ── storage adapter ──────────────────────────────────────────────
-     CONFIGURE THIS. Set window.ADSCADE_ENDPOINT to the WordPress REST route
-     created by wordpress/adscade-lead-capture.php, e.g.
+     ONE configuration value. Set it to the deployed Convex HTTP action URL:
 
-       window.ADSCADE_ENDPOINT = '/wp-json/adscade/v1/lead';
-       window.ADSCADE_NONCE    = '<?php echo wp_create_nonce("wp_rest"); ?>';
+       window.ADSCADE_ENDPOINT = 'https://<deployment>.convex.site/lead';
 
-     Until it is set, submitLead REJECTS. The form then shows its error state.
+     Full contract: docs/CONVEX_LEAD_CAPTURE_SPEC.md (§2 action, §3 request,
+     §4 response, §13 migration steps).
+
+     Until it is set, submitLead REJECTS and the form shows its error state.
      It must never report success for a lead that was not stored.
+
+     No secret belongs here. The action URL is public; every key
+     (rate-limit salt, webhook secret, mail provider) stays server-side.
+
+     NOTE: wordpress/SUPERSEDED-do-not-install/ is quarantined prototype work.
+     Do not point this at it.
   ─────────────────────────────────────────────────────────────────── */
   var VALID_OUTCOMES = ['qualified','manual_review','not_current_fit'];
 
@@ -1341,15 +1348,19 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     if (note)  { note.classList.add('on'); }
   }
 
-  function mountCalendly(name, email){
+  function mountCalendly(name, email, calendarToken){
     var mount = document.getElementById('calendly-mount');
     if (!mount || mount.dataset.mounted) return;
     mount.dataset.mounted = '1';
-    // Name and email are prefill only. Phone, company and every scoring value
-    // are deliberately withheld from the query string.
+    // Name and email are prefill only. Phone, company, the numeric score and every
+    // restriction reason are deliberately withheld from the query string.
+    // calendarToken is minted server-side and is the ONLY key the Calendly webhook
+    // will accept when marking a lead booked — see CONVEX_LEAD_CAPTURE_SPEC.md §9.
     var url = CALENDLY_URL + '?hide_gdpr_banner=1'
             + '&name='  + encodeURIComponent(name || '')
-            + '&email=' + encodeURIComponent(email || '');
+            + '&email=' + encodeURIComponent(email || '')
+            + (calendarToken ? '&utm_content=' + encodeURIComponent(calendarToken) : '');
+    window.__calUrl = url;          // test hook: lets the suite verify what was requested
     var css = document.createElement('link');
     css.rel = 'stylesheet'; css.href = 'https://assets.calendly.com/assets/external/widget.css';
     document.head.appendChild(css);
@@ -1390,8 +1401,11 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
     var d = new FormData(form);
     var answers = {};
     QUESTION_ORDER.forEach(function(k){ answers[k] = d.get(k); });
-    answers.rera = d.get('rera');
-    var verdict = evaluate(answers);
+    var rera = d.get('rera');
+    // evaluate() needs rera, but payload.answers must contain exactly the six scored
+    // keys — the Convex schema defines answers with six fields and would reject a
+    // seventh on every insert.
+    var verdict = evaluate(Object.assign({}, answers, {rera: rera}));
 
     var payload = {
       submission_id: (crypto.randomUUID ? crypto.randomUUID()
@@ -1404,18 +1418,17 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       email:         (d.get('email') || '').trim(),
       phone:         (d.get('phone') || '').trim(),
       consent:       true,
-      rera:          answers.rera,
+      rera:          rera,
       answers:       answers,
       answer_labels: verdict.labels,
-      score:         verdict.score,
-      outcome:       verdict.outcome,
-      restriction:   verdict.restriction,
+      // score, outcome, restriction and the booking flags are DELIBERATELY not sent.
+      // The backend recomputes every one of them from the raw answer keys and rejects
+      // any payload that supplies them (CONVEX_LEAD_CAPTURE_SPEC.md §3, §5). Sending a
+      // client-computed verdict is the whole attack this design exists to prevent.
       website:       d.get('website') || '',      // honeypot — must arrive empty
       landing_url:   location.href,
       referrer:      document.referrer || null,
       viewport:      window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
-      calendly_shown: verdict.outcome === 'qualified',
-      calendly_booked: false,
       attribution:   attribution
     };
 
@@ -1443,7 +1456,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
                 : outcome === 'manual_review' ? 'done-review' : 'done-nofit';
       var el = document.getElementById(panel);
       el.classList.add('on');
-      if (outcome === 'qualified') mountCalendly(payload.name, payload.email);
+      if (outcome === 'qualified') mountCalendly(payload.name, payload.email, saved.calendarToken);
       el.scrollIntoView({behavior:'smooth', block:'start'});
       el.focus({preventScroll:true});
     } catch (err){
@@ -1458,15 +1471,10 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   window.addEventListener('message', function(e){
     if (!/^https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin || '')) return;
     if (e.data && e.data.event === 'calendly.event_scheduled'){
+      // Analytics signal only. The authoritative booking record is written by the
+      // Calendly webhook, keyed on the server-minted calendarToken — never on a
+      // submission id that travelled through the browser. See spec §9.
       track('booked_call', null, true);
-      if (window.ADSCADE_ENDPOINT && window.__adscadeSubmissionId){
-        fetch(window.ADSCADE_ENDPOINT, {
-          method: 'POST',
-          headers: Object.assign({'Content-Type':'application/json'},
-            window.ADSCADE_NONCE ? {'X-WP-Nonce': window.ADSCADE_NONCE} : {}),
-          body: JSON.stringify({submission_id: window.__adscadeSubmissionId, calendly_booked: true})
-        }).catch(function(){});
-      }
     }
   });
 

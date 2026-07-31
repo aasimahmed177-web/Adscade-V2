@@ -78,8 +78,14 @@ await page.waitForTimeout(700);
 const html = readFileSync(PAGE, 'utf8');
 // textContent, not innerText: innerText applies text-transform (so uppercase CSS would
 // break verbatim string matching) and omits collapsed content (so FAQ answers, which are
-// display:none until opened, would read as absent). Neither is a property of the copy.
-const text = norm(await page.evaluate(() => document.body.textContent));
+// hidden until opened, would read as absent). Neither is a property of the copy.
+// <script> and <style> are stripped first — a banned-phrase rule is about what a visitor
+// reads, and a source comment ("no secret belongs here") is not a marketing claim.
+const text = norm(await page.evaluate(() => {
+  const clone = document.body.cloneNode(true);
+  clone.querySelectorAll('script,style').forEach(n => n.remove());
+  return clone.textContent;
+}));
 const textL = text.toLowerCase();
 const has = (...terms) => terms.every(t => textL.includes(t.toLowerCase()));
 // Client changed the delivery promise from three weeks to one on 30 Jul 2026.
