@@ -122,7 +122,7 @@ t('source uses relative asset paths (substitutable)', /(?:src|href)="assets\//.t
 
 t('paste file has no local asset paths',   !/(?:src|href)="assets\//.test(widget));
 t('paste file has no document wrapper',    !/<(html|head|body)[\s>]/i.test(widget) && !/<!doctype/i.test(widget));
-t('paste file carries the storage adapter', /window\.ADSCADE_ENDPOINT/.test(widget));
+t('paste file carries the storage adapter', /window\.ADSCADE_LEAD_ENDPOINT/.test(widget));
 // Scoring was removed on 31 Jul 2026 — every stored lead now reaches the calendar.
 // What must be present instead is the CTA state machine and the modal.
 t('paste file carries the CTA state machine', /leadStored/.test(widget));

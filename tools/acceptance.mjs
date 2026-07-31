@@ -19,10 +19,11 @@ const page = async (w = 390, h = 844) => {
   return p;
 };
 const stubOK = p => p.evaluate(() => {
-  window.ADSCADE_ENDPOINT = '/stub';
+  window.ADSCADE_LEAD_ENDPOINT = '/stub';
   window.__reloaded = false;
   window.addEventListener('beforeunload', () => { window.__reloaded = true; });
-  window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, submissionId: 's-1' }) });
+  // stored:true is what unlocks the calendar — a bare {ok:true} must NOT.
+  window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, stored: true, submissionId: 's-1' }) });
 });
 const fill = async p => {
   await p.fill('#name', 'Rajesh Kumar');
@@ -91,7 +92,7 @@ await p.keyboard.press('Escape');
 
 console.log('\n── failed storage must not grant Calendly access ──');
 const pf = await page();
-await pf.evaluate(() => { window.ADSCADE_ENDPOINT = '/stub';
+await pf.evaluate(() => { window.ADSCADE_LEAD_ENDPOINT = '/stub';
   window.fetch = async () => ({ ok: false, status: 500, json: async () => ({ ok: false }) }); });
 await pf.evaluate(() => document.querySelector('.js-cta').click());
 await fill(pf);

@@ -8,7 +8,7 @@ let fails = 0;
 const t = (n, c) => { if (!c) fails++; console.log((c ? '  ok  ' : 'FAIL  ') + n); };
 const URL = 'file://' + process.cwd() + '/site/index.html';
 
-const OK_STUB = `async () => ({ok:true, json: async()=>({ok:true, submissionId:'s-1'})})`;
+const OK_STUB = `async () => ({ok:true, json: async()=>({ok:true, stored:true, submissionId:'s-1'})})`;
 
 async function page(width = 1280, height = 900) {
   const p = await (await b.newContext({ viewport: { width, height } })).newPage();
@@ -18,7 +18,7 @@ async function page(width = 1280, height = 900) {
 }
 async function stub(p, impl = OK_STUB) {
   await p.evaluate(f => {
-    window.ADSCADE_ENDPOINT = '/stub';
+    window.ADSCADE_LEAD_ENDPOINT = '/stub';
     window.__posted = [];
     const inner = new Function('return ' + f)();
     window.fetch = async (u, o) => { if (o && o.body) window.__posted.push(JSON.parse(o.body)); return inner(); };
@@ -127,6 +127,10 @@ for (const [label, impl] of [
   ['network failure', `async () => { throw new Error('network'); }`],
   ['malformed JSON',  `async () => ({ok:true, json: async()=>{ throw new SyntaxError('bad'); }})`],
   ['ok:false body',   `async () => ({ok:true, json: async()=>({ok:false})})`],
+  // The honeypot path returns a 200 that looks successful. It must fail exactly like a
+  // server error, or a bot submission would open the calendar and book real time.
+  ['honeypot stored:false', `async () => ({ok:true, json: async()=>({ok:true, stored:false, submissionId:null})})`],
+  ['ok:true but stored missing', `async () => ({ok:true, json: async()=>({ok:true})})`],
 ]) {
   p = await page();
   if (impl) await stub(p, impl);
@@ -205,7 +209,7 @@ t('modal does not reopen after submission', await p.evaluate(() => document.getE
 
 /* ── double submission ────────────────────────────────────────────── */
 const p2 = await page();
-await stub(p2, `async () => { await new Promise(r=>setTimeout(r,300)); return {ok:true, json: async()=>({ok:true})}; }`);
+await stub(p2, `async () => { await new Promise(r=>setTimeout(r,300)); return {ok:true, json: async()=>({ok:true, stored:true})}; }`);
 await p2.evaluate(() => document.querySelector('.js-cta').click());
 await fill(p2);
 await p2.evaluate(() => {

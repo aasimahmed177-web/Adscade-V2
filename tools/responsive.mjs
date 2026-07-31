@@ -10,8 +10,8 @@ const t = (n,c) => { if(!c) fails++; return (c?'ok':'FAIL'); };
 /* Fill and submit the lead modal. Replaces the seven-step walk the old form required. */
 async function submitLead(pg) {
   await pg.evaluate(() => {
-    window.ADSCADE_ENDPOINT = '/stub';
-    window.fetch = async () => ({ok:true, json: async()=>({ok:true, submissionId:'s-1'})});
+    window.ADSCADE_LEAD_ENDPOINT = '/stub';
+    window.fetch = async () => ({ok:true, json: async()=>({ok:true, stored:true, submissionId:'s-1'})});
   });
   await pg.evaluate(() => document.querySelector('.js-cta').click());
   await pg.fill('#name','Rajesh Kumar'); await pg.fill('#email','rajesh@kumardev.in');

@@ -539,12 +539,12 @@ category('Convex readiness', 60);
 
   const seg = html.slice(html.indexOf('submitLead'), html.indexOf('submitLead') + 1400);
   check('Payload shape documented', 15,
-    /submissionId/.test(html) && /ADSCADE_ENDPOINT/.test(html) &&
+    /submissionId/.test(html) && /ADSCADE_LEAD_ENDPOINT/.test(html) &&
     /activeInventory/.test(html) && /monthlyMediaBudget/.test(html));
 
   // The endpoint must come from configuration, never be baked into the markup.
   const hardcoded = /fetch\(\s*["'`]https?:\/\//.test(html);
-  check('No hardcoded backend endpoint', 15, !hardcoded && /window\.ADSCADE_ENDPOINT/.test(html));
+  check('No hardcoded backend endpoint', 15, !hardcoded && /window\.ADSCADE_LEAD_ENDPOINT/.test(html));
 
   check('Tracking spec documented', 10, existsSync(join(ROOT, 'docs', 'ADSCADE_TRACKING_SPEC.md')));
 }

@@ -2,3 +2,10 @@ node_modules/
 results.tsv
 run.log
 .env
+
+.env.local
+
+# Convex — never commit deployment credentials or deploy keys
+.env.*
+!.env.example
+.convex/

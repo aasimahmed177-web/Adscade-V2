@@ -14,5 +14,8 @@
   "description": "",
   "devDependencies": {
     "playwright": "^1.62.0"
+  },
+  "dependencies": {
+    "convex": "^1.42.3"
   }
 }
