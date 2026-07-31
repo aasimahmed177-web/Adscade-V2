@@ -1,6 +1,6 @@
 # Adscade — Tracking Specification
 
-Version 1.0 · 31 July 2026 · Landing page `/vsl-4/`
+Version 1.0 · 31 July 2026 · Landing page — current slug `/vsl-5/` (configurable; no slug is hard-coded in the page)
 
 **Google Tag Manager is not installed.** No container script is present, and none will be
 added without a container ID supplied by the owner. The page publishes to

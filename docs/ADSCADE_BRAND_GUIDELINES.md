@@ -1,7 +1,7 @@
 # Adscade — Brand Guidelines
 
 Version 1.0 · 30 July 2026
-Derived from the live implementation at `/vsl-4/` (`site/index.html`).
+Derived from the live implementation (`site/index.html`; currently published at `/vsl-5/`).
 
 The brand name is **Adscade**. One capital A, everything else lower case. Never AdScade,
 AdsCade, Adscape or adScade. This applies in copy, code, filenames, email signatures, ad
@@ -25,7 +25,7 @@ accounts and invoices.
 
 The tagline is the master-brand line. It belongs on the company site, decks, proposals and
 social profiles. It does **not** replace the campaign-specific landing page headline —
-`/vsl-4/` leads with "Stop Losing Money on Scattered Real Estate Marketing" because that
+The landing page leads with "Stop Losing Money on Scattered Real Estate Marketing" because that
 headline matches the ad that brought the visitor. Ad-to-page match beats brand consistency
 on a paid landing page, every time.
 

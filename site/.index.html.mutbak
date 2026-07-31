@@ -1192,7 +1192,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       // Premium low-inventory exception. Every condition is required; removing any one
       // must drop the submission out of "qualified".
       var premium = answers.price_band === 'above_150';
-      var funded  = true;
+      var funded  = ['above_3l','1_3l','ready_1l'].indexOf(answers.media_budget) > -1;
       outcome = (premium && funded && team && score >= 65 && !cap)
         ? 'qualified'
         : (score >= 50 ? 'manual_review' : 'not_current_fit');
