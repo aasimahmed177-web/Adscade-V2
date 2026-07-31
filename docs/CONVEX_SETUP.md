@@ -14,13 +14,16 @@ Backend for the lead modal on <https://adscade.com/vsl-4/>.
 |---|---|
 | Convex installed | ✅ `convex@1.42.3`, `convex/` committed |
 | Schema + functions written | ✅ `schema.ts`, `http.ts`, `leads.ts` |
-| Local deployment | ✅ tested — 33 real leads written and read back |
-| Cloud **dev** deployment (`sincere-hamster-838`) | ❌ not deployed — no CLI auth |
-| Cloud **production** deployment (`pastel-minnow-203`) | ❌ **not deployed — see "Deploying" below** |
-| Frontend wired to production | ❌ blocked on the above |
+| Local deployment | ✅ tested — real leads written and read back |
+| Cloud **production** (`pastel-minnow-203`) | ✅ **deployed 1 Aug 2026** |
+| Production endpoint verified | ✅ full API contract + a real stored lead + idempotent replay |
+| Verification rows cleared | ✅ production is at **0 leads** |
+| Frontend wired to production | ✅ in `dist/head-tags.txt` |
+| Live on `/vsl-4/` | ⬜ needs the paste — see the install steps in the completion report |
 
-Everything except the cloud deploy is done and tested. The deploy needs a credential this
-environment does not have.
+> **Rotate the production deploy key.** It was transmitted in plaintext during setup.
+> Dashboard → Production → Settings → Deploy Keys → revoke and reissue. Nothing in this
+> repo or in WordPress depends on it; only future `npx convex deploy` runs use it.
 
 ---
 
@@ -73,13 +76,11 @@ POST    https://<production>.convex.site/submit-lead
 OPTIONS https://<production>.convex.site/submit-lead
 ```
 
-For the production deployment shown in the dashboard (`pastel-minnow-203`) that is:
+Deployed and verified:
 
 ```
 https://pastel-minnow-203.convex.site/submit-lead
 ```
-
-Confirm it after deploying — `npx convex deploy` prints the deployment it used.
 
 ### Allowed origins
 
@@ -246,9 +247,17 @@ snippet. The form then fails visibly rather than silently dropping leads.
 
 ## Bot protection — what exists, what is optional
 
-Live today: honeypot (`website`), origin allow-list, `Content-Length` and body-size caps,
-strict enum and length validation, idempotency on `submissionId`, and a disabled submit
-button while a request is in flight.
+Live today: honeypot (`website`); a `Content-Type: application/json` requirement — without
+it a `text/plain` POST is a CORS *simple request*, so any third-party page could write
+leads and the allow-list would only withhold the response header; a **403** on a present
+but non-allow-listed `Origin` (omitting the response header alone does not stop the write);
+`Content-Length` and body-size caps; strict enum and length validation; spreadsheet-formula
+neutralisation on operator-facing text; `http(s)`-only URL fields; idempotency on
+`submissionId`, which the page now generates once per modal-open so a retry after a
+timeout replays rather than duplicates; and a disabled submit button while in flight.
+
+**There is no request-rate limit.** A determined script can still write many valid leads.
+That is the main residual risk and the reason to watch the queue after launch.
 
 **No IP address is stored**, raw or hashed. India's carrier-grade NAT puts very many
 unrelated mobile visitors behind one address, and this funnel is ~99% mobile, so
@@ -278,3 +287,17 @@ bookings authoritative:
 
 **Never key a booking update on `submissionId`.** It is generated in the browser and
 travels through a query string; anyone who saw one could mark arbitrary leads as converted.
+
+---
+
+## Clearing verification data
+
+```bash
+npx convex run internal.admin.countLeads
+npx convex run internal.admin.listLeads '{"limit":20}'
+npx convex run internal.admin.purgeTestLeads
+```
+
+`purgeTestLeads` deletes only rows whose stored user-agent is `node`, `curl/…` or
+contains `HeadlessChrome`. No browser sends those, so it cannot match a genuine visitor —
+which is why it is safer than purging by date or clearing the table.
