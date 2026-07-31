@@ -37,6 +37,16 @@ export function buildHead(src) {
   for (const [from, to] of Object.entries(WP)) out = out.split(from).join(to);
   // charset and viewport are emitted by WordPress itself; a duplicate is harmless but noisy.
   out = out.split('\n').filter(l => !/<meta charset|name="viewport"/.test(l)).join('\n');
+  // The one configuration value the page needs. It is a PUBLIC URL, not a secret — no
+  // deploy key, token or admin key may ever be placed here or anywhere in WordPress.
+  out += `
+<!-- ═══ Adscade lead endpoint ═══════════════════════════════════════
+     Replace the placeholder with the deployed Convex HTTP Action URL, then
+     uncomment. Until this is set the form fails visibly and the booking calendar
+     stays hidden — it never pretends a lead was saved.
+     Setup: docs/CONVEX_SETUP.md
+<script>window.ADSCADE_LEAD_ENDPOINT = "https://REPLACE-ME.convex.site/submit-lead";</script>
+═══════════════════════════════════════════════════════════════════ -->`;
   return out.trim() + '\n';
 }
 

@@ -20,3 +20,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ═══ Adscade lead endpoint ═══════════════════════════════════════
+     Replace the placeholder with the deployed Convex HTTP Action URL, then
+     uncomment. Until this is set the form fails visibly and the booking calendar
+     stays hidden — it never pretends a lead was saved.
+     Setup: docs/CONVEX_SETUP.md
+<script>window.ADSCADE_LEAD_ENDPOINT = "https://REPLACE-ME.convex.site/submit-lead";</script>
+═══════════════════════════════════════════════════════════════════ -->
