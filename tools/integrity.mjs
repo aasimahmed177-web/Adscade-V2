@@ -112,7 +112,7 @@ console.log('\n— production paste safety —');
 // with asset paths substituted. Checking the source instead would pass while the paste
 // file 404s every image — which is exactly the class of defect this catches.
 const WP = {
-  'assets/asim-ahmed.webp':   'https://adscade.com/wp-content/uploads/2026/07/aasim.webp',
+  'assets/asim-ahmed.webp':   'https://adscade.com/wp-content/uploads/2026/07/asim-ahmed.webp',
   'assets/adscade-mark.png':  'https://adscade.com/wp-content/uploads/2026/07/logo.png',
   'assets/residential.webp':  'https://adscade.com/wp-content/uploads/2026/07/residential.webp',
   'assets/before-after.webp': 'https://adscade.com/wp-content/uploads/2026/07/before-after.webp',
