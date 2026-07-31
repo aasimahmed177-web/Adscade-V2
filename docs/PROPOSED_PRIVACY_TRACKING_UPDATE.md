@@ -1,6 +1,6 @@
 # Proposed privacy-policy amendment
 
-> ## ⚠ OWNER / LEGAL REVIEW REQUIRED BEFORE ANALYTICS ACTIVATION
+> ## ⚠ OWNER / LEGAL REVIEW REQUIRED BEFORE ANALYTICS AND PRODUCTION STORAGE ACTIVATION
 >
 > This is a drafting aid prepared by the implementation team. It is **not legal advice** and
 > must not be published as final wording without review by the owner and, where appropriate,
@@ -29,9 +29,16 @@ Two other gaps exist regardless of analytics:
 
 1. **Calendly** is now embedded inline on the page for qualified visitors. The current policy
    describes Calendly as a page the visitor is handed to, not an embed loaded in-page.
-2. **Form storage** now writes to the site's own database via a WordPress endpoint. The policy
-   says submissions are stored "with our hosting and database provider", which is broadly
-   right but does not mention the hashed IP retained for rate limiting.
+2. **Form storage will move to Convex**, a third-party hosted database, and is **not yet
+   connected**. The policy currently says submissions are "stored with our hosting and
+   database provider" — that will become inaccurate in a specific way once Convex is live,
+   because the data will sit with a named processor outside the website host. It also does
+   not mention the hashed IP retained for rate limiting.
+
+3. **Qualification answers are now assessed automatically.** The six answers produce a score
+   and an outcome that decides whether a booking calendar is offered. That is automated
+   decision-making about a business enquiry — low-risk, but it should be disclosed plainly
+   rather than left implicit.
 
 ---
 
@@ -67,13 +74,24 @@ Two other gaps exist regardless of analytics:
 > We use your answers to assess whether the service is a suitable fit. That assessment is
 > made on our own systems and is not shared with advertising platforms.
 
-### Where it is stored
+### Where it is stored — **rewrite before Convex goes live**
 
-> Submissions are stored in this website's own database, hosted with our web hosting
-> provider, and are accessible only to Adscade staff working on your enquiry. Enquiries that
-> become clients are retained for the engagement and three years afterwards for tax and
-> contractual records. Enquiries that do not become clients are deleted within twelve months,
-> or sooner on request.
+> Submissions are stored with Convex, a hosted database service we use as a data processor,
+> and are accessible only to Adscade staff working on your enquiry. Enquiries that become
+> clients are retained for the engagement and three years afterwards for tax and contractual
+> records. Enquiries that do not become clients are deleted within twelve months, or sooner
+> on request.
+>
+> We also keep a one-way hashed form of your IP address for a short period, solely to limit
+> automated submissions. It cannot be reversed to identify you or your location.
+
+### New section — how we assess your enquiry
+
+> The six questions on the form are scored automatically to decide whether the service is
+> likely to suit your project. If it appears suitable you are offered a booking calendar; if
+> not, we say so and keep your details in case circumstances change. No decision with a legal
+> or similarly significant effect is made automatically, and you can always reply to us and
+> ask a person to look at it.
 
 ### Scheduling — replace the existing section
 
@@ -146,5 +164,24 @@ runs until that decision is made — nothing needs to be removed, only enabled.
 5. Add the GTM container ID.
 6. Verify in GTM Preview that no PII appears in any event.
 7. Enable advertising conversions.
+
+## Convex activation — a separate gate
+
+Storage and analytics are **independent decisions** and should not be switched on together:
+
+| Change | Requires |
+|---|---|
+| Convex storage live | "Where it is stored" and "How we assess your enquiry" published first |
+| GTM / Analytics live | "Cookies" and "How we measure this website" published first, plus the consent decision |
+
+Storage can go live without analytics. **Analytics must not go live without storage**, because
+a conversion event with no stored lead behind it is unverifiable.
+
+Also confirm before Convex activation:
+
+- A data-processing position on Convex as a processor, including where data is hosted.
+- The retention cron is actually scheduled, not merely specified.
+- The deletion and export paths in `docs/CONVEX_LEAD_CAPTURE_SPEC.md` §10 are implemented
+  and tested against a real record.
 
 **Do not reorder these.** Steps 3 and 4 must precede step 5.
