@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
 import type * as debug from "../debug.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
@@ -19,6 +20,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
   debug: typeof debug;
   http: typeof http;
   leads: typeof leads;

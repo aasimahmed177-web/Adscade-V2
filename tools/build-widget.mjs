@@ -9,6 +9,9 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { pathToFileURL } from 'url';
 
+/** Deployed Convex production HTTP Action. Public by design; not a credential. */
+export const LEAD_ENDPOINT = "https://pastel-minnow-203.convex.site/submit-lead";
+
 export const WP = {
   'assets/asim-ahmed.webp':   'https://adscade.com/wp-content/uploads/2026/07/asim-ahmed.webp',
   'assets/adscade-mark.png':  'https://adscade.com/wp-content/uploads/2026/07/logo.png',
@@ -46,14 +49,12 @@ export function buildHead(src) {
   out = out.split('\n').filter(l => !/<meta charset|name="viewport"/.test(l)).join('\n');
   // The one configuration value the page needs. It is a PUBLIC URL, not a secret — no
   // deploy key, token or admin key may ever be placed here or anywhere in WordPress.
+  // The one configuration value the page needs. This is a PUBLIC URL, not a secret:
+  // it accepts only validated lead payloads from the two Adscade origins. The deploy key
+  // is a different thing entirely and must never appear in WordPress.
   out += `
-<!-- ═══ Adscade lead endpoint ═══════════════════════════════════════
-     Replace the placeholder with the deployed Convex HTTP Action URL, then
-     uncomment. Until this is set the form fails visibly and the booking calendar
-     stays hidden — it never pretends a lead was saved.
-     Setup: docs/CONVEX_SETUP.md
-<script>window.ADSCADE_LEAD_ENDPOINT = "https://REPLACE-ME.convex.site/submit-lead";</script>
-═══════════════════════════════════════════════════════════════════ -->`;
+<!-- Adscade lead endpoint — public HTTP Action URL, safe to publish. -->
+<script>window.ADSCADE_LEAD_ENDPOINT = "${LEAD_ENDPOINT}";</script>`;
   return out.trim() + '\n';
 }
 

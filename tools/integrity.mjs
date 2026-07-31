@@ -135,6 +135,13 @@ t('head tags carry the /vsl-4/ canonical',  /rel="canonical" href="https:\/\/ads
 t('head tags carry an uploaded og:image',   /og:image" content="https:\/\/adscade\.com\/wp-content\/uploads\//.test(headTags));
 t('head tags have no local asset paths',    !/(?:src|href)="assets\//.test(headTags));
 t('head tags contain no style or body',     !/<style|<body/i.test(headTags));
+t('head tags wire the deployed lead endpoint',
+  /window\.ADSCADE_LEAD_ENDPOINT = "https:\/\/[a-z0-9-]+\.convex\.site\/submit-lead"/.test(headTags));
+// A deploy key is `prod:<name>|<base64>` / `dev:<name>|<base64>`. It must never ship.
+t('no Convex deploy key in either artefact',
+  !/(prod|dev):[A-Za-z0-9-]+\|[A-Za-z0-9+/=]{16,}/.test(headTags + widget));
+t('no convex.cloud (admin) URL in either artefact',
+  !/convex\.cloud/.test(headTags + widget));
 t('no development comment markers',         !/<!--\s*(TODO|DEBUG|FIXME)/i.test(widget));
 t('no JavaScript errors on load',           pageErrors.length === 0, pageErrors.join(' | '));
 
