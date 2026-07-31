@@ -6,6 +6,7 @@
  * visitor actually reads.
  */
 import { chromium } from 'playwright';
+import { execSync } from 'child_process';
 import { readFileSync } from 'node:fs';
 
 const PAGE = 'site/index.html';
@@ -111,22 +112,13 @@ console.log('\n— production paste safety —');
 // Validate the artefact that actually ships: the widget built for the WordPress paste,
 // with asset paths substituted. Checking the source instead would pass while the paste
 // file 404s every image — which is exactly the class of defect this catches.
-const WP = {
-  'assets/asim-ahmed.webp':   'https://adscade.com/wp-content/uploads/2026/07/asim-ahmed.webp',
-  'assets/adscade-mark.png':  'https://adscade.com/wp-content/uploads/2026/07/logo.png',
-  'assets/residential.webp':  'https://adscade.com/wp-content/uploads/2026/07/residential.webp',
-  'assets/before-after.webp': 'https://adscade.com/wp-content/uploads/2026/07/before-after.webp',
-  'assets/pipeline.webp':     'https://adscade.com/wp-content/uploads/2026/07/pipeline.webp',
-  'href="privacy.html"':      'href="/privacy/"',
-  'href="terms.html"':        'href="/terms/"',
-};
-// Build the widget exactly as the paste-file generator does: the <style> block plus
-// the body contents, never the </head><body> boundary that a naive slice would include.
-const _i = src.indexOf('<style>'), _j = src.indexOf('</style>') + 8;
-const _k = src.indexOf('<body>') + 6, _m = src.indexOf('</body>');
-let widget = src.slice(_i, _j) + '\n' + src.slice(_k, _m);
-t('source uses relative asset paths (substitutable)', /(?:src|href)="assets\//.test(widget));
-for (const [from, to] of Object.entries(WP)) widget = widget.split(from).join(to);
+// Validate the file that ACTUALLY SHIPS, produced by the one generator, rather than a
+// second copy of the transform living here. A validator with its own copy can pass while
+// the shipped file is wrong — which is the whole class of defect this section exists for.
+execSync('node tools/build-widget.mjs', { cwd: process.cwd() });
+const widget = readFileSync('dist/home-widget.txt', 'utf8');
+const headTags = readFileSync('dist/head-tags.txt', 'utf8');
+t('source uses relative asset paths (substitutable)', /(?:src|href)="assets\//.test(src));
 
 t('paste file has no local asset paths',   !/(?:src|href)="assets\//.test(widget));
 t('paste file has no document wrapper',    !/<(html|head|body)[\s>]/i.test(widget) && !/<!doctype/i.test(widget));
@@ -138,7 +130,11 @@ t('paste file carries the lead modal',        /id="lead-modal"/.test(widget));
 t('no scoring model remains',                 !/__adscadeEvaluate|score_band/.test(widget));
 t('privacy link resolves to a WP path',     /href="\/privacy\/"/.test(widget));
 t('terms link resolves to a WP path',       /href="\/terms\/"/.test(widget));
-t('no hard-coded /vsl- path anywhere',      !/\/vsl-\d/.test(widget));
+t('widget has no hard-coded /vsl- path',   !/\/vsl-\d/.test(widget));
+t('head tags carry the /vsl-4/ canonical',  /rel="canonical" href="https:\/\/adscade\.com\/vsl-4\/"/.test(headTags));
+t('head tags carry an uploaded og:image',   /og:image" content="https:\/\/adscade\.com\/wp-content\/uploads\//.test(headTags));
+t('head tags have no local asset paths',    !/(?:src|href)="assets\//.test(headTags));
+t('head tags contain no style or body',     !/<style|<body/i.test(headTags));
 t('no development comment markers',         !/<!--\s*(TODO|DEBUG|FIXME)/i.test(widget));
 t('no JavaScript errors on load',           pageErrors.length === 0, pageErrors.join(' | '));
 

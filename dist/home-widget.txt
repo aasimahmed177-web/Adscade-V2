@@ -1,0 +1,1364 @@
+<style>
+/* ─── tokens ─────────────────────────────────────────────────────────── */
+:root{
+  /* ─── Adscade brand tokens — canonical. See docs/ADSCADE_BRAND_GUIDELINES.md ─── */
+  --adscade-bg:#03140D;            /* deep forest — page ground */
+  --adscade-bg-elevated:#0A1D14;   /* raised surfaces: video frame, report card */
+  --adscade-panel-green:#163A28;   /* functional surfaces: cards, form */
+  --adscade-panel-dark:#171209;    /* editorial surfaces: comparison, explanatory bands */
+  --adscade-gold:#E2B95B;
+  --adscade-gold-hover:#F0C96B;
+  --adscade-cream:#F3E8D2;         /* headlines */
+  --adscade-text:#EEE5D5;          /* body copy */
+  --adscade-muted:#B5AA96;         /* secondary copy, labels */
+  --adscade-border:rgba(226,185,91,.22);
+  --adscade-border-strong:rgba(226,185,91,.42);
+
+  /* short aliases so existing components keep working unchanged */
+  --ink:var(--adscade-bg); --ink-warm:var(--adscade-panel-dark);
+  --forest:var(--adscade-panel-green); --elev:var(--adscade-bg-elevated);
+  --cream:var(--adscade-cream); --text:var(--adscade-text); --cream-dim:var(--adscade-muted);
+  --gold:var(--adscade-gold); --gold-deep:var(--adscade-gold-hover);
+  --hair:1px solid var(--adscade-border);
+
+  /* light surfaces — the page alternates dark and light so it never reads as one slab */
+  --adscade-light:#F4EEDF;
+  --adscade-light-elevated:#FFF9ED;
+  --adscade-light-text:#14241A;
+  --adscade-light-muted:#5E675F;
+  --adscade-light-border:rgba(20,36,26,.16);
+  /* Gold-on-cream. #E2B95B is 1.6:1 on the light grounds — unreadable. This is the
+     darkest point of the same hue that still reads as the brand gold, at 6.1:1 on
+     #FFF9ED (the lighter of the two light grounds), so it clears AA on both. */
+  --adscade-light-gold:#7A5A12;
+
+  /* red is an ERROR colour only — never decorative. Lifted for AA as text. */
+  --error:#D25242; --error-text:#E8A395;
+  /* loss/attrition tone for the leak diagram. Deliberately bronze, NOT in the error
+     hue family — red must stay meaningful. */
+  --loss:#C2A17B;
+
+  /* ─── type scale ─── */
+  --t-micro:.75rem; --t-label:.75rem; --t-small:1rem;
+  --t-body:1.0625rem; --t-lead:1.1875rem;
+  --t-h5:1.25rem; --t-h4:1.375rem; --t-h3:1.625rem;
+  --t-h2:clamp(2.125rem,4vw,3.375rem);   /* 34 → 54px */
+  --t-h1:clamp(3.25rem,5vw,4.75rem);     /* 52 → 76px */
+  --col:min(1120px,92vw);
+  --pad:clamp(3.5rem,7vw,7rem);
+  --serif:"Instrument Serif",Georgia,serif;
+  --sans:"Inter Tight",system-ui,-apple-system,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ink);color:var(--text);
+  font-family:var(--sans);font-size:var(--t-body);line-height:1.6;
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:var(--gold);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:2px}
+
+/* When this page is embedded in a WordPress/Elementor/Astra site, the theme adds a body
+   class (e.g. ast-page-builder-template) carrying its own background colour, and
+   Elementor's global kit CSS sets an explicit colour on every heading and label. Both
+   have higher priority than our plain-element rules above — a class beats an element
+   selector on specificity, and an explicit rule always beats inherited colour — so this
+   page can render with the wrong background and invisible headings on such a host with
+   no visible error. These two rules force our design back over the host theme's. Safe
+   and inert when this file runs standalone with no surrounding theme. */
+body{background:var(--ink) !important;color:var(--cream) !important}
+h1,h2,h3,h4,h5,h6,label{color:inherit !important}
+/* Astra injects its own scroll-to-top button; this page has its own sticky CTA and
+   does not want a second floating control competing with it. */
+#ast-scroll-top{display:none !important}
+
+/* ─── primitives ─────────────────────────────────────────────────────── */
+.wrap{width:var(--col);margin-inline:auto}
+.band{padding-block:var(--pad);position:relative}
+.band--warm{background:var(--ink-warm)}
+
+/* A light band re-points the shared tokens rather than restyling every component, so
+   cards, rules, eyebrows and buttons inherit the light palette automatically. */
+.band--light{
+  background:var(--adscade-light);
+  --text:var(--adscade-light-text);
+  --cream:var(--adscade-light-text);
+  --cream-dim:var(--adscade-light-muted);
+  --forest:var(--adscade-light-elevated);
+  --elev:var(--adscade-light-elevated);
+  --ink-warm:var(--adscade-light-elevated);
+  --hair:1px solid var(--adscade-light-border);
+  --adscade-border:rgba(20,36,26,.16);
+  --adscade-border-strong:rgba(20,36,26,.34);
+  color:var(--adscade-light-text);
+}
+/* Re-point --gold rather than restyling each gold component. Every light-band use of
+   --gold is text, a hairline or a small solid shape; the one gold *fill* with text on it
+   is .cta, which is overridden to dark-green below. */
+/* --loss is a muted tan in the dark design; the light equivalent must stay a warm brown.
+   A red here would read as an error state, which the brand rules forbid as decoration. */
+.band--light{--gold:var(--adscade-light-gold);--gold-deep:#5C4310;--loss:#6B4A2A}
+/* The dark track is near-black at 55% alpha; over cream it composites to a mid grey that
+   reads as a second filled bar and kills the taper the diagram exists to show. */
+.band--light .leak__track{background:rgba(20,36,26,.06);border-color:rgba(20,36,26,.18)}
+.band--light .leak__bar{background:linear-gradient(90deg,rgba(122,90,18,.85),rgba(122,90,18,.5))}
+/* These carry hardcoded translucent cream from the dark design and cannot inherit their
+   way to legibility on cream — they need explicit light values. */
+.band--light .lead,
+.band--light .rail__list li,
+.band--light .vsl__agenda ol,
+.band--light .deliv li,
+.band--light .pains li,
+.band--light .faq__a,
+.band--light .consent{color:var(--adscade-light-muted)}
+.band--light .h2 em{color:#8A6B1F}
+.band--light .cta{background:#14241A;color:var(--adscade-light);border-color:#14241A}
+/* The only other gold *fill* carrying text. It is the fallback link for a blocked embed,
+   so it should not compete with the primary CTA — outline rather than a second solid. */
+.band--light .book-slot{background:transparent;color:#14241A;border-color:#14241A}
+.band--light .book-slot:hover{background:rgba(20,36,26,.08)}
+.band--light .cta:hover{background:#1E3527}
+.band--light .cta--ghost{background:transparent;color:#14241A;border-color:var(--adscade-light-border)}
+.band--light .cta--ghost:hover{background:rgba(20,36,26,.06)}
+.band--light .card{background:var(--adscade-light-elevated);border-color:var(--adscade-light-border)}
+
+/* supplied imagery */
+.figure{margin:0}
+.figure img{width:100%;height:auto;display:block;border-radius:14px;border:var(--hair)}
+.figure figcaption{
+  font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);
+  margin-top:.8rem;text-align:center;
+}
+.band--visual{padding-block:clamp(2.5rem,5vw,4rem)}
+.eyebrow{
+  font-size:var(--t-label);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--gold);margin:0 0 1.1rem;
+}
+.rule{width:64px;height:1px;background:var(--gold-deep);opacity:.5;margin:1.4rem 0}
+.h2{
+  font-family:var(--serif);font-weight:400;font-size:var(--t-h2);
+  line-height:1.08;letter-spacing:-.01em;margin:0 0 1.2rem;
+}
+.h2 em{font-style:italic;color:var(--gold)}
+.h2--center{text-align:center;margin-inline:auto}
+.h3{font-family:var(--serif);font-weight:400;font-size:var(--t-h3);line-height:1.2;margin:0 0 .6rem}
+.lead{font-size:var(--t-lead);line-height:1.55;color:rgba(234,224,200,.86);max-width:62ch;margin:0 0 1.4rem}
+.lead--center{text-align:center;margin-inline:auto}
+.lead--sm{font-size:var(--t-small);margin:0}
+.dim{color:var(--cream-dim)}
+.card{background:var(--forest);border:var(--hair);border-radius:14px}
+
+/* CTA — gold is the only colour a button may be */
+.cta{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
+  font-family:var(--sans);font-size:var(--t-small);font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:var(--gold);color:#1A1204;border:1px solid var(--gold);
+  padding:1.05rem 1.9rem;border-radius:999px;cursor:pointer;
+  text-decoration:none;transition:transform .18s ease,background .18s ease;
+  min-height:52px;
+}
+.cta:hover{background:#EFCB80;transform:translateY(-2px)}
+.cta--ghost{background:transparent;color:var(--gold);border-color:var(--gold-deep)}
+.cta--ghost:hover{background:rgba(224,184,101,.1)}
+.cta--wide{width:100%}
+.cta-note{font-size:var(--t-small);color:var(--cream-dim);margin:.75rem 0 0}
+/* secondary by colour and separation, not by shrinking below the reading floor */
+.qual-note{line-height:1.5;border-top:var(--hair);padding-top:.7rem;margin-top:.7rem;opacity:.85}
+
+/* ─── brand bar ──────────────────────────────────────────────────────── */
+.brandbar{
+  border-bottom:var(--hair);padding-block:.9rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+}
+.brandbar__id{display:flex;align-items:center;gap:.55rem;color:var(--cream)}
+.brandbar__mark{width:auto;height:32px}
+.brandbar__name{font-family:var(--serif);font-size:1.3rem;letter-spacing:.02em;margin:0}
+.brandbar__fit{
+  font-size:var(--t-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);text-decoration:none;border:1px solid var(--adscade-border-strong);
+  border-radius:999px;padding:.7rem 1.15rem;min-height:48px;display:inline-flex;align-items:center;
+}
+.brandbar__fit:hover{background:rgba(226,185,91,.1)}
+
+/* ─── hero ───────────────────────────────────────────────────────────── */
+.hero{padding-block:clamp(2rem,5vw,4rem) var(--pad);text-align:center;position:relative}
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(transparent 97%,rgba(201,160,74,.05) 97%) 0 0/100% 46px,
+    linear-gradient(90deg,transparent 97%,rgba(201,160,74,.05) 97%) 0 0/46px 100%,
+    radial-gradient(ellipse 70% 55% at 50% 0%,rgba(26,51,34,.9),transparent 70%);
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 20%,#000,transparent);
+}
+.hero>*{position:relative;z-index:1}
+.hero__kicker{
+  font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cream-dim);margin:0 0 1.1rem;
+}
+.hero__kicker b{color:var(--gold);font-weight:700}
+.hero__title{
+  font-family:var(--serif);font-weight:400;font-size:var(--t-h1);
+  line-height:1.02;letter-spacing:-.02em;margin:0 auto 1.1rem;max-width:16ch;
+}
+.hero__title .u{
+  background:linear-gradient(transparent 74%,var(--adscade-border-strong) 74%,var(--adscade-border-strong) 86%,transparent 86%);
+}
+.hero__title em{font-style:italic;color:var(--gold)}
+.hero__sub{
+  font-size:var(--t-lead);line-height:1.5;color:rgba(234,224,200,.86);
+  max-width:62ch;margin:0 auto 1.6rem;
+}
+.hero__sub b{color:var(--cream);font-weight:600}
+/* informational qualifier, not an error — red is reserved for genuine error states */
+.notice{
+  border:1px solid var(--adscade-border);background:rgba(226,185,91,.05);
+  border-radius:10px;padding:1rem 1.3rem;max-width:64ch;margin:0 auto;
+  font-size:var(--t-small);line-height:1.55;color:var(--text);text-align:left;
+}
+.notice b{color:var(--gold)}
+
+/* ─── VSL + booking rail ─────────────────────────────────────────────── */
+.stage{
+  display:grid;grid-template-columns:1.55fr 1fr;gap:1.4rem;
+  align-items:start;margin-bottom:1.8rem;text-align:left;
+}
+.vsl{overflow:hidden;position:relative}
+.vsl__frame{aspect-ratio:16/9;position:relative;display:grid;place-items:center;background:var(--elev)}
+.vsl__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* the poster is atmosphere, not content — this keeps it from competing with the label */
+.vsl__frame::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 72% 72% at 50% 55%,rgba(5,16,10,.82),rgba(5,16,10,.3));
+}
+.vsl__body{position:relative;z-index:1;text-align:center;padding:1.2rem}
+.vsl__play{
+  width:66px;height:66px;border-radius:50%;margin:0 auto .9rem;
+  border:1px solid var(--gold-deep);background:rgba(15,13,8,.82);
+  display:grid;place-items:center;cursor:pointer;color:var(--gold);
+  transition:background .2s ease,transform .2s ease;
+}
+.vsl__play:hover{background:rgba(224,184,101,.24);transform:scale(1.06)}
+.vsl__play svg{width:20px;height:20px;margin-left:3px}
+.vsl__label{
+  font-size:var(--t-label);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--gold);margin:0 0 .35rem;
+}
+.vsl__hint{font-size:var(--t-small);color:var(--cream);margin:0 auto;max-width:36ch}
+/* revealed in place by the play control — never a jump to somewhere else */
+.vsl__agenda{display:none;padding:1.2rem 1.4rem;border-top:var(--hair);text-align:left}
+.vsl__agenda.on{display:block}
+.vsl__agenda ol{margin:0;padding-left:1.1rem;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.88)}
+.vsl__agenda li{margin-bottom:.45rem}
+
+.rail{padding:clamp(1.25rem,3vw,2rem)}
+.rail__k{font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 1rem}
+.rail__list{list-style:none;margin:0 0 1.4rem;padding:0;display:grid;gap:.85rem}
+.rail__list li{display:flex;gap:.7rem;font-size:var(--t-small);line-height:1.45;color:rgba(234,224,200,.9)}
+.rail__list svg{width:15px;height:15px;flex:none;margin-top:.25rem;color:var(--gold)}
+.rail__meta{
+  border-top:var(--hair);padding-top:1.1rem;margin-top:1.3rem;
+  display:grid;gap:.6rem;font-size:var(--t-micro);letter-spacing:.1em;
+  text-transform:uppercase;font-weight:700;color:var(--cream-dim);
+}
+.rail__meta b{color:var(--cream);font-weight:700}
+
+/* ─── trust strip ────────────────────────────────────────────────────── */
+.trust{
+  display:flex;flex-wrap:wrap;gap:.7rem 2rem;justify-content:center;
+  border-top:var(--hair);border-bottom:var(--hair);padding-block:1.1rem;
+}
+.trust span{
+  font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--cream-dim);
+}
+.trust b{white-space:nowrap}
+.trust b{color:var(--cream);font-weight:700}
+
+/* ─── signature: the leak diagram ────────────────────────────────────── */
+.leak{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,4rem);align-items:start}
+.leak__fig{position:relative;padding:.5rem 0}
+/* The bar width is the number, not a decoration — which is why the last bar is a sliver.
+   Same shape at every viewport; nothing to reflow, nothing to lose on a phone. */
+.leak__stage{position:relative;margin:0 0 1.3rem}
+.leak__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.5rem}
+.leak__name{font-size:var(--t-small);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.leak__val{font-family:var(--serif);font-size:var(--t-h4);color:var(--gold);line-height:1}
+.leak__track{height:18px;border:1px solid rgba(201,160,74,.28);border-radius:2px;overflow:hidden;background:rgba(5,16,10,.55)}
+.leak__bar{
+  display:block;height:100%;min-width:14px;
+  background:linear-gradient(90deg,rgba(201,160,74,.45),rgba(201,160,74,.2));
+  border-right:2px solid var(--gold-deep);
+}
+.leak__stage:nth-child(4) .leak__bar{background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-right:none}
+.leak__drip{display:block;margin-top:.45rem;font-family:var(--serif);font-size:1.0625rem;color:var(--loss)}
+.leak__stage:nth-child(4) .leak__drip{color:var(--gold)}
+.deliv{list-style:none;margin:1.2rem 0 0;padding:0;display:grid;gap:.7rem}
+.deliv li{
+  position:relative;padding-left:1.2rem;font-size:var(--t-small);line-height:1.5;
+  color:rgba(234,224,200,.86);
+}
+.deliv li::before{content:"";position:absolute;left:0;top:.5em;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.deliv b{color:var(--cream);font-weight:700}
+.sched{
+  display:flex;flex-wrap:wrap;gap:.6rem 1.6rem;margin-top:1.8rem;
+  border-top:var(--hair);padding-top:1.2rem;
+}
+.sched span{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--cream-dim)}
+.sched b{color:var(--gold);font-weight:800;margin-right:.4rem}
+.pains{list-style:none;margin:1.4rem 0 0;padding:0;display:grid;gap:.8rem}
+.pains li{
+  position:relative;padding-left:1.1rem;font-size:var(--t-small);line-height:1.5;
+  color:rgba(234,224,200,.82);
+}
+.pains li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--adscade-border-strong)}
+.pains b{color:var(--cream);font-weight:600}
+.leak__cap{
+  font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin:1.4rem 0 .5rem;border-top:var(--hair);padding-top:1rem;
+}
+.leak__note{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0}
+
+
+/* comparison — pairs stay together so mobile can label them */
+.cmp{border:var(--hair);border-radius:14px;overflow:hidden}
+.cmp__head{
+  padding:1.1rem 1.4rem;font-size:var(--t-label);font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;
+}
+.cmp__head--old{background:rgba(226,185,91,.04);color:var(--adscade-muted)}
+.cmp__head--new{background:rgba(224,184,101,.16);color:var(--gold)}
+.cmp__grid{display:grid;grid-template-columns:1fr 1fr}
+.cmp__col{display:flex;flex-direction:column}
+.cmp__cell{padding:1rem 1.3rem;border-top:var(--hair);font-size:var(--t-small);line-height:1.5;margin:0;flex:1}
+.cmp__cell--old{color:var(--cream-dim)}
+.cmp__cell--new{color:var(--text)}
+.cmp__cell--new,.cmp__head--new{border-left:var(--hair)}
+.cmp__head{margin:0}
+
+/* sample report — the proof artefact */
+.report{max-width:720px;margin-inline:auto;padding:clamp(1.4rem,3vw,2.2rem);background:var(--elev)}
+.report__head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;border-bottom:var(--hair);padding-bottom:.9rem;margin-bottom:1.1rem}
+.report__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0}
+.report__wk{font-size:var(--t-micro);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-dim);margin:0}
+.report__rows{display:grid;gap:.55rem;margin:0 0 1.1rem}
+.report__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:.85rem 1.1rem;border:var(--hair);border-radius:4px}
+.report__row span{font-size:var(--t-body);color:var(--text)}
+.report__row b{font-family:var(--serif);font-size:var(--t-h4);color:var(--gold);font-weight:400;white-space:nowrap}
+.report__foot{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
+
+
+/* founder — its own band, deliberately away from the video */
+.founder{display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(1.8rem,5vw,3.5rem);align-items:center}
+.founder__img{border-radius:14px;border:1px solid rgba(201,160,74,.3);aspect-ratio:4/5;object-fit:cover;object-position:center 18%;width:100%;height:auto}
+.founder__quote{
+  font-family:var(--serif);font-style:italic;font-size:var(--t-h3);line-height:1.4;
+  color:var(--cream);border-left:2px solid var(--gold-deep);padding-left:1.3rem;margin:1.6rem 0 0;
+}
+
+/* guarantee */
+.guarantee{border:1px solid var(--adscade-border-strong);border-radius:14px;padding:clamp(1.4rem,3vw,2.4rem);background:rgba(226,185,91,.05);text-align:center}
+.guarantee__terms{font-size:var(--t-small);line-height:1.55;color:var(--cream-dim);max-width:66ch;margin:1.2rem auto 0;border-top:var(--hair);padding-top:1rem;text-align:left}
+
+/* ─── form ───────────────────────────────────────────────────────────── */
+.form-band{background:var(--ink-warm)}
+.form{max-width:660px;margin-inline:auto;padding:clamp(1.25rem,3.5vw,2.5rem)}
+.form__prog{display:flex;gap:.4rem;margin-bottom:1.6rem}
+.form__prog i{flex:1;height:3px;background:rgba(201,160,74,.2);border-radius:2px;transition:background .3s ease}
+.form__prog i.on{background:var(--gold)}
+.step{display:none}
+.step.on{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.step__n{font-size:var(--t-micro);font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 .6rem}
+.q{font-family:var(--serif);font-weight:400;font-size:var(--t-h3);line-height:1.18;margin:0 0 1.3rem}
+.opts{display:grid;gap:.6rem;margin-bottom:1.4rem}
+.opt{
+  display:flex;align-items:center;gap:.8rem;padding:1rem 1.15rem;
+  border:1px solid rgba(201,160,74,.25);border-radius:4px;cursor:pointer;
+  font-size:var(--t-small);line-height:1.4;transition:border-color .18s ease,background .18s ease;
+  min-height:52px;
+}
+.opt:hover{border-color:var(--gold-deep);background:rgba(224,184,101,.06)}
+.opt input{accent-color:var(--gold);width:18px;height:18px;flex:none;margin:0}
+.opt:has(input:checked){border-color:var(--gold);background:rgba(224,184,101,.12)}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-dim);margin-bottom:.5rem}
+.field input{
+  width:100%;padding:.95rem 1rem;background:rgba(5,16,10,.7);
+  border:1px solid rgba(201,160,74,.28);border-radius:4px;
+  color:var(--cream);font-family:var(--sans);font-size:var(--t-body);min-height:52px;
+}
+.field input::placeholder{color:rgba(169,162,144,.7)}
+.field input:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(224,184,101,.16)}
+.err{display:none;color:var(--error-text);font-size:var(--t-small);margin-top:.4rem;letter-spacing:0;text-transform:none;font-weight:400}
+.field.invalid .err,.errbox.invalid .err{display:block}
+.field.invalid input{border-color:var(--error)}
+.consent{display:flex;gap:.75rem;align-items:flex-start;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.86);margin:1.3rem 0}
+.consent input{accent-color:var(--gold);width:20px;height:20px;flex:none;margin-top:.15rem}
+.nav{display:flex;gap:.5rem;align-items:center;margin-top:.5rem;flex-wrap:wrap}
+.back{
+  background:none;border:none;color:var(--cream-dim);font-family:var(--sans);
+  font-size:var(--t-small);cursor:pointer;padding:.95rem 1rem;text-decoration:underline;
+  min-height:52px;
+}
+.back:hover{color:var(--cream)}
+.done{display:none;text-align:center;padding:1.5rem 0}
+.done.on{display:block}
+.rera{border-top:var(--hair);margin-top:1.4rem;padding-top:1.2rem}
+.rera__q{font-size:var(--t-body);line-height:1.45;margin:0 0 .9rem;color:var(--text)}
+.rera__note{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:.8rem 0 0}
+.opt-tag{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--adscade-muted);font-weight:700;margin-left:.4rem}
+/* Calendly inline embed. Fixed min-height so the panel does not jump when the
+   widget finishes loading, and no nested horizontal scroll on a phone. */
+.cal{
+  min-height:680px;width:100%;margin:1.4rem 0 .6rem;
+  border:var(--hair);border-radius:14px;overflow:hidden;background:var(--elev);
+}
+.cal iframe{width:100%!important;min-height:680px;border:0;display:block}
+/* Collapse the reserved space if the widget never arrives. Two classes so this
+   beats the 900px mobile min-height that is declared later in the sheet. */
+.cal.cal--failed{min-height:0;height:0;border:0;margin:0;overflow:hidden}
+.cal-fallback{display:none;margin:1.4rem 0 .4rem}
+.cal-fallback.on{display:block}
+@media(max-width:560px){.cal,.cal iframe{min-height:900px}}
+.done__tick{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;margin:0 auto 1.3rem}
+.done__tick svg{width:26px;height:26px}
+/* the scheduler hand-off — a different action from the page's CTA, so a different class */
+.book-slot{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
+  font-family:var(--sans);font-size:var(--t-small);font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:var(--gold);color:#1A1204;border:1px solid var(--gold);
+  padding:1.05rem 2.2rem;border-radius:999px;text-decoration:none;min-height:52px;
+  transition:transform .18s ease,background .18s ease;
+}
+.book-slot:hover{background:#EFCB80;transform:translateY(-2px)}
+/* disqualification lives inside the step that triggered it — never trailing the submit button */
+.dq{display:none;border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.09);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.3rem;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.88)}
+.dq.on{display:block}
+.dq b{color:var(--error-text)}
+.alt-exit{
+  display:inline-flex;align-items:center;margin-top:.9rem;background:none;
+  border:1px solid var(--adscade-border-strong);
+  color:var(--gold);font-family:var(--sans);font-size:var(--t-small);font-weight:700;
+  padding:.85rem 1.3rem;border-radius:999px;cursor:pointer;min-height:48px;
+}
+.alt-exit:hover{background:rgba(224,184,101,.1)}
+
+/* ─── lead modal ─────────────────────────────────────────────────── */
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:1rem}
+.modal[hidden]{display:none}
+.modal__backdrop{position:absolute;inset:0;background:rgba(3,20,13,.82);backdrop-filter:blur(3px)}
+.modal__panel{
+  position:relative;width:min(560px,100%);max-height:90vh;overflow-y:auto;
+  padding:clamp(1.4rem,4vw,2.2rem);-webkit-overflow-scrolling:touch;
+}
+.modal__x{
+  position:absolute;top:.7rem;right:.7rem;width:48px;height:48px;border-radius:999px;
+  background:none;border:1px solid var(--adscade-border);color:var(--cream-dim);
+  font-size:1.4rem;line-height:1;cursor:pointer;
+}
+.modal__x:hover{color:var(--cream)}
+.qgroup{border:none;padding:0;margin:0 0 1.2rem}
+.qgroup legend{
+  padding:0;margin-bottom:.7rem;font-size:var(--t-small);line-height:1.45;color:var(--text);
+}
+body.modal-open{overflow:hidden}
+
+/* ─── faq ────────────────────────────────────────────────────────────── */
+.faq{border-top:var(--hair)}
+.faq__q{
+  width:100%;background:none;border:none;border-bottom:var(--hair);
+  color:var(--cream);font-family:var(--serif);font-size:var(--t-h5);text-align:left;
+  padding:1.35rem 2.5rem 1.35rem 0;cursor:pointer;position:relative;line-height:1.3;
+}
+.faq__q::after{content:"+";position:absolute;right:.4rem;top:1.25rem;color:var(--gold);font-family:var(--sans);font-size:1.3rem;transition:transform .2s ease}
+.faq__q[aria-expanded="true"]::after{transform:rotate(45deg)}
+.faq__a{padding:0 0 1.5rem;font-size:var(--t-small);line-height:1.65;color:rgba(234,224,200,.86);max-width:72ch;border-bottom:var(--hair)}
+.faq__a[hidden]{display:none}
+.faq__a p{margin:0}
+
+/* ─── footer ─────────────────────────────────────────────────────────── */
+.foot{background:var(--ink-warm);border-top:var(--hair);padding-block:3.5rem 2.5rem;font-size:var(--t-small)}
+.foot__top{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:2rem;padding-bottom:2rem;border-bottom:var(--hair)}
+.foot__brand{font-family:var(--serif);font-size:var(--t-h3);color:var(--cream);margin:0 0 .7rem;display:flex;align-items:center;gap:.6rem}
+.foot__mark{width:auto;height:40px}
+.foot__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 .8rem}
+.foot__list{list-style:none;margin:0;padding:0;display:grid;gap:.2rem;color:var(--cream-dim)}
+.foot__list li{padding-block:.15rem}
+.foot__list a{color:var(--cream-dim);text-decoration:underline;display:inline-block;padding-block:.7rem}
+.foot__list a:hover{color:var(--gold)}
+.foot__legal{padding-top:1.6rem;color:var(--cream-dim);font-size:var(--t-micro);line-height:1.7;max-width:90ch}
+
+/* ─── sticky mobile cta ──────────────────────────────────────────────── */
+.dock{
+  display:none;align-items:center;gap:.6rem;position:fixed;left:0;right:0;bottom:0;z-index:40;
+  padding:.7rem 4vw calc(.7rem + env(safe-area-inset-bottom));
+  background:rgba(5,16,10,.96);border-top:var(--hair);backdrop-filter:blur(8px);
+  transition:transform .25s ease;
+}
+.dock.hide{transform:translateY(110%)}
+/* The dock sits below the modal overlay, so it only ever showed through dimmed — but a
+   dimmed gold pill under an open dialog is still a second call to action competing with
+   the one the visitor is filling in. */
+body.modal-open .dock{transform:translateY(110%)}
+.dock__x{
+  background:none;border:1px solid var(--adscade-border);color:var(--cream-dim);
+  width:48px;height:48px;flex:none;border-radius:999px;cursor:pointer;font-size:1.1rem;line-height:1;
+}
+.dock__x:hover{color:var(--cream)}
+
+/* ─── responsive ─────────────────────────────────────────────────────── */
+@media(max-width:900px){
+  /* mobile carries ~99% of traffic. Headline drops to the mobile clamp; body stays
+     at 16px minimum so iOS never zooms a form field. */
+  :root{
+    --t-h1:clamp(2.4375rem,11vw,3.25rem);   /* 39 → 52px */
+    --t-body:1rem; --t-lead:1.0625rem; --t-small:1rem; --t-micro:.75rem;
+  }
+  .stage,.leak,.founder,.foot__top{grid-template-columns:1fr}
+  .founder__img{max-width:260px}
+  .founder{gap:1.6rem}
+}
+@media(max-width:560px){
+  :root{--pad:3.5rem}
+  .dock{display:flex}
+  body{padding-bottom:calc(5.5rem + env(safe-area-inset-bottom))}
+  .hero{padding-top:1.4rem}
+  /* Below 760px the two-column table becomes two stacked cards. A shrunk desktop table
+     forces ~10 characters per line, which is not a comparison anyone reads. */
+  .cmp__grid{grid-template-columns:1fr}
+  .cmp__col{border-top:var(--hair)}
+  .cmp__col:first-child{border-top:none}
+  .cmp__cell--new,.cmp__head--new{border-left:none}
+  .trust{gap:.5rem 1.2rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+</style>
+
+
+<!-- ═══ brand bar ════════════════════════════════════════════════════ -->
+<div class="wrap">
+  <div class="brandbar">
+    <span class="brandbar__id">
+      <img class="brandbar__mark" src="https://adscade.com/wp-content/uploads/2026/07/logo.png" alt="Adscade" width="146" height="132" fetchpriority="high" decoding="async">
+      <span class="brandbar__name">Adscade</span>
+    </span>
+    <a class="brandbar__fit" href="#book">Check fit</a>
+  </div>
+</div>
+
+<!-- ═══ hero ═════════════════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="wrap">
+    <p class="hero__kicker">For regional residential developers</p>
+    <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
+    <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and sales feedback into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified buyer conversations.</p>
+
+    <!-- VSL + booking rail -->
+    <div class="stage">
+      <!-- ══════════════════ VIDEO INTEGRATION ══════════════════════════
+           The final VSL is not yet supplied. This block is structurally ready
+           for a hosted MP4, a YouTube embed, a Vimeo embed or another player.
+
+           1. EMBED — replace the contents of .vsl__frame (keeping the 16:9
+              container and its class) with the player. Examples:
+                <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0"
+                        title="Adscade walkthrough" allowfullscreen
+                        style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+                <video controls playsinline preload="none"
+                       poster="POSTER_URL" style="position:absolute;inset:0;width:100%;height:100%">
+                  <source src="VIDEO_URL.mp4" type="video/mp4">
+                  <track kind="captions" src="CAPTIONS.vtt" srclang="en" label="English" default>
+                </video>
+              Do NOT autoplay with sound. Keep playsinline for iOS Safari.
+
+           2. POSTER — replace the .vsl__poster data-URI below with the real
+              poster image. Keep width/height attributes so nothing shifts.
+
+           3. PROGRESS CALLBACKS — wire vsl_play / vsl_25_percent /
+              vsl_50_percent / vsl_75_percent / vsl_complete at the marked
+              point in the script block (search "VSL PROGRESS"). Until a real
+              player can report progress, those events stay unwired — see
+              docs/ADSCADE_TRACKING_SPEC.md.
+
+           4. CAPTIONS — add a <track kind="captions"> for a hosted file, or
+              enable captions in the YouTube/Vimeo settings.
+
+           5. END CARD — must read "Check Fit & Pick a Time" with the line
+              "Answer six questions, then choose an available slot." It must
+              not say Free Audit, Free Strategy Call or Claim Your Spot.
+      ══════════════════════════════════════════════════════════════════ -->
+      <div class="card vsl">
+        <div class="vsl__frame">
+          <img class="vsl__poster" width="1280" height="720" alt="" aria-hidden="true" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231A3322'/%3E%3Cstop offset='1' stop-color='%230F0D08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='320' height='180' fill='url(%23g)'/%3E%3Cg stroke='%23C9A04A' stroke-opacity='.14'%3E%3Cpath d='M0 45h320M0 90h320M0 135h320M80 0v180M160 0v180M240 0v180'/%3E%3C/g%3E%3Cg fill='none' stroke='%23E0B865' stroke-opacity='.45'%3E%3Crect x='96' y='48' width='128' height='16'/%3E%3Crect x='109' y='74' width='102' height='16'/%3E%3Crect x='122' y='100' width='76' height='16'/%3E%3Crect x='135' y='126' width='50' height='16'/%3E%3C/g%3E%3C/svg%3E">
+          <div class="vsl__body">
+            <button class="vsl__play" id="play" type="button" aria-label="Show what the walkthrough covers" aria-expanded="false" aria-controls="agenda">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <p class="vsl__label">Walkthrough · in production</p>
+            <p class="vsl__hint">Aasim walks through exactly where the money leaks in a real estate funnel, and what a fixed one looks like.</p>
+          </div>
+        </div>
+        <div class="vsl__agenda" id="agenda">
+          <ol>
+            <li>The four places a broker's funnel loses money, in order</li>
+            <li>Why portal leads and Meta leads behave completely differently</li>
+            <li>What a qualified lead should cost in a Tier-1 versus Tier-2 micro-market</li>
+            <li>The WhatsApp sequence that filters budget, location and timeline before you pick up</li>
+          </ol>
+        </div>
+      </div>
+
+      <aside class="card rail">
+        <p class="rail__k">See whether your funnel is a fit</p>
+        <ul class="rail__list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Current ad and funnel structure</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Lead qualification and leakage</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Follow-up and tracking gaps</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Practical next steps</li>
+        </ul>
+        <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
+        <p class="cta-note">Six questions, then choose an available slot.</p>
+        <p class="cta-note qual-note">Built for developers with active inventory, a structured follow-up process and ₹1&nbsp;lakh+ monthly media capacity.</p>
+        <div class="rail__meta">
+          <span>30 minutes, direct with <b>Aasim Ahmed</b></span>
+        </div>
+      </aside>
+    </div>
+
+    <div class="notice">
+      <b>Read this before you book:</b> this is for developers with unsold inventory in a <b>RERA-registered</b> project and a budget behind it. If the project isn't registered yet we legally cannot advertise it, and if there's nothing left to sell there's nothing to build a funnel for. The questions below will tell you either way before you spend time on a call.
+    </div>
+  </div>
+</header>
+
+<!-- ═══ trust strip ══════════════════════════════════════════════════ -->
+<div class="wrap">
+  <div class="trust">
+    <span>Funnel live in <b>one week</b></span>
+    <span>Weekly <b>cost-per-site-visit</b> reporting</span>
+  </div>
+</div>
+
+<!-- ═══ residential visual transition ═════════════════════════════ -->
+<section class="band band--light band--visual">
+  <div class="wrap">
+    <figure class="figure">
+      <img src="https://adscade.com/wp-content/uploads/2026/07/residential.webp" width="1200" height="675" loading="lazy" decoding="async"
+           alt="Modern residential development with prospective buyers meeting a property representative.">
+      <figcaption>Illustrative imagery. Not an Adscade client project.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══ signature: the leak ══════════════════════════════════════════ -->
+<section class="band band--light">
+  <div class="wrap leak">
+    <div>
+      <p class="eyebrow">The leak</p>
+      <h2 class="h2">You are not short of enquiries.<br>You are <em>losing them in transit.</em></h2>
+      <p class="lead">Every stage is a place your money quietly goes missing — and none of it reaches your ad account, which only ever reports the click. We rebuild all four as one system and report on each of them weekly.</p>
+      <ul class="pains">
+        <li>An enquiry lands at <b>night</b>; nobody has <b>replied</b> before he has seen a <b>faster</b> project.</li>
+        <li><b>Channel partners</b> lead with whichever project pays best that month.</li>
+        <li>The <b>tail</b> — odd floors, odd facings — stops moving once the launch push ends.</li>
+        <li>Every <b>unsold</b> unit keeps accruing <b>interest</b> throughout.</li>
+      </ul>
+    </div>
+    <div class="leak__fig">
+      <div class="leak__stage">
+        <div class="leak__row"><span class="leak__name">Ad → click</span><span class="leak__val">100</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:100%"></i></div>
+        <span class="leak__drip">₹ wrong audience</span>
+      </div>
+      <div class="leak__stage">
+        <div class="leak__row"><span class="leak__name">Landing page</span><span class="leak__val">60</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:60%"></i></div>
+        <span class="leak__drip">₹ message mismatch</span>
+      </div>
+      <div class="leak__stage">
+        <div class="leak__row"><span class="leak__name">Follow-up</span><span class="leak__val">20</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:20%"></i></div>
+        <span class="leak__drip">₹ slow response</span>
+      </div>
+      <div class="leak__stage">
+        <div class="leak__row"><span class="leak__name">Site visit</span><span class="leak__val">4</span></div>
+        <div class="leak__track"><i class="leak__bar" style="width:4%"></i></div>
+        <span class="leak__drip">96 of every 100 gone before anyone stood on site</span>
+      </div>
+      <p class="leak__cap">Illustrative funnel</p>
+      <p class="leak__note">Example shown for illustration. Actual outcomes vary by project, price, market, media budget, follow-up and sales process.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ the difference + what's in it, merged ══════════════════════ -->
+<section class="band band--warm">
+  <div class="wrap">
+    <p class="eyebrow">The difference</p>
+    <h2 class="h2">Same ad budget. <em>Completely different</em> system behind it.</h2>
+    <div class="cmp" style="margin-top:2rem">
+      <div class="cmp__grid">
+        <div class="cmp__col">
+          <p class="cmp__head cmp__head--old">Scattered marketing</p>
+          <p class="cmp__cell cmp__cell--old">Ads and funnel handled separately</p>
+          <p class="cmp__cell cmp__cell--old">Generic landing experience</p>
+          <p class="cmp__cell cmp__cell--old">Every form submission treated equally</p>
+          <p class="cmp__cell cmp__cell--old">Sales outcomes remain disconnected</p>
+          <p class="cmp__cell cmp__cell--old">Optimisation based on top-level lead volume</p>
+        </div>
+        <div class="cmp__col">
+          <p class="cmp__head cmp__head--new">The Adscade system</p>
+          <p class="cmp__cell cmp__cell--new">Campaign and funnel planned together</p>
+          <p class="cmp__cell cmp__cell--new">Message-matched landing journey</p>
+          <p class="cmp__cell cmp__cell--new">Qualification built into the funnel</p>
+          <p class="cmp__cell cmp__cell--new">Sales-stage feedback connected</p>
+          <p class="cmp__cell cmp__cell--new">Optimisation informed by enquiry quality</p>
+        </div>
+      </div>
+    </div>
+
+    <figure class="figure" style="margin-top:2.2rem">
+      <img src="https://adscade.com/wp-content/uploads/2026/07/before-after.webp" width="1200" height="675" loading="lazy" decoding="async"
+           alt="Side-by-side diagram: fragmented marketing with disconnected ads, landing page, enquiries and reporting, versus one connected Adscade system with structured follow-up, qualified enquiries and sales feedback.">
+      <figcaption>Illustrative diagram of the two approaches.</figcaption>
+    </figure>
+
+    <p class="lead" style="margin-top:2.2rem">Adscade builds and manages four things, as one system:</p>
+    <ul class="deliv">
+      <li><b>Offer and messaging</b> — positioning built around your project and price band, not swapped from another account.</li>
+      <li><b>Campaign management</b> — built, launched and optimised against enquiry quality rather than volume.</li>
+      <li><b>Landing page and qualification</b> — budget, location, property type and timeline captured before your sales team is involved.</li>
+      <li><b>Tracking, reporting and optimisation</b> — every enquiry tied to the campaign that produced it, reviewed weekly.</li>
+    </ul>
+
+    <p class="lead lead--sm dim" style="margin-top:1.6rem">And it is live inside a week:</p>
+    <div class="sched">
+      <span><b>Days 1–2</b> Strategy locked</span>
+      <span><b>Days 3–5</b> Everything built</span>
+      <span><b>Days 6–7</b> Tested and live</span>
+      <span><b>Week 2+</b> Optimise &amp; scale</span>
+    </div>
+
+    <div style="text-align:center;margin-top:2.2rem">
+      <a class="cta cta--ghost" href="#book">Check Fit &amp; Pick a Time</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ sample report — proof of the differentiator ══════════════════ -->
+<section class="band band--light">
+  <div class="wrap">
+    <p class="eyebrow" style="text-align:center">Reporting</p>
+    <h2 class="h2 h2--center" style="max-width:20ch">Every Monday, know where <em>every enquiry stands.</em></h2>
+    <p class="lead lead--center">One concise view of spend, enquiries, qualification, calls, site visits and follow-up — so marketing and sales are working from the same information.</p>
+
+    <div class="card report">
+      <div class="report__head">
+        <p class="report__k">Sample reporting view</p>
+      </div>
+      <div class="report__rows">
+        <div class="report__row"><span>Media spend</span><b>₹ 1,84,000</b></div>
+        <div class="report__row"><span>Enquiries generated</span><b>112</b></div>
+        <div class="report__row"><span>Qualified enquiries</span><b>38</b></div>
+        <div class="report__row"><span>Calls booked</span><b>21</b></div>
+        <div class="report__row"><span>Site visits</span><b>9</b></div>
+        <div class="report__row"><span>Cost per qualified enquiry</span><b>₹ 4,842</b></div>
+        <div class="report__row"><span>Follow-up status</span><b>17 awaiting</b></div>
+      </div>
+      <p class="report__foot">Figures shown are illustrative. Available reporting depends on the sales stages and outcome data maintained by the client's team.</p>
+    </div>
+
+    <figure class="figure" style="margin-top:2.4rem">
+      <img src="https://adscade.com/wp-content/uploads/2026/07/pipeline.webp" width="1200" height="675" loading="lazy" decoding="async"
+           alt="Pipeline diagram: ads, landing page, enquiries, qualification, follow-up, site visits and sales conversations, with weekly reporting at each stage.">
+      <figcaption>Illustrative pipeline and reporting view. Figures are examples, not client results.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══ founder — deliberately its own section ═══════════════════════ -->
+<section class="band">
+  <div class="wrap founder">
+    <img class="founder__img" src="https://adscade.com/wp-content/uploads/2026/07/asim-ahmed.webp" alt="Aasim Ahmed, founder of Adscade" width="480" height="600" loading="lazy" decoding="async">
+    <div>
+      <p class="eyebrow">Built and managed by</p>
+      <h2 class="h2">Aasim Ahmed<br><em>Founder, Adscade</em></h2>
+      <p class="lead">Adscade exists because ads, landing pages, qualification, follow-up and sales reporting are almost always handled as separate activities. Each one looks fine on its own. The loss happens in the gaps between them, and nobody owning a single piece can see it.</p>
+      <p class="lead">I approach acquisition as one connected commercial system, and I personally oversee the strategy and the system design. The objective is qualified buyer pipeline and visibility from enquiry through to site visit — not enquiry volume, which is the easiest number in this industry to produce and the least useful one to receive.</p>
+      <blockquote class="founder__quote">"Most developers don't have a demand problem. They have a leak — and nobody has ever shown them where it is."</blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ qualification before volume ══════════════════════════════════ -->
+<section class="band band--light">
+  <div class="wrap">
+    <div class="guarantee">
+      <p class="eyebrow">Qualification before volume</p>
+      <h2 class="h2 h2--center" style="max-width:26ch">Before launch, we agree on what a <em>qualified enquiry</em> actually means.</h2>
+      <p class="lead lead--center">Budget, location, property type and buying timeline are defined with your team. Campaigns, landing pages and follow-up are then evaluated against that standard — not merely the number of forms submitted.</p>
+      <p class="guarantee__terms">Qualification criteria, reporting responsibilities and the initial optimisation scope are documented during onboarding. Media costs are billed to you directly by the platform. Outcomes vary by project, price, market, media budget, follow-up and sales process.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ booking form ═════════════════════════════════════════════════ -->
+<!-- ═══ CTA band ══════════════════════════════════════════════════ -->
+<section class="band" id="book">
+  <div class="wrap" style="text-align:center">
+    <p class="eyebrow" style="text-align:center">Next step</p>
+    <h2 class="h2 h2--center" style="max-width:20ch">Tell us about your project.</h2>
+    <p class="lead lead--center">Five quick details — enough for us to look at your setup properly before we speak.</p>
+    <div class="cta-wrap" style="margin-top:1.6rem">
+      <button class="cta js-cta" type="button">Tell Us About Your Project</button>
+    </div>
+    <p class="cta-note" id="cta-success" hidden>Thanks. When you're ready, choose a suitable time.</p>
+  </div>
+</section>
+
+<!-- ═══ Calendly — hidden until a lead is stored ════════════════════ -->
+<section class="band band--light" id="schedule" hidden>
+  <div class="wrap">
+    <p class="eyebrow" style="text-align:center">Scheduling</p>
+    <h2 class="h2 h2--center" style="max-width:18ch">Choose a suitable time.</h2>
+    <p class="lead lead--center">Select a time to discuss your project, current marketing setup and enquiry process with Aasim.</p>
+    <div id="calendly-mount" class="cal"></div>
+    <div class="cal-fallback" id="cal-fallback">
+      <p class="lead lead--center lead--sm">The booking calendar could not load in this browser.</p>
+      <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Open the calendar in a new tab</a>
+    </div>
+    <p class="cta-note" style="text-align:center">Prefer to message instead?
+      <a href="https://wa.me/917996112470">WhatsApp us on +91 79961 12470</a>.</p>
+  </div>
+</section>
+
+<!-- ═══ faq ══════════════════════════════════════════════════════════ -->
+<section class="band band--light">
+  <div class="wrap" style="max-width:840px">
+    <p class="eyebrow">Common questions</p>
+    <h2 class="h2">Before you book.</h2>
+    <div class="faq" style="margin-top:2rem">
+      <button class="faq__q" aria-expanded="false" aria-controls="a1">Who is this system designed for?</button>
+      <div class="faq__a" id="a1" hidden><p>Regional residential developers with an actively marketed project, inventory to sell over the next six to twelve months, and a sales team or structured follow-up already in place. It also suits exclusive mandate holders and channel-partner firms with direct control over a project's marketing.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="a2">What does Adscade manage?</button>
+      <div class="faq__a" id="a2" hidden><p>Four things, run as one system: offer and messaging, campaign management, the landing page and qualification, and tracking, reporting and optimisation. Nothing is subcontracted to someone who has never seen the rest of your funnel. Running ads without the rest of it is pouring water into a leaking bucket.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="a3">Do we need an existing advertising account or landing page?</button>
+      <div class="faq__a" id="a3" hidden><p>No. Many developers come from portal enquiries or channel partners only. The landing page, video creative and follow-up sequence are built for your project rather than adapted from something you already have. If you do have an existing account, we work inside it so the history stays with you.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="a4">What monthly advertising budget should we be prepared for?</button>
+      <div class="faq__a" id="a4" hidden><p>Media budget sits separately from our fee and is paid by you directly to the platform. The right level depends on your city, price point and how much inventory you are moving. Most projects of this type are working with a meaningful monthly commitment rather than a trial amount — we will be specific on the call.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="a5">How quickly can the system be launched?</button>
+      <div class="faq__a" id="a5" hidden><p>The build runs about a week once onboarding is complete — strategy agreed, campaigns built, landing page and qualification live, tracking connected. Delays in project details, account access or creative approvals extend it. After launch there is an optimisation period while the campaigns find the right audience.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="a6">Who follows up with the enquiries?</button>
+      <div class="faq__a" id="a6" hidden><p>Your sales team does. Adscade builds the automated first response and the qualification that reaches them, so the enquiry arrives with budget, location and timeline already on record. We do not sell on your behalf or take over your buyer relationships.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="a7">What happens after we complete the form?</button>
+      <div class="faq__a" id="a7" hidden><p>A booking calendar appears on this page and you choose a time that suits you. Before the call we look at what you are running now. On the call we go through your current setup, where the drop-off is, and what a connected system would look like for your project.</p></div>
+    </div>
+
+    <div class="faq-cta" style="text-align:center;margin-top:2.4rem">
+      <button class="cta js-cta" type="button">Tell Us About Your Project</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ footer ═══════════════════════════════════════════════════════ -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__top">
+      <div>
+        <p class="foot__brand"><img class="foot__mark" src="https://adscade.com/wp-content/uploads/2026/07/logo.png" alt="" width="146" height="132" loading="lazy">Adscade</p>
+        <p class="dim" style="margin:0;max-width:36ch">Built and managed as one system — landing page, video, Meta ads and automated lead qualification for real estate developers across India.</p>
+      </div>
+      <div>
+        <p class="foot__k">Contact</p>
+        <ul class="foot__list">
+          <li><a href="mailto:admin@adscade.com">admin@adscade.com</a></li>
+          <li><a href="tel:+917996112470">+91 79961 12470</a></li>
+          <li>Bengaluru, Karnataka, India</li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot__k">Legal</p>
+        <ul class="foot__list">
+          <li><a href="/privacy/">Privacy Policy</a></li>
+          <li><a href="/terms/">Terms of Use</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot__legal">
+      Results vary based on market conditions, budget, and property type. Past performance with other clients does not guarantee identical results. The one-week build timeline and the optimisation commitment described on this page apply from the date of onboarding completion and are subject to timely provision of project details, ad account access and creative approvals by the client. Adscade is an independent marketing services provider and is not affiliated with, endorsed by, or acting on behalf of Meta Platforms, Google LLC, or any property portal.
+      <br><br>© <span id="yr">2026</span> Adscade. All rights reserved.
+    </p>
+  </div>
+</footer>
+
+<!-- ═══ lead modal ═════════════════════════════════════════════════ -->
+<div class="modal" id="lead-modal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel card" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+    <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
+    <p class="eyebrow">Tell us about your project</p>
+    <h2 class="h3" id="modal-title">Five details, then pick a time.</h2>
+
+    <form id="lead-form" novalidate>
+      <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
+        <label>Company website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" autocomplete="name" required>
+        <span class="err" role="alert">Please enter your name.</span>
+      </div>
+      <div class="field">
+        <label for="email">Work email</label>
+        <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+        <span class="err" role="alert">Enter a valid email address.</span>
+      </div>
+      <div class="field">
+        <label for="phone">WhatsApp or phone number</label>
+        <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or include country code" required>
+        <span class="err" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
+      </div>
+
+      <fieldset class="qgroup">
+        <legend>How many residential units are you actively marketing over the next 6&ndash;12 months?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="inventory" value="1_19" required>1&ndash;19</label>
+          <label class="opt"><input type="radio" name="inventory" value="20_49">20&ndash;49</label>
+          <label class="opt"><input type="radio" name="inventory" value="50_99">50&ndash;99</label>
+          <label class="opt"><input type="radio" name="inventory" value="100_plus">100+</label>
+        </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick the closest range.</span></div>
+      </fieldset>
+
+      <fieldset class="qgroup">
+        <legend>What are you currently spending &mdash; or prepared to invest &mdash; on digital advertising each month?</legend>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="media_budget" value="below_1l" required>Below &#8377;1 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="1_3l">&#8377;1&ndash;3 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="3_5l">&#8377;3&ndash;5 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="above_5l">Above &#8377;5 lakh</label>
+        </div>
+        <div class="errbox" data-radio-err><span class="err" role="alert">Pick the closest range.</span></div>
+      </fieldset>
+
+      <label class="consent">
+        <input type="checkbox" id="consent" name="consent" required>
+        <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+      </label>
+      <div class="errbox" id="consent-err"><span class="err" role="alert">Please tick the consent box so we're allowed to contact you.</span></div>
+
+      <button class="cta cta--wide" type="submit">Continue</button>
+      <div class="errbox" id="submit-err"><span class="err" role="alert">That didn't send. Check your connection and try again, or WhatsApp us on +91 79961 12470.</span></div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ sticky mobile dock ═══════════════════════════════════════════ -->
+<div class="dock" id="dock">
+  <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
+  <button class="dock__x" id="dock-x" type="button" aria-label="Hide this bar">&times;</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* ── analytics ────────────────────────────────────────────────────
+     This page carries NO tracking of its own. track() pushes to
+     window.dataLayer only if a tag manager has already created it, so
+     until one is wired this is inert and nothing leaves the browser.
+
+     NOTE: privacy.html currently states that no third-party analytics run
+     on this page. If GTM is connected, that policy must be updated first.
+
+     No personally identifying data is ever sent — only the campaign
+     attribution already present in the URL.
+  ─────────────────────────────────────────────────────────────────── */
+  var fired = {};
+  var q = new URLSearchParams(location.search);
+  var attribution = {
+    utm_source:   q.get('utm_source')   || null,
+    utm_medium:   q.get('utm_medium')   || null,
+    utm_campaign: q.get('utm_campaign') || null,
+    utm_content:  q.get('utm_content')  || null,
+    utm_term:     q.get('utm_term')     || null,
+    gclid:        q.get('gclid')        || null,
+    landing_path: location.pathname,
+    referrer:     document.referrer || null
+  };
+  function track(event, data, once){
+    if (once){ if (fired[event]) return; fired[event] = true; }
+    if (!window.dataLayer) return;                       // inert until a tag manager exists
+    window.dataLayer.push(Object.assign({event: event}, attribution, data || {}));
+  }
+  window.adscadeTrack = track;
+
+  // CTA events are emitted by the state machine below — initial_cta_click before a
+  // lead is stored, scheduling_cta_click afterwards. One generic primary_cta_click
+  // would conflate two different intents.
+
+  /* ── FAQ ───────────────────────────────────────────────────────── */
+  document.querySelectorAll('.faq__q').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      document.getElementById(btn.getAttribute('aria-controls')).hidden = open;
+    });
+  });
+
+  /* ── VSL: reveal the agenda in place. Never a jump somewhere else. ── */
+  var play = document.getElementById('play');
+  var agenda = document.getElementById('agenda');
+  /* ══ VSL PROGRESS ═════════════════════════════════════════════════
+     When the real player is installed, attach its progress handlers here and
+     fire vsl_25_percent / vsl_50_percent / vsl_75_percent / vsl_complete,
+     each once. No progress event is fabricated while the placeholder stands.
+  ═════════════════════════════════════════════════════════════════════ */
+  play.addEventListener('click', function(){
+    var open = play.getAttribute('aria-expanded') === 'true';
+    play.setAttribute('aria-expanded', String(!open));
+    agenda.classList.toggle('on', !open);
+    // Fires once. When the real video lands, replace this with the player's own
+    // play event and add the 25/50/75/complete progress handlers alongside it.
+    if (!open) track('main_vsl_play', null, true);
+  });
+
+  /* ── sticky dock: stand down whenever a real CTA is on screen ───── */
+  var dock = document.getElementById('dock');
+  var submitted = false;
+  if ('IntersectionObserver' in window){
+    var live = new Set();
+    var io = new IntersectionObserver(function(entries){
+      if (submitted) return;
+      entries.forEach(function(e){ e.isIntersecting ? live.add(e.target) : live.delete(e.target); });
+      dock.classList.toggle('hide', live.size > 0);
+      // only the strip the dock itself occupies is discounted — a CTA anywhere else
+      // on screen means the dock is redundant
+    }, {rootMargin:'0px 0px -12% 0px'});
+    // Observe every in-page CTA rather than a hand-maintained list — a hand-maintained
+    // list silently rots the moment a new CTA is added, which is exactly what happened
+    // when the mid-page section gained one. A second gold pill on screen beside the dock
+    // reads as a duplication bug.
+    // Observe the CTA buttons themselves, never their containers. Watching the .rail
+    // card meant a sliver of visible card counted as "a CTA is on screen" while the
+    // button inside it was still 200px below the fold — so the first screen had no
+    // tappable CTA at all and the dock stayed hidden.
+    var watched = [document.getElementById('book'), document.getElementById('schedule')];
+    document.querySelectorAll('.cta').forEach(function(el){
+      // the header pill is a shortcut, not a primary CTA — it must not suppress the dock
+      if (!el.closest('.dock') && !el.closest('#lead-modal')
+          && !el.classList.contains('brandbar__fit')) watched.push(el);
+    });
+    watched.forEach(function(el){ if (el) io.observe(el); });
+  }
+
+  var dockX = document.getElementById('dock-x');
+  if (dockX) dockX.addEventListener('click', function(){
+    dock.classList.add('hide');
+    submitted = true;              // stops the observer bringing it back
+  });
+
+  /* ══ CTA state machine ═══════════════════════════════════════════
+     Two states, one source of truth. Every CTA on the page — hero rail,
+     mid-page, FAQ closer, sticky dock, CTA band — is driven from here, so a
+     new CTA can never end up with stale copy or the wrong behaviour.
+
+       before storage : "Tell Us About Your Project"  → opens the modal
+       after  storage : "Choose a Time"               → scrolls to Calendly
+  ═══════════════════════════════════════════════════════════════════ */
+  var LABEL_BEFORE = 'Tell Us About Your Project';
+  var LABEL_AFTER  = 'Choose a Time';
+  var leadStored   = false;
+
+  function ctaButtons(){
+    return Array.prototype.slice.call(
+      document.querySelectorAll('.cta:not([type=submit]):not([data-next]):not([data-back]), .js-cta')
+    ).filter(function(el){ return !el.closest('#lead-modal'); });
+  }
+
+  function paintCtas(){
+    ctaButtons().forEach(function(el){
+      el.textContent = leadStored ? LABEL_AFTER : LABEL_BEFORE;
+      el.setAttribute('aria-haspopup', leadStored ? 'false' : 'dialog');
+    });
+  }
+
+  function onCtaClick(e){
+    var el = e.currentTarget;
+    if (leadStored) {
+      track('scheduling_cta_click', {cta_text: el.textContent.trim()});
+      document.getElementById('schedule').scrollIntoView({behavior:'smooth', block:'start'});
+    } else {
+      track('initial_cta_click', {cta_text: el.textContent.trim()});
+      openModal(el);
+    }
+  }
+
+  ctaButtons().forEach(function(el){
+    // anchors become buttons in behaviour: they must not navigate
+    el.addEventListener('click', function(e){ e.preventDefault(); onCtaClick(e); });
+  });
+  paintCtas();
+
+  /* ══ modal ═══════════════════════════════════════════════════════ */
+  var modal   = document.getElementById('lead-modal');
+  var panel   = modal.querySelector('.modal__panel');
+  var opener  = null;
+
+  function focusables(){
+    return Array.prototype.slice.call(panel.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+    )).filter(function(el){ return el.offsetParent !== null; });
+  }
+
+  function openModal(from){
+    opener = from || null;
+    modal.hidden = false;
+    document.body.classList.add('modal-open');
+    dock.classList.add('hide');
+    track('lead_modal_open', null, true);
+    var first = panel.querySelector('input');
+    if (first) first.focus({preventScroll:true}); else panel.focus({preventScroll:true});
+  }
+
+  function closeModal(){
+    modal.hidden = true;
+    document.body.classList.remove('modal-open');
+    if (!leadStored) dock.classList.remove('hide');
+    // returning focus to the control that opened it is what makes this usable
+    // without a mouse — without it the caret lands back at the top of the document
+    if (opener && document.contains(opener)) opener.focus({preventScroll:true});
+    opener = null;
+  }
+
+  modal.querySelectorAll('[data-close]').forEach(function(el){
+    el.addEventListener('click', closeModal);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (modal.hidden) return;
+    if (e.key === 'Escape'){ e.preventDefault(); return closeModal(); }
+    if (e.key !== 'Tab') return;
+    var f = focusables();
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+
+  /* ══ form ════════════════════════════════════════════════════════ */
+  var form = document.getElementById('lead-form');
+
+  function validate(){
+    var ok = true;
+
+    form.querySelectorAll('input[required]').forEach(function(el){
+      if (el.type === 'checkbox' || el.type === 'radio') return;
+      var f = el.closest('.field');
+      var bad = !el.value.trim();
+      if (el.type === 'tel'){
+        var digits = el.value.replace(/[^\d]/g,'');
+        // A 10-digit Indian mobile, the same number with 91 or a leading 0, or any
+        // explicit international number. Requiring a "+" would reject the format most
+        // Indian visitors actually type.
+        bad = !(/^[6-9]\d{9}$/.test(digits) || /^91[6-9]\d{9}$/.test(digits)
+             || /^0[6-9]\d{9}$/.test(digits)
+             || (/^\+/.test(el.value.trim()) && digits.length >= 8 && digits.length <= 15));
+      }
+      if (el.type === 'email') bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
+      if (f) f.classList.toggle('invalid', bad);
+      if (bad) ok = false;
+    });
+
+    ['inventory','media_budget'].forEach(function(nm){
+      var picked = !!form.querySelector('input[name="' + nm + '"]:checked');
+      var box = form.querySelector('input[name="' + nm + '"]').closest('.qgroup')
+                    .querySelector('[data-radio-err]');
+      if (box) box.classList.toggle('invalid', !picked);
+      if (!picked) ok = false;
+    });
+
+    var consent = document.getElementById('consent');
+    var cErr = document.getElementById('consent-err');
+    cErr.classList.toggle('invalid', !consent.checked);
+    if (!consent.checked) ok = false;
+
+    return ok;
+  }
+
+  form.addEventListener('input', function(e){
+    var f = e.target.closest('.field');
+    if (f) f.classList.remove('invalid');
+    if (e.target.type === 'radio'){
+      var g = e.target.closest('.qgroup');
+      var b = g && g.querySelector('[data-radio-err]');
+      if (b) b.classList.remove('invalid');
+    }
+    if (e.target.id === 'consent') document.getElementById('consent-err').classList.remove('invalid');
+    track('lead_form_start', null, true);
+  });
+
+  /* ── storage adapter ──────────────────────────────────────────────
+     ONE configuration value. Point it at the deployed Convex HTTP action:
+
+       window.ADSCADE_ENDPOINT = 'https://<deployment>.convex.site/lead';
+
+     Contract: docs/CONVEX_LEAD_CAPTURE_SPEC.md
+     Until it is set, submitLead REJECTS and the form shows its error state.
+     A lead that was not stored must never produce a calendar.
+     No secret belongs here — the action URL is public, every key stays server-side.
+  ─────────────────────────────────────────────────────────────────── */
+  async function submitLead(payload){
+    if (!window.ADSCADE_ENDPOINT) {
+      throw new Error('No submission endpoint configured — lead not stored.');
+    }
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = ctrl && setTimeout(function(){ ctrl.abort(); }, 12000);
+    try {
+      var res = await fetch(window.ADSCADE_ENDPOINT, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      if (!res.ok) throw new Error('Submission failed: ' + res.status);
+      var data = await res.json();
+      if (!data || data.ok !== true) throw new Error('Invalid response from submission endpoint.');
+      return data;
+    } finally { if (timer) clearTimeout(timer); }
+  }
+
+  /* ── Calendly ─────────────────────────────────────────────────────
+     CALENDLY_PHONE_ANSWER maps the phone number onto Calendly's invitee
+     questions. Calendly numbers them a1…a10 in the order they appear on the
+     event. The owner must add "What is your WhatsApp or phone number?" FIRST.
+     If that order ever changes, change this ONE value.
+  ─────────────────────────────────────────────────────────────────── */
+  var CALENDLY_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
+  var CALENDLY_PHONE_ANSWER = 'a1';
+  var calendlyInit = false;
+
+  function failCalendar(){
+    var m = document.getElementById('calendly-mount');
+    var n = document.getElementById('cal-fallback');
+    if (m) m.classList.add('cal--failed');
+    if (n) n.classList.add('on');
+  }
+
+  function mountCalendly(lead){
+    if (calendlyInit) return;
+    calendlyInit = true;
+    var mount = document.getElementById('calendly-mount');
+    if (!mount) return;
+
+    var prefill = {name: lead.name || '', email: lead.email || '', customAnswers: {}};
+    prefill.customAnswers[CALENDLY_PHONE_ANSWER] = lead.phone || '';
+
+    var css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = 'https://assets.calendly.com/assets/external/widget.css';
+    document.head.appendChild(css);
+
+    var js = document.createElement('script');
+    js.src = 'https://assets.calendly.com/assets/external/widget.js'; js.async = true;
+    js.onerror = failCalendar;
+    js.onload = function(){
+      if (!window.Calendly) return failCalendar();
+      // Advanced inline embed: name, email and the phone custom answer are passed
+      // through the API, never through a visible query string.
+      window.Calendly.initInlineWidget({
+        url: CALENDLY_URL + '?hide_gdpr_banner=1',
+        parentElement: mount,
+        prefill: prefill
+      });
+      var tries = 0;
+      var poll = setInterval(function(){
+        if (mount.querySelector('iframe')){ clearInterval(poll); track('calendar_view', null, true); }
+        else if (++tries > 40) clearInterval(poll);
+      }, 200);
+    };
+    document.head.appendChild(js);
+
+    setTimeout(function(){ if (!mount.querySelector('iframe')) failCalendar(); }, 8000);
+  }
+
+  /* ══ submit ══════════════════════════════════════════════════════ */
+  var submitting = false;
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (submitting) return;                       // a double click must not double-post
+    if (!validate()) return;
+
+    document.getElementById('submit-err').classList.remove('invalid');
+    var d = new FormData(form);
+    var payload = {
+      submissionId: (crypto.randomUUID ? crypto.randomUUID()
+                     : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
+      timestamp:    new Date().toISOString(),
+      name:         (d.get('name')  || '').trim(),
+      email:        (d.get('email') || '').trim(),
+      phone:        (d.get('phone') || '').trim(),
+      activeInventory:    d.get('inventory'),
+      monthlyMediaBudget: d.get('media_budget'),
+      consent:      true,
+      website:      d.get('website') || '',       // honeypot — must arrive empty
+      landingPage:  location.href,
+      referrer:     document.referrer || null,
+      device:       window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
+      attribution:  attribution
+    };
+
+    var btn = form.querySelector('button[type=submit]');
+    submitting = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    track('lead_form_submit', null, true);
+
+    try {
+      await submitLead(payload);
+      track('lead_form_stored', null, true);
+
+      // Same page, same scroll position. Reloading here would interrupt the VSL and
+      // throw away the visitor's place in it.
+      leadStored = true;
+      closeModal();
+      paintCtas();
+      document.getElementById('cta-success').hidden = false;
+      var sched = document.getElementById('schedule');
+      sched.hidden = false;
+      mountCalendly(payload);
+      dock.classList.remove('hide');
+      // deliberately NOT scrolled to — the visitor may still be watching the video
+    } catch (err){
+      document.getElementById('submit-err').classList.add('invalid');
+    } finally {
+      submitting = false;
+      btn.disabled = false;
+      btn.textContent = 'Continue';
+    }
+  });
+
+  window.addEventListener('message', function(e){
+    if (!/^https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin || '')) return;
+    if (e.data && e.data.event === 'calendly.event_scheduled') track('booked_call', null, true);
+  });
+
+  // test hooks — no scoring exists to expose
+  window.__adscadeState = function(){ return {leadStored: leadStored, calendlyInit: calendlyInit}; };
+})();
+</script>
