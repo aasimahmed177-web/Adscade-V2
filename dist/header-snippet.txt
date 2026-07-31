@@ -1,0 +1,1 @@
+<script>window.ADSCADE_LEAD_ENDPOINT = "https://pastel-minnow-203.convex.site/submit-lead";</script>
