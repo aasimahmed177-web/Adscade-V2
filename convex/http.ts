@@ -58,6 +58,36 @@ function json(status: number, body: unknown, origin: string | null): Response {
   return new Response(JSON.stringify(body), { status, headers: corsHeaders(origin) });
 }
 
+/**
+ * Neutralise spreadsheet formulas. The leads table gets exported to CSV and opened in
+ * Excel or Sheets — that is how a sales team works a list. A cell beginning = + - @ or a
+ * control character is executed on open, so `=HYPERLINK(...)` can exfiltrate neighbouring
+ * cells and `=cmd|...` is a live DDE payload. Prefixing an apostrophe is the standard
+ * neutralisation and is invisible once imported.
+ */
+function deformula(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? "'" + value : value;
+}
+
+/** An http(s) URL, or undefined. Blocks javascript: and data: reaching an operator view. */
+function safeUrl(value: unknown, max: number): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return undefined;
+  try {
+    const u = new URL(trimmed);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return undefined;
+    return trimmed.slice(0, max);
+  } catch {
+    return undefined;
+  }
+}
+
+/** deformula for optional values. */
+function deformulaOpt(value: string | undefined): string | undefined {
+  return value === undefined ? undefined : deformula(value);
+}
+
 /** Trimmed string of bounded length, or null. */
 function str(value: unknown, max: number): string | null {
   if (typeof value !== "string") return null;
@@ -105,6 +135,21 @@ const submitLead = httpAction(async (ctx, request) => {
 
   if (request.method !== "POST") {
     return json(405, { ok: false, code: "method_not_allowed" }, origin);
+  }
+
+  // Require application/json. Without this the endpoint accepts a CORS *simple request*:
+  // text/plain triggers no preflight, so any third-party page could POST leads from a
+  // visitor's browser and the write would succeed — the allow-list would only stop them
+  // reading the reply, not stop the row being written.
+  const contentType = request.headers.get("Content-Type") ?? "";
+  if (!contentType.toLowerCase().split(";")[0].trim().startsWith("application/json")) {
+    return json(415, { ok: false, code: "unsupported_media_type" }, origin);
+  }
+
+  // An Origin that is present but not allow-listed is refused outright. Omitting the
+  // response header alone is not a refusal — the write still happened.
+  if (origin !== null && !allowedOrigins().has(origin)) {
+    return json(403, { ok: false, code: "forbidden_origin" }, origin);
   }
 
   // Reject an oversized body before reading it into memory.
@@ -187,7 +232,7 @@ const submitLead = httpAction(async (ctx, request) => {
   try {
     result = await ctx.runMutation(internal.leads.insertLead, {
       submissionId: submissionId as string,
-      name: name as string,
+      name: deformula(name as string),
       email: email as string,
       normalisedEmail: (email as string).toLowerCase(),
       phone: phoneRaw as string,
@@ -195,14 +240,14 @@ const submitLead = httpAction(async (ctx, request) => {
       activeInventory: activeInventory as "1_19" | "20_49" | "50_99" | "100_plus",
       monthlyMediaBudget: monthlyMediaBudget as "below_1l" | "1_3l" | "3_5l" | "above_5l",
       consent: true,
-      landingPage: optional(body.landingPage, MAX.url),
-      referrer: optional(body.referrer, MAX.url),
-      utmSource: optional(attribution.utm_source, MAX.utm),
-      utmMedium: optional(attribution.utm_medium, MAX.utm),
-      utmCampaign: optional(attribution.utm_campaign, MAX.utm),
-      utmContent: optional(attribution.utm_content, MAX.utm),
-      utmTerm: optional(attribution.utm_term, MAX.utm),
-      gclid: optional(attribution.gclid, MAX.utm),
+      landingPage: safeUrl(body.landingPage, MAX.url),
+      referrer: safeUrl(body.referrer, MAX.url),
+      utmSource: deformulaOpt(optional(attribution.utm_source, MAX.utm)),
+      utmMedium: deformulaOpt(optional(attribution.utm_medium, MAX.utm)),
+      utmCampaign: deformulaOpt(optional(attribution.utm_campaign, MAX.utm)),
+      utmContent: deformulaOpt(optional(attribution.utm_content, MAX.utm)),
+      utmTerm: deformulaOpt(optional(attribution.utm_term, MAX.utm)),
+      gclid: deformulaOpt(optional(attribution.gclid, MAX.utm)),
       deviceCategory: optional(body.device, 16),
       // Kept for operational triage only (did a whole browser family fail?). Truncated,
       // and never used to build a profile.

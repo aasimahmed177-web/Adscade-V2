@@ -180,6 +180,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   font-size:var(--t-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--gold);text-decoration:none;border:1px solid var(--adscade-border-strong);
   border-radius:999px;padding:.7rem 1.15rem;min-height:48px;display:inline-flex;align-items:center;
+  /* it is a <button> now, so the UA's buttonface background and font must be reset —
+     gold on the default light-grey button ground measures 1.6:1 */
+  background:none;font-family:var(--sans);cursor:pointer;white-space:nowrap;
 }
 .brandbar__fit:hover{background:rgba(226,185,91,.1)}
 
@@ -321,7 +324,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 }
 .leak__note{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0}
 
-
 /* comparison — pairs stay together so mobile can label them */
 .cmp{border:var(--hair);border-radius:14px;overflow:hidden}
 .cmp__head{
@@ -348,7 +350,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .report__row span{font-size:var(--t-body);color:var(--text)}
 .report__row b{font-family:var(--serif);font-size:var(--t-h4);color:var(--gold);font-weight:400;white-space:nowrap}
 .report__foot{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
-
 
 /* founder — its own band, deliberately away from the video */
 .founder{display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(1.8rem,5vw,3.5rem);align-items:center}
@@ -395,7 +396,7 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   border:1px solid rgba(201,160,74,.28);border-radius:4px;
   color:var(--cream);font-family:var(--sans);font-size:var(--t-body);min-height:52px;
 }
-.field input::placeholder{color:rgba(169,162,144,.7)}
+.field input::placeholder{color:#BDB5A3}   /* 4.01:1 at .7 alpha; this clears AA */
 /* Chrome/WebKit paint an opaque light-blue autofill background that cannot be overridden
    with background-color. A large inset shadow is the standard way to repaint the field
    while leaving autofill itself working. -webkit-text-fill-color is likewise the only
@@ -608,59 +609,25 @@ body.modal-open .dock{transform:translateY(110%)}
 }
 </style>
 
-
-<!-- ═══ brand bar ════════════════════════════════════════════════════ -->
 <div class="wrap">
   <div class="brandbar">
     <span class="brandbar__id">
       <img class="brandbar__mark" src="https://adscade.com/wp-content/uploads/2026/07/logo.png" alt="Adscade" width="146" height="132" fetchpriority="high" decoding="async">
       <span class="brandbar__name">Adscade</span>
     </span>
-    <a class="brandbar__fit" href="#book">Book a call</a>
+    <button class="brandbar__fit js-cta" type="button" data-keep-label>Book a call</button>
   </div>
 </div>
 
-<!-- ═══ hero ═════════════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="wrap">
     <p class="hero__kicker">For regional residential developers</p>
     <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
     <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and sales feedback into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified buyer conversations.</p>
 
-    <!-- VSL + booking rail -->
+    
     <div class="stage">
-      <!-- ══════════════════ VIDEO INTEGRATION ══════════════════════════
-           The final VSL is not yet supplied. This block is structurally ready
-           for a hosted MP4, a YouTube embed, a Vimeo embed or another player.
-
-           1. EMBED — replace the contents of .vsl__frame (keeping the 16:9
-              container and its class) with the player. Examples:
-                <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0"
-                        title="Adscade walkthrough" allowfullscreen
-                        style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
-                <video controls playsinline preload="none"
-                       poster="POSTER_URL" style="position:absolute;inset:0;width:100%;height:100%">
-                  <source src="VIDEO_URL.mp4" type="video/mp4">
-                  <track kind="captions" src="CAPTIONS.vtt" srclang="en" label="English" default>
-                </video>
-              Do NOT autoplay with sound. Keep playsinline for iOS Safari.
-
-           2. POSTER — replace the .vsl__poster data-URI below with the real
-              poster image. Keep width/height attributes so nothing shifts.
-
-           3. PROGRESS CALLBACKS — wire vsl_play / vsl_25_percent /
-              vsl_50_percent / vsl_75_percent / vsl_complete at the marked
-              point in the script block (search "VSL PROGRESS"). Until a real
-              player can report progress, those events stay unwired — see
-              docs/ADSCADE_TRACKING_SPEC.md.
-
-           4. CAPTIONS — add a <track kind="captions"> for a hosted file, or
-              enable captions in the YouTube/Vimeo settings.
-
-           5. END CARD — must read "Check Fit & Pick a Time" with the line
-              "Answer six questions, then choose an available slot." It must
-              not say Free Audit, Free Strategy Call or Claim Your Spot.
-      ══════════════════════════════════════════════════════════════════ -->
+      
       <div class="card vsl">
         <div class="vsl__frame">
           <img class="vsl__poster" width="1280" height="720" alt="" aria-hidden="true" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231A3322'/%3E%3Cstop offset='1' stop-color='%230F0D08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='320' height='180' fill='url(%23g)'/%3E%3Cg stroke='%23C9A04A' stroke-opacity='.14'%3E%3Cpath d='M0 45h320M0 90h320M0 135h320M80 0v180M160 0v180M240 0v180'/%3E%3C/g%3E%3Cg fill='none' stroke='%23E0B865' stroke-opacity='.45'%3E%3Crect x='96' y='48' width='128' height='16'/%3E%3Crect x='109' y='74' width='102' height='16'/%3E%3Crect x='122' y='100' width='76' height='16'/%3E%3Crect x='135' y='126' width='50' height='16'/%3E%3C/g%3E%3C/svg%3E">
@@ -692,7 +659,7 @@ body.modal-open .dock{transform:translateY(110%)}
         </ul>
         <button class="cta cta--wide js-cta" type="button">Tell Us About Your Project</button>
         <p class="cta-note">Five details, then choose an available slot.</p>
-        <p class="cta-note qual-note">Built for developers with active inventory, a structured follow-up process and ₹1&nbsp;lakh+ monthly media capacity.</p>
+        <p class="cta-note qual-note">Most suited to developers with active inventory, a structured follow-up process and ₹1&nbsp;lakh+ monthly media capacity.</p>
         <div class="rail__meta">
           <span>30 minutes, direct with <b>Aasim Ahmed</b></span>
         </div>
@@ -700,12 +667,11 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <div class="notice">
-      <b>Read this before you book:</b> this is for developers with unsold inventory in a <b>RERA-registered</b> project and a budget behind it. If the project isn't registered yet we legally cannot advertise it, and if there's nothing left to sell there's nothing to build a funnel for. The questions below will tell you either way before you spend time on a call.
+      <b>Read this before you book:</b> this is for developers with unsold inventory in a <b>RERA-registered</b> project and a budget behind it. If the project isn't registered yet we legally cannot advertise it, and if there's nothing left to sell there's nothing to build a funnel for. We confirm both with you on the call — the form doesn't ask.
     </div>
   </div>
 </header>
 
-<!-- ═══ trust strip ══════════════════════════════════════════════════ -->
 <div class="wrap">
   <div class="trust">
     <span>Funnel live in <b>one week</b></span>
@@ -713,7 +679,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </div>
 
-<!-- ═══ residential visual transition ═════════════════════════════ -->
 <section class="band band--light band--visual">
   <div class="wrap">
     <figure class="figure">
@@ -724,7 +689,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ signature: the leak ══════════════════════════════════════════ -->
 <section class="band band--light">
   <div class="wrap leak">
     <div>
@@ -765,7 +729,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ the difference + what's in it, merged ══════════════════════ -->
 <section class="band band--warm">
   <div class="wrap">
     <p class="eyebrow">The difference</p>
@@ -819,7 +782,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ sample report — proof of the differentiator ══════════════════ -->
 <section class="band band--light">
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Reporting</p>
@@ -850,7 +812,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ founder — deliberately its own section ═══════════════════════ -->
 <section class="band">
   <div class="wrap founder">
     <img class="founder__img" src="https://adscade.com/wp-content/uploads/2026/07/asim-ahmed.webp" alt="Aasim Ahmed, founder of Adscade" width="480" height="600" loading="lazy" decoding="async">
@@ -864,7 +825,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ qualification before volume ══════════════════════════════════ -->
 <section class="band band--light">
   <div class="wrap">
     <div class="guarantee">
@@ -876,8 +836,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ booking form ═════════════════════════════════════════════════ -->
-<!-- ═══ CTA band ══════════════════════════════════════════════════ -->
 <section class="band" id="book">
   <div class="wrap" style="text-align:center">
     <p class="eyebrow" style="text-align:center">Next step</p>
@@ -890,7 +848,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ Calendly — hidden until a lead is stored ════════════════════ -->
 <section class="band band--light" id="schedule" hidden>
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Scheduling</p>
@@ -906,7 +863,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ faq ══════════════════════════════════════════════════════════ -->
 <section class="band band--light">
   <div class="wrap" style="max-width:840px">
     <p class="eyebrow">Common questions</p>
@@ -940,7 +896,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ footer ═══════════════════════════════════════════════════════ -->
 <footer class="foot">
   <div class="wrap">
     <div class="foot__top">
@@ -971,7 +926,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </footer>
 
-<!-- ═══ lead modal ═════════════════════════════════════════════════ -->
 <div class="modal" id="lead-modal" hidden>
   <div class="modal__backdrop" data-close></div>
   <div class="modal__panel card" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
@@ -986,20 +940,20 @@ body.modal-open .dock{transform:translateY(110%)}
         <label>Company website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
       </div>
 
-      <div class="field">
+      <div class="field" aria-live="polite">
         <label for="name">Full name</label>
         <input type="text" id="name" name="name" autocomplete="name" required>
-        <span class="err" role="alert">Please enter your name.</span>
+        <span class="err" id="err-name" role="alert">Please enter your name.</span>
       </div>
-      <div class="field">
+      <div class="field" aria-live="polite">
         <label for="email">Work email</label>
         <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
-        <span class="err" role="alert">Enter a valid email address.</span>
+        <span class="err" id="err-email" role="alert">Enter a valid email address.</span>
       </div>
-      <div class="field">
+      <div class="field" aria-live="polite">
         <label for="phone">WhatsApp or phone number</label>
         <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or include country code" required>
-        <span class="err" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
+        <span class="err" id="err-phone" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
       </div>
 
       <fieldset class="qgroup">
@@ -1010,7 +964,7 @@ body.modal-open .dock{transform:translateY(110%)}
           <label class="opt"><input type="radio" name="inventory" value="50_99">50&ndash;99</label>
           <label class="opt"><input type="radio" name="inventory" value="100_plus">100+</label>
         </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick the closest range.</span></div>
+        <div class="errbox" data-radio-err aria-live="polite"><span class="err" id="err-inventory" role="alert">Pick the closest range.</span></div>
       </fieldset>
 
       <fieldset class="qgroup">
@@ -1021,18 +975,17 @@ body.modal-open .dock{transform:translateY(110%)}
           <label class="opt"><input type="radio" name="media_budget" value="3_5l">&#8377;3&ndash;5 lakh</label>
           <label class="opt"><input type="radio" name="media_budget" value="above_5l">Above &#8377;5 lakh</label>
         </div>
-        <div class="errbox" data-radio-err><span class="err" role="alert">Pick the closest range.</span></div>
+        <div class="errbox" data-radio-err aria-live="polite"><span class="err" id="err-media_budget" role="alert">Pick the closest range.</span></div>
       </fieldset>
 
       <label class="consent">
         <input type="checkbox" id="consent" name="consent" required>
         <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span>
       </label>
-      <div class="errbox" id="consent-err"><span class="err" role="alert">Please tick the consent box so we're allowed to contact you.</span></div>
+      <div class="errbox" id="consent-err" aria-live="polite"><span class="err" id="err-consent" role="alert">Please tick the consent box so we're allowed to contact you.</span></div>
 
       <button class="cta cta--wide" type="submit">Continue</button>
-      <!-- aria-live on the container, not the message: a role="alert" that is display:none
-           at parse time is not reliably announced when it later appears. -->
+      
       <div class="errbox" id="submit-err" aria-live="assertive" aria-atomic="true">
         <span class="err">We couldn't save your details. Check your connection and try again, or <a href="https://wa.me/917019698301" target="_blank" rel="noopener">contact us on WhatsApp</a>.</span>
       </div>
@@ -1041,7 +994,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </div>
 
-<!-- ═══ sticky mobile dock ═══════════════════════════════════════════ -->
 <div class="dock" id="dock">
   <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
   <button class="dock__x" id="dock-x" type="button" aria-label="Hide this bar">&times;</button>
@@ -1168,7 +1120,13 @@ body.modal-open .dock{transform:translateY(110%)}
 
   function paintCtas(){
     ctaButtons().forEach(function(el){
-      el.textContent = leadStored ? LABEL_AFTER : LABEL_BEFORE;
+      // The header pill is a narrow shortcut, not a primary CTA. Painting the long label
+      // into it wrapped it to two lines and made the whole header 49px taller on every
+      // page load; when the label later shortened, scroll anchoring yanked the page.
+      // It keeps its own short label and only takes the click behaviour.
+      if (!el.hasAttribute('data-keep-label')) {
+        el.textContent = leadStored ? LABEL_AFTER : LABEL_BEFORE;
+      }
       el.setAttribute('aria-haspopup', leadStored ? 'false' : 'dialog');
     });
   }
@@ -1207,8 +1165,18 @@ body.modal-open .dock{transform:translateY(110%)}
     document.body.classList.add('modal-open');
     dock.classList.add('hide');
     track('lead_modal_open', null, true);
-    var first = panel.querySelector('input');
+    // #name explicitly. panel.querySelector('input') returned the HONEYPOT — it is the
+    // first input in the panel, it sits at x:-9862 inside an aria-hidden subtree, and a
+    // visitor who started typing straight after opening the modal filled it. The server
+    // then discarded a complete, valid lead as bot traffic and the visitor saw only the
+    // generic save error. Silent, total lead loss.
+    var first = panel.querySelector('#name');
     if (first) first.focus({preventScroll:true}); else panel.focus({preventScroll:true});
+
+    // One idempotency key per modal-open, not per submit. A retry after a timeout must
+    // reuse the key or the server cannot recognise the replay and writes a second lead.
+    currentSubmissionId = (crypto.randomUUID ? crypto.randomUUID()
+                           : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2));
   }
 
   function closeModal(){
@@ -1239,6 +1207,21 @@ body.modal-open .dock{transform:translateY(110%)}
   /* ══ form ════════════════════════════════════════════════════════ */
   var form = document.getElementById('lead-form');
 
+  var currentSubmissionId = null;
+
+  /* Mark or clear a control's invalid state for assistive tech. The visual .invalid class
+     alone tells a screen reader nothing. */
+  function setInvalid(el, bad, errId){
+    if (!el) return;
+    if (bad){
+      el.setAttribute('aria-invalid','true');
+      if (errId) el.setAttribute('aria-describedby', errId);
+    } else {
+      el.removeAttribute('aria-invalid');
+      el.removeAttribute('aria-describedby');
+    }
+  }
+
   function validate(){
     var ok = true;
 
@@ -1257,6 +1240,7 @@ body.modal-open .dock{transform:translateY(110%)}
       }
       if (el.type === 'email') bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
       if (f) f.classList.toggle('invalid', bad);
+      setInvalid(el, bad, 'err-' + el.id);
       if (bad) ok = false;
     });
 
@@ -1265,15 +1249,33 @@ body.modal-open .dock{transform:translateY(110%)}
       var box = form.querySelector('input[name="' + nm + '"]').closest('.qgroup')
                     .querySelector('[data-radio-err]');
       if (box) box.classList.toggle('invalid', !picked);
+      form.querySelectorAll('input[name="' + nm + '"]').forEach(function(r){
+        setInvalid(r, !picked, 'err-' + nm);
+      });
       if (!picked) ok = false;
     });
 
     var consent = document.getElementById('consent');
     var cErr = document.getElementById('consent-err');
     cErr.classList.toggle('invalid', !consent.checked);
+    setInvalid(consent, !consent.checked, 'err-consent');
     if (!consent.checked) ok = false;
 
     return ok;
+  }
+
+  /* The modal body scrolls independently, so an invalid field can sit hundreds of pixels
+     above the visible area. Without this the visitor taps Continue, nothing appears to
+     happen, and they leave. Bring the first problem into view and put the caret in it. */
+  function revealFirstInvalid(){
+    var el = form.querySelector('.field.invalid input, [data-radio-err].invalid')
+          || (document.getElementById('consent-err').classList.contains('invalid')
+              ? document.getElementById('consent') : null);
+    if (!el) return;
+    var target = el.closest('.field, .qgroup, .consent') || el;
+    target.scrollIntoView({block:'center', behavior:'smooth'});
+    var focusable = el.matches('input') ? el : el.querySelector('input');
+    if (focusable) setTimeout(function(){ focusable.focus({preventScroll:true}); }, 220);
   }
 
   form.addEventListener('input', function(e){
@@ -1396,13 +1398,12 @@ body.modal-open .dock{transform:translateY(110%)}
   form.addEventListener('submit', async function(e){
     e.preventDefault();
     if (submitting) return;                       // a double click must not double-post
-    if (!validate()) return;
+    if (!validate()) { revealFirstInvalid(); return; }
 
     document.getElementById('submit-err').classList.remove('invalid');
     var d = new FormData(form);
     var payload = {
-      submissionId: (crypto.randomUUID ? crypto.randomUUID()
-                     : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
+      submissionId: currentSubmissionId,
       timestamp:    new Date().toISOString(),
       name:         (d.get('name')  || '').trim(),
       email:        (d.get('email') || '').trim(),

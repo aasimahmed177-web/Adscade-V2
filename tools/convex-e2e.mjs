@@ -61,7 +61,7 @@ const y0 = await p.evaluate(() => window.scrollY);
 const url0 = p.url();
 
 t('Calendly hidden before submission', await p.evaluate(() => document.getElementById('schedule').hidden));
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 t('initial CTA opened the modal', await p.evaluate(() => !document.getElementById('lead-modal').hidden));
 
 await fill(p);
@@ -72,7 +72,7 @@ const after = await p.evaluate(() => ({
   modalClosed: document.getElementById('lead-modal').hidden,
   scheduleShown: !document.getElementById('schedule').hidden,
   y: window.scrollY,
-  labels: [...document.querySelectorAll('.cta:not([type=submit]), .js-cta')]
+  labels: [...document.querySelectorAll('.cta:not([type=submit]):not([data-keep-label]), .js-cta:not([data-keep-label])')]
     .filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()),
 }));
 t('modal closed', after.modalClosed);
@@ -119,7 +119,7 @@ t('page URL carries no personal data', !/priya|9845|nairbuilders/i.test(p.url())
 /* ── later CTA clicks scroll to Calendly ──────────────────────────── */
 await p.evaluate(() => window.scrollTo(0, 0));
 await p.waitForTimeout(250);
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await p.waitForTimeout(1600);
 t('later CTA scrolls to Calendly', await p.evaluate(() => {
   const r = document.getElementById('schedule').getBoundingClientRect();
@@ -132,7 +132,7 @@ await p.close();
 console.log('\n— real 422 from the real backend —');
 const countBefore = count();
 p = await open();
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 // An address the CLIENT accepts and the SERVER rejects, so the rejection genuinely comes
 // from Convex: the client regex allows any dot-bearing domain, the server additionally
 // forbids empty labels. No stubbing — this is a real 422 over the wire.
@@ -157,7 +157,7 @@ await p.close();
 console.log('\n— double submit through the real stack —');
 const n0 = count();
 p = await open();
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await fill(p, { email: 'dupe@nairbuilders.in' });
 await p.evaluate(() => {
   const btn = document.querySelector('#lead-form button[type=submit]');

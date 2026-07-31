@@ -28,6 +28,13 @@ export function buildWidget(src) {
   if (i < 0 || j < 8 || k < 6 || m < 0) throw new Error('cannot locate style/body boundaries');
   let out = src.slice(i, j) + '\n' + src.slice(k, m);
   for (const [from, to] of Object.entries(WP)) out = out.split(from).join(to);
+  // Strip HTML comments. They are build notes for whoever edits site/index.html — VSL
+  // integration steps, end-card wording, rationale — and none of it belongs in the source
+  // of a public page a competitor can read. CSS comments inside <style> are preserved,
+  // because removing them safely needs a real CSS parser and they carry no instructions.
+  const styleEnd = out.indexOf('</style>') + 8;
+  out = out.slice(0, styleEnd) + out.slice(styleEnd).replace(/<!--[\s\S]*?-->/g, '');
+  out = out.replace(/\n{3,}/g, '\n\n');
   return out.trim() + '\n';
 }
 

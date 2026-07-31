@@ -119,8 +119,19 @@ console.log('\n— dialog behaviour —');
   }));
   t('heading is inside the sticky header',
     await p.evaluate(() => !!document.querySelector('.modal__head #modal-title')));
-  t('focus starts inside the dialog',
-    await p.evaluate(() => document.getElementById('lead-modal').contains(document.activeElement)));
+  // "inside the dialog" was too weak: the honeypot is inside the dialog, and focus landed
+  // on it, so a visitor who typed on open filled it and their lead was discarded as bot
+  // traffic. Assert the exact element.
+  t('focus starts on the first real field, not the honeypot', await p.evaluate(() => {
+    const a = document.activeElement;
+    return a && a.id === 'name' && !a.closest('[aria-hidden="true"]');
+  }), await p.evaluate(() => document.activeElement.name || document.activeElement.id));
+  t('typing straight after opening goes into the name field, not the honeypot', await (async () => {
+    await p.keyboard.type('Rajesh Kumar');
+    return await p.evaluate(() => document.querySelector('input[name="website"]').value === ''
+      && document.getElementById('name').value === 'Rajesh Kumar');
+  })());
+  await p.fill('#name', '');
   await p.evaluate(() => {
     const f = [...document.querySelectorAll('#lead-modal button, #lead-modal input, #lead-modal a')]
       .filter(e => e.offsetParent !== null);
@@ -132,6 +143,50 @@ console.log('\n— dialog behaviour —');
   t('Escape closes', await p.evaluate(() => document.getElementById('lead-modal').hidden));
   t('focus returns to the opener', await p.evaluate(() =>
     document.activeElement && document.activeElement.classList.contains('js-cta')));
+  await p.close();
+}
+
+/* ── invalid fields must be findable ──────────────────────────────── */
+console.log('\n— validation feedback —');
+{
+  const p = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+  await p.goto('file://' + process.cwd() + '/site/index.html'); await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('.js-cta').click());
+  // Everything valid EXCEPT the name, then scroll to the bottom and submit — the failure
+  // the visitor actually hits, where the error is far above the visible area.
+  await p.fill('#email', 'rajesh@kumardev.in');
+  await p.fill('#phone', '9876543210');
+  await p.check('input[name="inventory"][value="100_plus"]');
+  await p.check('input[name="media_budget"][value="above_5l"]');
+  await p.check('#consent');
+  await p.evaluate(() => { const bd = document.querySelector('.modal__body'); bd.scrollTop = bd.scrollHeight; });
+  await p.waitForTimeout(200);
+  await p.click('#lead-form button[type=submit]');
+  await p.waitForTimeout(900);
+  const v = await p.evaluate(() => {
+    const err = document.querySelector('.field.invalid .err');
+    const body = document.querySelector('.modal__body').getBoundingClientRect();
+    const r = err.getBoundingClientRect();
+    return {
+      visible: r.top >= body.top - 1 && r.bottom <= body.bottom + 1,
+      focused: document.activeElement && document.activeElement.id === 'name',
+      ariaInvalid: document.getElementById('name').getAttribute('aria-invalid'),
+      describedby: document.getElementById('name').getAttribute('aria-describedby'),
+      describedTargetExists: !!document.getElementById(
+        document.getElementById('name').getAttribute('aria-describedby') || ''),
+    };
+  });
+  t('the invalid field is scrolled into view', v.visible);
+  t('focus moves to the invalid field', v.focused);
+  t('invalid field is marked aria-invalid', v.ariaInvalid === 'true', String(v.ariaInvalid));
+  t('invalid field points at its error text', v.describedby === 'err-name' && v.describedTargetExists,
+    String(v.describedby));
+  // clears once corrected
+  await p.fill('#name', 'Rajesh Kumar');
+  await p.click('#lead-form button[type=submit]');
+  await p.waitForTimeout(400);
+  t('aria-invalid clears once corrected',
+    await p.evaluate(() => document.getElementById('name').getAttribute('aria-invalid') === null));
   await p.close();
 }
 

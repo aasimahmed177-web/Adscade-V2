@@ -35,7 +35,7 @@ async function fill(p, over = {}) {
 
 /* ── initial CTA state ────────────────────────────────────────────── */
 let p = await page();
-const initial = await p.$$eval('.cta:not([type=submit]):not([data-next]):not([data-back]), .js-cta',
+const initial = await p.$$eval('.cta:not([type=submit]):not([data-next]):not([data-back]):not([data-keep-label]), .js-cta:not([data-keep-label])',
   els => els.filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()));
 t(`all CTAs start as "Tell Us About Your Project" (${initial.length} found)`,
   initial.length >= 3 && initial.every(x => x === 'Tell Us About Your Project'));
@@ -44,10 +44,10 @@ t('Calendly section is hidden on load', await p.evaluate(() => document.getEleme
 
 /* ── every CTA opens the same modal ───────────────────────────────── */
 const ctaCount = await p.evaluate(() =>
-  [...document.querySelectorAll('.cta, .js-cta')].filter(e => !e.closest('#lead-modal') && !e.closest('.dock')).length);
+  [...document.querySelectorAll('.cta:not([data-keep-label]), .js-cta:not([data-keep-label])')].filter(e => !e.closest('#lead-modal') && !e.closest('.dock')).length);
 for (let i = 0; i < ctaCount; i++) {
   await p.evaluate(i => {
-    const list = [...document.querySelectorAll('.cta, .js-cta')].filter(e => !e.closest('#lead-modal') && !e.closest('.dock'));
+    const list = [...document.querySelectorAll('.cta:not([data-keep-label]), .js-cta:not([data-keep-label])')].filter(e => !e.closest('#lead-modal') && !e.closest('.dock'));
     list[i].click();
   }, i);
   const open = await p.evaluate(() => !document.getElementById('lead-modal').hidden);
@@ -57,7 +57,7 @@ for (let i = 0; i < ctaCount; i++) {
 t(`every one of ${ctaCount} CTAs opens the modal`, true);
 
 /* ── modal accessibility ──────────────────────────────────────────── */
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 t('dialog semantics present', await p.evaluate(() => {
   const d = document.querySelector('#lead-modal .modal__panel');
   return d.getAttribute('role') === 'dialog' && d.getAttribute('aria-modal') === 'true'
@@ -82,12 +82,12 @@ t('scroll lock released on close', await p.evaluate(() => !document.body.classLi
 t('focus returns to the CTA that opened it', await p.evaluate(() =>
   document.activeElement && document.activeElement.classList.contains('js-cta')));
 
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await p.click('#lead-modal .modal__x');
 t('close button closes the modal', await p.evaluate(() => document.getElementById('lead-modal').hidden));
 
 /* ── validation ───────────────────────────────────────────────────── */
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await p.click('#lead-form button[type=submit]');
 t('empty form blocks submit', await p.evaluate(() => !document.getElementById('lead-modal').hidden));
 t('field errors shown', await p.evaluate(() => document.querySelectorAll('.field.invalid').length >= 3));
@@ -134,7 +134,7 @@ for (const [label, impl] of [
 ]) {
   p = await page();
   if (impl) await stub(p, impl);
-  await p.evaluate(() => document.querySelector('.js-cta').click());
+  await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
   await fill(p);
   await p.click('#lead-form button[type=submit]');
   await p.waitForTimeout(600);
@@ -142,7 +142,7 @@ for (const [label, impl] of [
     err: document.getElementById('submit-err').classList.contains('invalid'),
     modalOpen: !document.getElementById('lead-modal').hidden,
     scheduleHidden: document.getElementById('schedule').hidden,
-    ctaLabel: document.querySelector('.js-cta').textContent.trim(),
+    ctaLabel: document.querySelector('.js-cta:not([data-keep-label])').textContent.trim(),
     retryable: !document.querySelector('#lead-form button[type=submit]').disabled,
   }));
   t(`${label} → error, modal stays open, no Calendly, retryable`,
@@ -161,7 +161,7 @@ await p.evaluate(() => {
 });
 await p.waitForTimeout(200);
 const scrollBefore = await p.evaluate(() => window.scrollY);
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await fill(p);
 await p.click('#lead-form button[type=submit]');
 await p.waitForTimeout(900);
@@ -171,7 +171,7 @@ const after = await p.evaluate(() => ({
   scheduleShown:!document.getElementById('schedule').hidden,
   successShown: !document.getElementById('cta-success').hidden,
   scrollY:      window.scrollY,
-  labels: [...document.querySelectorAll('.cta, .js-cta')]
+  labels: [...document.querySelectorAll('.cta:not([data-keep-label]), .js-cta:not([data-keep-label])')]
             .filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()),
   state: window.__adscadeState(),
 }));
@@ -199,7 +199,7 @@ t('no PII in dataLayer', !/Rajesh|rajesh@|9876543210/.test(JSON.stringify(await 
 /* ── post-submission CTA scrolls to Calendly ──────────────────────── */
 await p.evaluate(() => window.scrollTo(0, 0));
 await p.waitForTimeout(200);
-await p.evaluate(() => document.querySelector('.js-cta').click());
+await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await p.waitForTimeout(1500);   // scrollIntoView({behavior:'smooth'}) ignores the root override
 t('CTA after submission scrolls to Calendly', await p.evaluate(() => {
   const r = document.getElementById('schedule').getBoundingClientRect();
@@ -210,7 +210,7 @@ t('modal does not reopen after submission', await p.evaluate(() => document.getE
 /* ── double submission ────────────────────────────────────────────── */
 const p2 = await page();
 await stub(p2, `async () => { await new Promise(r=>setTimeout(r,300)); return {ok:true, json: async()=>({ok:true, stored:true})}; }`);
-await p2.evaluate(() => document.querySelector('.js-cta').click());
+await p2.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await fill(p2);
 await p2.evaluate(() => {
   const b = document.querySelector('#lead-form button[type=submit]');
