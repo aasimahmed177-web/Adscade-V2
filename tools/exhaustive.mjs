@@ -168,6 +168,23 @@ t('partial answers cannot qualify',           bad.partial.outcome==='not_current
 t('unknown answer keys score nothing',        bad.unknown.score===0 && bad.unknown.outcome==='not_current_fit');
 t('a client-injected score field is ignored', bad.injected.score===100);
 
+// A partial submission can reach 70 points from four answers alone. Without the
+// completeness guard that would auto-qualify, so the guard needs its own test.
+const hi = await p.evaluate(() => ({
+  four: window.__adscadeEvaluate({role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',rera:'yes'}),
+  five: window.__adscadeEvaluate({role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',rera:'yes'}),
+  six:  window.__adscadeEvaluate({role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',followup:'crm',bottleneck:'low_quality',rera:'yes'}),
+}));
+t(`4 of 6 answered scores ${hi.four.score} but cannot qualify`,
+  hi.four.score >= 65 && hi.four.outcome === 'not_current_fit' && hi.four.complete === false);
+t(`5 of 6 answered scores ${hi.five.score} but cannot qualify`,
+  hi.five.score >= 65 && hi.five.outcome === 'not_current_fit' && hi.five.complete === false);
+t('the same answers complete DO qualify', hi.six.outcome === 'qualified' && hi.six.complete === true);
+t('a missing RERA answer is treated as ineligible',
+  (await p.evaluate(() => window.__adscadeEvaluate(
+    {role:'founder',inventory:'100_plus',price_band:'above_150',media_budget:'above_3l',
+     followup:'crm',bottleneck:'low_quality'}).outcome)) === 'not_current_fit');
+
 await b.close();
 console.log(fails ? `\n${fails} FAILED\n` : '\nall passed\n');
 process.exit(fails ? 1 : 0);

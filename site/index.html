@@ -1303,20 +1303,33 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
      Until it is set, submitLead REJECTS. The form then shows its error state.
      It must never report success for a lead that was not stored.
   ─────────────────────────────────────────────────────────────────── */
+  var VALID_OUTCOMES = ['qualified','manual_review','not_current_fit'];
+
   async function submitLead(payload){
     if (!window.ADSCADE_ENDPOINT) {
       throw new Error('No submission endpoint configured — lead not stored.');
     }
-    var res = await fetch(window.ADSCADE_ENDPOINT, {
-      method: 'POST',
-      headers: Object.assign(
-        {'Content-Type': 'application/json'},
-        window.ADSCADE_NONCE ? {'X-WP-Nonce': window.ADSCADE_NONCE} : {}
-      ),
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('Submission failed: ' + res.status);
-    return res.json();
+    // 12s ceiling: a hung request must surface as an error, never as a silent success.
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = ctrl && setTimeout(function(){ ctrl.abort(); }, 12000);
+    try {
+      var res = await fetch(window.ADSCADE_ENDPOINT, {
+        method: 'POST',
+        headers: Object.assign({'Content-Type':'application/json'},
+          window.ADSCADE_NONCE ? {'X-WP-Nonce': window.ADSCADE_NONCE} : {}),
+        body: JSON.stringify(payload),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      if (!res.ok) throw new Error('Submission failed: ' + res.status);
+      var data = await res.json();
+      // The backend is authoritative. A 200 that does not carry a recognised outcome is
+      // an invalid response, not permission to fall back to the browser's own verdict —
+      // falling back is exactly how an unqualified visitor would reach the calendar.
+      if (!data || data.ok !== true || VALID_OUTCOMES.indexOf(data.outcome) === -1) {
+        throw new Error('Invalid response from submission endpoint.');
+      }
+      return data;
+    } finally { if (timer) clearTimeout(timer); }
   }
 
   /* ── Calendly, loaded only after a qualified lead is stored ──────── */
@@ -1413,10 +1426,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
       var saved = await submitLead(payload);
       window.__adscadeSubmissionId = payload.submission_id;
 
-      // The server recomputes the score independently. Where it answers, its verdict
-      // is authoritative — otherwise a future edit to only one of the two scoring
-      // tables could show "you're a fit" while the stored record says otherwise.
-      var outcome = (saved && saved.outcome) || verdict.outcome;
+      // submitLead() has already rejected anything without a recognised outcome, so
+      // this is always the server's verdict — the browser never decides.
+      var outcome = saved.outcome;
 
       track('contact_details_submitted', null, true);
       track('qualification_form_complete', null, true);

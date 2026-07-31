@@ -43,7 +43,7 @@ console.log(' ', t('dock hides while the form is on screen',
 
 await p.evaluate(() => {
   window.ADSCADE_ENDPOINT='/stub';
-  window.fetch = async () => ({ok:true, json: async()=>({ok:true})});
+  window.fetch = async () => ({ok:true, json: async()=>({ok:true, outcome:'qualified'})});
 });
 const keys=[['role','founder'],['inventory','100_plus'],['price_band','above_150'],
             ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
@@ -68,7 +68,7 @@ const f = await (await b.newContext({viewport:{width:390,height:844}})).newPage(
 await f.route('**/assets.calendly.com/**', r => r.abort());
 await f.goto(URL); await f.waitForTimeout(400);
 await f.evaluate(()=>{ window.ADSCADE_ENDPOINT='/stub';
-  window.fetch = async () => ({ok:true, json: async()=>({ok:true})}); });
+  window.fetch = async () => ({ok:true, json: async()=>({ok:true, outcome:'qualified'})}); });
 const A=[['role','founder'],['inventory','100_plus'],['price_band','above_150'],
         ['media_budget','above_3l'],['followup','crm'],['bottleneck','low_quality']];
 for (let i=0;i<A.length;i++){ await f.check(`input[name="${A[i][0]}"][value="${A[i][1]}"]`); await f.click(`[data-step="${i}"] [data-next]`); }

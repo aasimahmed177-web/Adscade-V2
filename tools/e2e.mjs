@@ -50,7 +50,7 @@ t('unconfigured endpoint shows an error, never a fake success',
 await p.evaluate(() => {
   window.ADSCADE_ENDPOINT = '/stub';
   window.__posted = [];
-  window.fetch = async (u, o) => { const b=JSON.parse(o.body); window.__posted.push(b); return {ok:true, json: async()=>({ok:true, outcome:b.outcome})}; };
+  window.fetch = async (u, o) => { const b=JSON.parse(o.body); window.__posted.push(b); return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:b.outcome})}; };
 });
 await p.click('button[type=submit]');
 await p.waitForTimeout(700);
@@ -80,11 +80,57 @@ t('primary_cta_click ignores in-form navigation', (() => {
   return !clicks.some(c => /^(Continue|Check Fit|Back)$/i.test(c));
 })());
 
-t('server outcome is what gates the panel', await p.evaluate(async () => {
-  // server disagrees with the client — the server must win
-  window.fetch = async () => ({ok:true, json: async()=>({ok:true, outcome:'manual_review'})});
-  return true;
-}));
+/* ── the server, not the browser, decides what the visitor sees ──────── */
+async function submitWith(fetchImpl, answers) {
+  await p.goto(URL); await p.waitForTimeout(250);
+  await p.evaluate(f => {
+    window.ADSCADE_ENDPOINT = '/stub';
+    // eslint-disable-next-line no-new-func
+    window.fetch = new Function('return ' + f)();
+  }, fetchImpl);
+  const a = answers || {role:'founder',inventory:'100_plus',price_band:'above_150',
+                        media_budget:'above_3l',followup:'crm',bottleneck:'low_quality'};
+  const keys = ['role','inventory','price_band','media_budget','followup','bottleneck'];
+  for (let i = 0; i < keys.length; i++) { await pick(keys[i], a[keys[i]]); await next(i); }
+  await p.fill('#name','T'); await p.fill('#company','T Developers');
+  await p.fill('#project_city','Indore'); await p.fill('#email','t@t.in');
+  await p.fill('#phone','9876543210');
+  await p.check('input[name="rera"][value="yes"]'); await p.check('#consent');
+  await p.click('button[type=submit]'); await p.waitForTimeout(800);
+  return p.evaluate(() => ({
+    qualified: document.getElementById('done-qualified').classList.contains('on'),
+    review:    document.getElementById('done-review').classList.contains('on'),
+    nofit:     document.getElementById('done-nofit').classList.contains('on'),
+    error:     document.getElementById('submit-err').classList.contains('invalid'),
+  }));
+}
+
+// Client scores 100 → qualified. Server says manual_review. The server must win.
+let r = await submitWith(`async () => ({ok:true, json: async()=>({ok:true, outcome:'manual_review'})})`);
+t('server verdict overrides a qualifying client score', r.review && !r.qualified);
+
+r = await submitWith(`async () => ({ok:true, json: async()=>({ok:true, outcome:'not_current_fit'})})`);
+t('server can downgrade to not-a-fit', r.nofit && !r.qualified);
+
+/* ── a failed save must never look like success ─────────────────────── */
+for (const [label, impl] of [
+  ['400', `async () => ({ok:false, status:400, json: async()=>({ok:false})})`],
+  ['401', `async () => ({ok:false, status:401, json: async()=>({ok:false})})`],
+  ['403', `async () => ({ok:false, status:403, json: async()=>({ok:false})})`],
+  ['422', `async () => ({ok:false, status:422, json: async()=>({ok:false,code:'validation_error',fields:['email']})})`],
+  ['429', `async () => ({ok:false, status:429, json: async()=>({ok:false})})`],
+  ['500', `async () => ({ok:false, status:500, json: async()=>({ok:false})})`],
+  ['network failure', `async () => { throw new Error('network'); }`],
+  ['malformed JSON',  `async () => ({ok:true, json: async()=>{ throw new SyntaxError('bad json'); }})`],
+]) {
+  r = await submitWith(impl);
+  t(`${label} → error shown, no outcome panel, no Calendly`,
+    r.error && !r.qualified && !r.review && !r.nofit);
+}
+
+// A response missing `outcome` must not be treated as a qualified save.
+r = await submitWith(`async () => ({ok:true, json: async()=>({ok:true})})`);
+t('response without an outcome does not open the calendar', !r.qualified);
 
 t('calendly embed targets the correct event URL', await p.evaluate(() =>
   document.body.innerHTML.includes('calendly.com/aasim-ahmed177/realestate-growth-systems')));
@@ -94,7 +140,7 @@ async function runFlow(answers) {
   await p.goto(URL); await p.waitForTimeout(300);
   await p.evaluate(() => {
     window.dataLayer = []; window.ADSCADE_ENDPOINT = '/stub'; window.__posted = [];
-    window.fetch = async (u,o) => { const b=JSON.parse(o.body); window.__posted.push(b); return {ok:true, json: async()=>({ok:true, outcome:b.outcome})}; };
+    window.fetch = async (u,o) => { const b=JSON.parse(o.body); window.__posted.push(b); return {ok:true, json: async()=>({ok:true, submissionId:b.submission_id, outcome:b.outcome})}; };
   });
   const keys = ['role','inventory','price_band','media_budget','followup','bottleneck'];
   for (let i = 0; i < keys.length; i++) { await pick(keys[i], answers[keys[i]]); await next(i); }
