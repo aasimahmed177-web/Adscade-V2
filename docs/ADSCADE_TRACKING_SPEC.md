@@ -1,6 +1,10 @@
 # Adscade — Tracking Specification
 
-Version 1.0 · 31 July 2026 · Landing page — current slug `/vsl-5/` (configurable; no slug is hard-coded in the page)
+Version 2.0 · 31 July 2026 · Landing page — current slug `/vsl-4/` (configurable; no slug is hard-coded in the page)
+
+> **What changed in v2.** Scoring and the three outcome states were removed, so
+> `qualification_outcome`, `qualification_question_complete` and `score_band` are gone. The
+> CTA is now a two-state machine, which needs two distinct click events rather than one.
 
 **Google Tag Manager is not installed.** No container script is present, and none will be
 added without a container ID supplied by the owner. The page publishes to
@@ -12,8 +16,8 @@ added without a container ID supplied by the owner. The page publishes to
 
 1. **No personally identifying data ever enters an event.** Name, email, phone, company and
    free-text project details are sent to the storage endpoint only, never to `dataLayer`.
-2. **No numeric score leaves the page.** Only a coarse `score_band` is emitted. The exact
-   score is computed and stored server-side.
+2. **No score exists to leak.** There is no scoring model. Nothing on the page produces a
+   verdict about a visitor, so no event carries one.
 3. **Every event fires at most once** where a repeat would be meaningless. Listeners are
    registered once, at load.
 4. **Attribution is attached to every event** from the URL that brought the visitor.
@@ -45,35 +49,63 @@ function track(event, data, once) {
 
 ## Event schema
 
+Nine events. Every one of them is in `site/index.html`; nothing here is aspirational except
+the four VSL progress events, which are called out below.
+
 | Event | Fires when | Once | Parameters |
 |---|---|---|---|
-| `vsl_play` | Visitor starts the video | yes | — |
-| `vsl_25_percent` | 25% watched | yes | — |
-| `vsl_50_percent` | 50% watched | yes | — |
-| `vsl_75_percent` | 75% watched | yes | — |
-| `vsl_complete` | Video finished | yes | — |
-| `primary_cta_click` | Any primary CTA clicked | no | `cta_text` |
-| `qualification_form_start` | First "Continue" pressed | yes | — |
-| `qualification_question_complete` | Each question answered and advanced | no | `question_number` (1–6), `answer_key` |
-| `contact_details_submitted` | Contact step successfully saved | yes | — |
-| `qualification_form_complete` | Submission stored | yes | — |
-| `qualification_outcome` | Immediately after storage | yes | `outcome`, `score_band` |
-| `calendar_view` | Calendly embed actually rendered | yes | — |
+| `main_vsl_play` | Visitor starts the video | yes | — |
+| `initial_cta_click` | A CTA is clicked **before** the lead is stored | no | `cta_text` |
+| `lead_modal_open` | The modal opens | yes | — |
+| `lead_form_start` | First interaction with any field in the modal | yes | — |
+| `lead_form_submit` | Submit pressed and client validation passed | yes | — |
+| `lead_form_stored` | Server confirmed storage | yes | — |
+| `scheduling_cta_click` | A CTA is clicked **after** the lead is stored | no | `cta_text` |
+| `calendar_view` | Calendly embed actually rendered (iframe confirmed present) | yes | — |
 | `booked_call` | **Confirmed** Calendly scheduling event | yes | — |
+
+### The two CTA events are the point
+
+`initial_cta_click` and `scheduling_cta_click` come from the same buttons — the same DOM
+elements, relabelled in place. Splitting them is what makes the funnel legible:
+
+```
+initial_cta_click → lead_modal_open → lead_form_start → lead_form_submit
+                  → lead_form_stored → calendar_view → booked_call
+                                     ↘ scheduling_cta_click (return visits to the calendar)
+```
+
+A drop between `lead_form_submit` and `lead_form_stored` is a **backend or validation
+problem**, not a copy problem — the visitor did everything asked and the storage call
+failed. That gap is the single most important thing to watch after launch, and it did not
+exist as a measurable step in v1.
+
+`scheduling_cta_click` firing repeatedly is normal and healthy: it means a visitor who
+already gave their details is scrolling back to the calendar. It is not a re-submission.
 
 ### Controlled values
 
-- `outcome` — `qualified` · `manual_review` · `not_current_fit`
-- `score_band` — `high` (≥65) · `medium` (50–64) · `low` (<50)
-- `answer_key` — the option slug, e.g. `founder`, `100_plus`, `above_3l`. Never free text.
+- `cta_text` — the rendered button label, which is one of exactly two strings:
+  `Tell Us About Your Project` or `Choose a Time`. It is a label, not free text.
+
+### Retired in v2
+
+`primary_cta_click` · `qualification_form_start` · `qualification_question_complete` ·
+`contact_details_submitted` · `qualification_form_complete` · `qualification_outcome` ·
+`score_band` · `outcome` · `answer_key`.
+
+If any of these appear in a container, the container is configured against v1 and will
+report a funnel that no longer exists. `tools/e2e.mjs` asserts that no event name matching
+`/qualification|score/` is ever pushed.
 
 ---
 
 ## VSL events — not yet active
 
-The real video has not been supplied. **No progress event is fabricated.** `vsl_play`
-currently fires from the placeholder's disclosure control, and the four progress events are
-specified but not wired.
+The real video has not been supplied. **No progress event is fabricated.** `main_vsl_play`
+currently fires from the placeholder's disclosure control, and the four progress events
+below are specified but **not wired** — they do not appear in the page and must not be
+configured as triggers until the player is installed.
 
 When the player is installed, connect progress at the marked point in `site/index.html`
 (search `VIDEO INTEGRATION`):
@@ -81,7 +113,7 @@ When the player is installed, connect progress at the marked point in `site/inde
 ```js
 // YouTube IFrame API
 player.addEventListener('onStateChange', e => {
-  if (e.data === YT.PlayerState.PLAYING) track('vsl_play', null, true);
+  if (e.data === YT.PlayerState.PLAYING) track('main_vsl_play', null, true);
 });
 setInterval(() => {
   const pct = player.getCurrentTime() / player.getDuration() * 100;
@@ -113,7 +145,10 @@ It must **never** fire on: embed load · calendar view · date selection · time
 closing the calendar. The origin check is strict — a message from any other origin is
 ignored, so a hostile page cannot forge a conversion.
 
-On confirmation the page also PATCHes the stored lead to set `calendly_booked = 1`.
+The authoritative record of a booking is the **Calendly webhook**, verified by HMAC and
+correlated on the server-minted `calendarToken` — see `docs/CONVEX_LEAD_CAPTURE_SPEC.md` §9.
+`booked_call` is the analytics signal for the same event; the two are independent on
+purpose, because a `postMessage` from a browser is not evidence.
 
 ---
 
@@ -139,6 +174,9 @@ Before switching tracking on, in order:
 4. GTM container script is added (header + body).
 5. Verify in GTM Preview: each event fires once, carries attribution, and carries **no PII**.
 6. Confirm `booked_call` fires only after a real test booking — not on opening the calendar.
+7. Confirm no event carries `name`, `email`, `phone` or `cta_text` other than the two
+   permitted labels. `tools/e2e.mjs` checks this against the stub; check it again in GTM
+   Preview against the real container.
 
 Until step 1, the page is correct and complete as it stands: it publishes events that
 nothing yet reads.

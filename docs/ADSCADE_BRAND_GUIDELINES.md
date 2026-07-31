@@ -1,7 +1,7 @@
 # Adscade — Brand Guidelines
 
 Version 1.0 · 30 July 2026
-Derived from the live implementation (`site/index.html`; currently published at `/vsl-5/`).
+Derived from the live implementation (`site/index.html`; currently published at `/vsl-4/`).
 
 The brand name is **Adscade**. One capital A, everything else lower case. Never AdScade,
 AdsCade, Adscape or adScade. This applies in copy, code, filenames, email signatures, ad

@@ -1,6 +1,6 @@
 # Convex lead capture — integration specification
 
-Version 1.0 · 31 July 2026
+Version 2.0 · 31 July 2026
 Status: **specification only. Nothing here is deployed.** No Convex project has been
 created, no keys exist, and the landing page contains no Convex code.
 
@@ -8,21 +8,32 @@ This document is the contract the frontend already codes against. When Convex is
 implementing this spec is the whole of the integration work — the page itself changes by
 exactly one configuration value.
 
+> **What changed in v2.** The weighted qualification model, the three outcome states and the
+> disqualification path were removed by the client. There is now **one flow**: a valid lead
+> is stored and every stored lead is offered the calendar. Sections 0, 1, 3–7 and 13 were
+> rewritten; §§8–12 and 14 are substantially unchanged.
+
 ---
 
-## 0. Why the browser cannot be trusted
+## 0. What the browser is trusted with
 
-The page computes a score so it can show the right panel quickly. **That computation is not
-authoritative and must never be.** Anyone can open devtools and call the scoring function
-with whatever answers they like, or edit the response before it is read.
+Almost nothing, and less than before.
 
-Two rules follow, and everything below exists to enforce them:
+Under v1 the page computed a score and the server had to recompute it to stop a visitor
+editing their way into the calendar. **That attack surface no longer exists** — there is
+nothing to score and nothing to gain by tampering. What remains is simpler and still holds:
 
-1. **The server recomputes the score from the raw answer keys.** A client-supplied `score`
-   or `outcome` field is ignored — the current frontend does not even send them.
-2. **The calendar is revealed only on the server's word.** `submitLead()` rejects any 200
-   response that does not carry a recognised `outcome`; the browser never falls back to its
-   own verdict. A lead that was not stored can never produce a booking.
+1. **The calendar is revealed only after the server confirms storage.** `submitLead()`
+   requires a 200 carrying `ok === true`; anything else — non-2xx, a network failure,
+   malformed JSON, `ok:false`, or no endpoint configured — leaves the modal open with a
+   retryable error and the scheduling section hidden. A lead that was not stored can never
+   produce a booking.
+2. **The server owns the clock and the identity.** The client's `timestamp` is telemetry;
+   `submittedAt` is set from the server clock. The client's `submissionId` is an
+   idempotency key, not a credential.
+3. **No verdict field is accepted.** The frontend sends no score, outcome or eligibility
+   flag. If a future client ever does, the backend must reject the payload rather than
+   ignore the field — see §5.
 
 ---
 
@@ -33,44 +44,24 @@ Two rules follow, and everything below exists to enforce them:
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-const answerKeys = v.object({
-  role:         v.string(),
-  inventory:    v.string(),
-  price_band:   v.string(),
-  media_budget: v.string(),
-  followup:     v.string(),
-  bottleneck:   v.string(),
-});
-
 export default defineSchema({
   leads: defineTable({
     // identity
     submissionId: v.string(),            // client-generated UUID; idempotency key
     submittedAt:  v.number(),            // server clock, ms epoch — never the client's
 
-    // contact
-    name:         v.string(),
-    company:      v.string(),
-    projectName:  v.optional(v.string()),
-    projectCity:  v.string(),
-    email:        v.string(),
-    phone:        v.string(),            // E.164 where derivable, else digits as given
-    consent:      v.boolean(),           // always true; false is rejected at validation
-    reraEligible: v.boolean(),
-
-    // qualification — all server-computed
-    answers:      answerKeys,
-    answerLabels: v.optional(v.record(v.string(), v.string())),
-    score:        v.number(),            // server-recomputed. Never returned to the browser.
-    outcome:      v.union(v.literal("qualified"),
-                          v.literal("manual_review"),
-                          v.literal("not_current_fit")),
-    restriction:  v.optional(v.string()), // role_broker | role_agency | no_inventory |
-                                          // no_budget | no_followup | rera_ineligible
-    cap:          v.boolean(),            // a manual-review cap applied
+    // the five answers + consent. This is the whole form.
+    name:               v.string(),
+    email:              v.string(),
+    phone:              v.string(),      // E.164 where derivable, else digits as given
+    activeInventory:    v.union(v.literal("1_19"), v.literal("20_49"),
+                                v.literal("50_99"), v.literal("100_plus")),
+    monthlyMediaBudget: v.union(v.literal("below_1l"), v.literal("1_3l"),
+                                v.literal("3_5l"), v.literal("above_5l")),
+    consent:            v.boolean(),     // always true; false is rejected at validation
 
     // attribution
-    landingUrl:   v.optional(v.string()),
+    landingPage:  v.optional(v.string()),
     referrer:     v.optional(v.string()),
     utmSource:    v.optional(v.string()),
     utmMedium:    v.optional(v.string()),
@@ -78,27 +69,29 @@ export default defineSchema({
     utmContent:   v.optional(v.string()),
     utmTerm:      v.optional(v.string()),
     gclid:        v.optional(v.string()),
-    viewport:     v.optional(v.string()), // mobile | tablet | desktop
+    device:       v.optional(v.string()), // mobile | tablet | desktop
 
     // booking lifecycle
-    calendarShown:  v.boolean(),
-    calendarToken:  v.optional(v.string()), // opaque; correlates the Calendly webhook
-    booked:         v.boolean(),
-    bookedAt:       v.optional(v.number()),
+    calendarToken:    v.optional(v.string()), // opaque; correlates the Calendly webhook
+    booked:           v.boolean(),
+    bookedAt:         v.optional(v.number()),
     calendlyEventUri: v.optional(v.string()),
 
-    // operational
-    ipHash:       v.optional(v.string()), // sha256(ip + secret). Never a raw IP.
-    status:       v.union(v.literal("new"), v.literal("contacted"),
-                          v.literal("booked"), v.literal("closed"), v.literal("dropped")),
+    // operational — set by staff, not by the page
+    ipHash: v.optional(v.string()),      // sha256(ip + secret). Never a raw IP.
+    status: v.union(v.literal("new"), v.literal("contacted"),
+                    v.literal("booked"), v.literal("closed"), v.literal("dropped")),
   })
     .index("by_submissionId", ["submissionId"])   // idempotency lookups
-    .index("by_outcome", ["outcome", "submittedAt"])
     .index("by_calendarToken", ["calendarToken"]) // webhook correlation
     .index("by_email", ["email"])
+    .index("by_status", ["status", "submittedAt"])
     .index("by_submittedAt", ["submittedAt"]),
 });
 ```
+
+`by_outcome` is gone with the outcomes. `by_status` replaces it for the dashboard's default
+view — status is now set by whoever works the lead, not by a scoring function.
 
 **Why `by_calendarToken` and not `by_submissionId` for the webhook.** The submission ID is
 generated in the browser and travels through a query string. Anyone who sees one could
@@ -151,59 +144,57 @@ internal mutation, which the browser cannot call.
 
 ## 3. Request payload
 
-Exactly what the page already sends:
+Exactly what the page already sends — captured from a live submission, not transcribed:
 
 ```jsonc
 {
-  "submission_id": "3f2a…",          // client UUID — idempotency key, not trusted as identity
-  "submitted_at":  "2026-07-31T09:12:04.113Z",
-  "name":          "Rajesh Kumar",
-  "company":       "Kumar Developers",
-  "project_name":  "Kumar Heights",   // optional
-  "project_city":  "Indore",
-  "email":         "rajesh@kumardev.in",
-  "phone":         "9876543210",
-  "consent":       true,
-  "rera":          "yes",             // "yes" | "no"
-  "answers": {
-    "role": "founder", "inventory": "100_plus", "price_band": "above_150",
-    "media_budget": "above_3l", "followup": "crm", "bottleneck": "low_quality"
-  },
-  "answer_labels": { "role": "Founder / promoter / director…", "…": "…" },
-  "website":       "",                // honeypot — must be empty
-  "landing_url":   "https://adscade.com/vsl-5/",
-  "referrer":      "https://www.youtube.com/",
-  "viewport":      "mobile",
+  "submissionId": "b9ac081f-84cb-4f0d-a52b-254d8bd6a487",
+  "timestamp":    "2026-07-31T15:56:59.644Z",  // client clock — telemetry only
+  "name":         "Rajesh Kumar",
+  "email":        "rajesh@kumardev.in",
+  "phone":        "+91 98765 43210",           // as typed; normalise server-side
+  "activeInventory":    "50_99",
+  "monthlyMediaBudget": "1_3l",
+  "consent":      true,
+  "website":      "",                          // honeypot — must be empty
+  "landingPage":  "https://adscade.com/vsl-4/",
+  "referrer":     "https://www.youtube.com/",
+  "device":       "mobile",
   "attribution": {
     "utm_source": "youtube", "utm_medium": "cpc", "utm_campaign": "carrying-cost",
     "utm_content": null, "utm_term": null, "gclid": null,
-    "landing_path": "/vsl-5/", "referrer": "https://www.youtube.com/"
+    "landing_path": "/vsl-4/", "referrer": "https://www.youtube.com/"
   }
 }
 ```
 
-**Deliberately absent:** `score` and `outcome`. The frontend does not send them, and the
-backend must reject the payload if a future client ever does — silently ignoring them is
-weaker than failing loudly.
+Controlled values:
 
-User-agent is **not** collected. `viewport` is a three-value bucket and is sufficient for
-the only operational question anyone actually asks (did mobile behave differently).
+| Field | Permitted values |
+|---|---|
+| `activeInventory` | `1_19` · `20_49` · `50_99` · `100_plus` |
+| `monthlyMediaBudget` | `below_1l` · `1_3l` · `3_5l` · `above_5l` |
+| `device` | `mobile` · `tablet` · `desktop` |
+
+**Deliberately absent:** any `score`, `outcome`, `qualified` or `rera` field. The frontend
+sends none of them, and the backend must reject the payload if a future client ever does —
+silently ignoring them is weaker than failing loudly.
+
+User-agent is **not** collected. `device` is a three-value bucket and is sufficient for the
+only operational question anyone actually asks (did mobile behave differently).
+
+`phone` arrives as typed. Normalise to E.164 server-side where derivable; **store the
+original alongside it** rather than replacing it, so a normalisation bug never destroys the
+only way to reach a lead.
 
 ---
 
 ## 4. Response
 
-Success — one of three outcomes:
+Success — one shape, because there is one outcome:
 
 ```json
-{ "ok": true, "submissionId": "opaque-id", "outcome": "qualified",
-  "calendarToken": "short-lived-opaque-value" }
-```
-```json
-{ "ok": true, "submissionId": "opaque-id", "outcome": "manual_review" }
-```
-```json
-{ "ok": true, "submissionId": "opaque-id", "outcome": "not_current_fit" }
+{ "ok": true, "submissionId": "opaque-id", "calendarToken": "short-lived-opaque-value" }
 ```
 
 Validation error:
@@ -215,10 +206,14 @@ Validation error:
 Other errors: `malformed_body` (400) · `forbidden_origin` (403) · `rate_limited` (429) ·
 `server_error` (500).
 
-**The numeric score is never returned.** `calendarToken` appears only on `qualified`.
+`calendarToken` is optional from the frontend's point of view — the page reveals the
+calendar on `ok === true` alone. Send it anyway: without it the Calendly webhook has
+nothing to correlate against and §9 cannot work.
 
-The frontend already treats a 200 whose `outcome` is missing or unrecognised as a hard
-failure — so an accidental `{ok:true}` cannot open the calendar.
+**The frontend treats anything other than a 2xx carrying `ok: true` as a hard failure.**
+It does not retry automatically, does not show a success state, and does not reveal the
+calendar. This is verified by eight cases in `tools/e2e.mjs` (400, 422, 429, 500, network
+failure, malformed JSON, `ok:false`, and no endpoint configured).
 
 ---
 
@@ -228,69 +223,63 @@ failure — so an accidental `{ok:true}` cannot open the calendar.
 // convex/leads.ts  (internalMutation — not callable from the browser)
 export const submit = internalMutation({
   handler: async (ctx, { payload, ipHash }) => {
-    if (payload.website) return ok200({ outcome: "not_current_fit" });   // honeypot
-    if ("score" in payload || "outcome" in payload)
-      return err(400, "malformed_body");                                 // client must not send these
+    if (payload.website) return ok200({});                      // honeypot: accept, discard
+    if ("score" in payload || "outcome" in payload || "qualified" in payload)
+      return err(400, "malformed_body");                        // client must not send these
 
-    const fields = validate(payload);
+    const fields = validate(payload);                           // §7
     if (fields.length) return err(422, "validation_error", fields);
 
-    // idempotency: same submissionId returns the original verdict, never a second row
+    // idempotency: the same submissionId returns the original row, never a second one
     const existing = await ctx.db.query("leads")
-      .withIndex("by_submissionId", q => q.eq("submissionId", payload.submission_id)).unique();
+      .withIndex("by_submissionId", q => q.eq("submissionId", payload.submissionId)).unique();
     if (existing) return ok200({
-      submissionId: existing.submissionId, outcome: existing.outcome,
-      calendarToken: existing.outcome === "qualified" ? existing.calendarToken : undefined,
+      submissionId: existing.submissionId, calendarToken: existing.calendarToken,
     });
 
-    const verdict = score(payload.answers, payload.rera === "yes");      // §6
-    const calendarToken = verdict.outcome === "qualified" ? crypto.randomUUID() : undefined;
+    const calendarToken = crypto.randomUUID();
+    await ctx.db.insert("leads", {
+      submissionId: payload.submissionId,
+      submittedAt:  Date.now(),                                 // server clock, not the client's
+      calendarToken, booked: false, status: "new", ipHash,
+      /* … the five answers, consent and attribution … */
+    });
+    await ctx.scheduler.runAfter(0, internal.notify.newLead, { submissionId: payload.submissionId });
 
-    await ctx.db.insert("leads", { /* …, score: verdict.score, outcome: verdict.outcome, … */ });
-    await ctx.scheduler.runAfter(0, internal.notify.newLead, { /* … */ });
-
-    return ok200({ submissionId: payload.submission_id, outcome: verdict.outcome, calendarToken });
+    return ok200({ submissionId: payload.submissionId, calendarToken });
   },
 });
 ```
 
 Responsibilities, in order: honeypot → reject client-supplied verdicts → validate →
-idempotency check → score → persist → notify → respond.
+idempotency check → persist → notify → respond.
+
+**The honeypot returns a success shape.** A bot that fills it must see the same response a
+human does, or you have built it a detector. Nothing is written.
+
+**Notify after insert, never before.** If the notification provider is down, the lead is
+still stored and the visitor still reaches the calendar. Scheduling it as a separate job is
+what makes that true.
 
 ---
 
-## 6. Authoritative scoring
+## 6. No scoring
 
-Port `MODEL` and `evaluate()` from `site/index.html` verbatim. The rules are frozen; the
-oracle in `tools/exhaustive.mjs` checks all 37,500 combinations and is the reference.
+*Removed in v2.* There is no scoring model, no threshold, no restriction list and no
+outcome routing. Every submission that passes validation is stored, and every stored lead
+is offered the calendar.
 
-| Question | Max | Restriction options | Manual-review cap options |
-|---|---:|---|---|
-| role | 20 | `broker`, `agency_other` | — |
-| inventory | 20 | `none` | — |
-| price_band | 10 | — | — |
-| media_budget | 20 | `below_1l_not_ready` | `undecided` |
-| followup | 20 | `none` | `founder_only` |
-| bottleneck | 10 | — | `exploring` |
+**Qualification now happens on the call, by a person.** The five answers exist to prepare
+for that conversation, not to decide whether it happens.
 
-Routing, evaluated in this order:
+If scoring is ever reintroduced, two rules from v1 are worth carrying forward:
 
-1. Any restriction, **or** `rera !== "yes"`, **or** fewer than six recognised answers →
-   `not_current_fit`
-2. `inventory === "1_19"` → `qualified` only if price `above_150` **and** budget in
-   {`above_3l`,`1_3l`,`ready_1l`} **and** follow-up in {`crm`,`spreadsheet`} **and**
-   score ≥ 65 **and** no cap. Otherwise `manual_review` (≥50) or `not_current_fit`
-3. Any cap → `manual_review` (≥50) or `not_current_fit`
-4. score ≥ 65 → `qualified` · 50–64 → `manual_review` · <50 → `not_current_fit`
+- Compute it server-side and never return the number to the browser.
+- Reveal the calendar only on the server's word, never on a client-side verdict.
 
-> **Note for the implementer.** The budget condition in rule 2 is deliberately redundant —
-> every budget value outside the allowed set is already blocked by a restriction or a cap.
-> Mutation testing confirms it is an *equivalent mutation*: removing it changes no outcome.
-> Keep it. It is defence-in-depth against a future weight change, not dead code.
-
-Unknown or missing answer keys contribute **zero** and count as unanswered. A partial
-submission can reach 70 points from four answers, so the completeness check is what stops it
-qualifying — not the threshold.
+The v1 model, its 37,500-combination oracle and its mutation harness were deleted rather
+than left dormant — a scoring path that still exists is a scoring path that can be
+re-enabled by accident. Recover them from git history if they are ever wanted.
 
 ---
 
@@ -298,16 +287,26 @@ qualifying — not the threshold.
 
 | Field | Rule | Error |
 |---|---|---|
-| `name`, `company`, `project_city` | non-empty after trim, ≤ 200 chars | `validation_error` |
+| `name` | non-empty after trim, ≤ 200 chars | `validation_error` |
 | `email` | RFC-ish shape, ≤ 254 chars | `validation_error` |
-| `phone` | digits 8–15; `^[6-9]\d{9}$`, `^91[6-9]\d{9}$`, `^0[6-9]\d{9}$` or explicit `+` | `validation_error` |
+| `phone` | digits 8–15; `^[6-9]\d{9}$`, `^91[6-9]\d{9}$`, `^0[6-9]\d{9}$`, or explicit `+` international | `validation_error` |
+| `activeInventory` | one of the four permitted values | `validation_error` |
+| `monthlyMediaBudget` | one of the four permitted values | `validation_error` |
 | `consent` | must be exactly `true` | `validation_error` |
-| `rera` | `"yes"` or `"no"` | `validation_error` |
-| `answers.*` | each must be a known key for its question | treated as unanswered |
-| `submission_id` | 8–64 chars, `[A-Za-z0-9-]` | `validation_error` |
+| `submissionId` | 8–64 chars, `[A-Za-z0-9-]` | `validation_error` |
 
 Return **every** failing field at once — a form that reveals one error at a time is a form
 people abandon.
+
+**Validate the two choice fields against the permitted list, not merely as non-empty
+strings.** They are radio groups in the browser, so a bad value can only arrive from a
+crafted request — but that is exactly the case worth rejecting, and an unrecognised value
+would otherwise sit silently in the database corrupting every report built on it.
+
+The phone rule accepts `9876543210`, `919876543210`, `09876543210` and `+91 98765 43210`.
+All four are formats Indian users actually type; rejecting any of them loses real leads.
+The frontend applies the same rule, and `tools/e2e.mjs` tests all four plus an
+international number and a too-short one.
 
 ---
 
@@ -328,6 +327,12 @@ never 4xx, or you teach the bot); origin check; rate limit; then a required mini
 time between first render and submit if abuse appears. **Do not add a CAPTCHA** — it costs
 real conversions on this audience and the honeypot is already doing the work.
 
+> **v2 raises the stakes here.** Under v1 a junk submission was usually filtered into
+> `not_current_fit` and never saw the calendar. Now every stored lead is offered a booking
+> slot, so bot friction is the *only* thing standing between a scripted submitter and a
+> calendar full of fake appointments. Watch the booked-call rate in the first fortnight of
+> paid traffic, and turn on dwell-time checking at the first sign of abuse.
+
 ---
 
 ## 9. Calendly webhook — the authoritative booking source
@@ -336,8 +341,8 @@ The browser's `postMessage` listener is a **UX signal only**. It fires `booked_c
 analytics. It must not be the source of truth for whether a call exists.
 
 ```
-qualified response ──> calendarToken minted server-side
-                   └─> embed opens with the token in Calendly UTM/custom field
+stored lead ──> calendarToken minted server-side
+            └─> embed opens with the token in a Calendly UTM/custom field
 Calendly booking ──> webhook POST /calendly-webhook
                  └─> verify Calendly-Webhook-Signature (HMAC, CALENDLY_WEBHOOK_SECRET)
                  └─> look up by_calendarToken
@@ -348,7 +353,7 @@ Subscribe to `invitee.created` and `invitee.canceled`. Verify the signature on e
 request and reject anything unsigned — otherwise the endpoint is a public "mark this lead
 booked" button.
 
-**Never accept a booking update keyed only on `submission_id`.** That value is generated in
+**Never accept a booking update keyed only on `submissionId`.** That value is generated in
 the browser and appears in a query string; treating it as proof of a booking would let
 anyone mark arbitrary leads as converted.
 
@@ -370,15 +375,15 @@ anyone mark arbitrary leads as converted.
 
 Convex-hosted or a thin admin page behind auth. Requirements:
 
-- List by `by_outcome` index; default view is `qualified` then `manual_review`
-- Show: submitted, outcome, restriction, company, city, contact, source, booked
-- **Score visible internally, never sent to the browser on the public page**
-- Filter by outcome, date, UTM source, booked
+- List by `by_status`; default view is `new`, oldest first — under v2 nothing pre-sorts the
+  queue for you, so the operational risk is a lead going stale, not a lead being misjudged
+- Show: submitted, name, contact, inventory, budget, source, booked, status
+- Filter by status, date, UTM source, booked
 - CSV export — **prefix any cell starting with `= + - @` with an apostrophe.** Formula
-  injection is real: a visitor can type `=HYPERLINK(...)` into "company name", and it will
+  injection is real: a visitor can type `=HYPERLINK(...)` into the name field, and it will
   execute when the export is opened in Excel. This exact defect was found and fixed in the
   earlier WordPress prototype.
-- Manual outcome override with an audit trail
+- Status changes carry an audit trail
 
 ---
 
@@ -405,31 +410,36 @@ The page ships with one seam:
 window.ADSCADE_ENDPOINT   // the only value that changes
 ```
 
-`submitLead()` already: rejects when unset, sets a 12-second timeout, requires
-`ok === true` with a recognised `outcome`, and refuses to fall back to a client verdict.
-Those behaviours are what make the swap safe.
+`submitLead()` already: throws when unset, sets a 12-second `AbortController` timeout,
+requires `res.ok`, requires `ok === true` in the body, and treats a JSON parse failure as a
+failure. Those behaviours are what make the swap safe.
 
 **Steps**
 
 1. `npx convex dev`; add `schema.ts`, `http.ts`, `leads.ts` from this document.
-2. Port `MODEL` and `evaluate()` verbatim. Run `tools/exhaustive.mjs`'s oracle against the
-   server implementation — all 37,500 combinations must agree.
-3. Set the env vars in §12.
-4. Set `window.ADSCADE_ENDPOINT` to the deployed action URL, before the page script runs.
-5. Submit one real lead of **each** outcome and confirm three things: the row exists, the
-   calendar appears only for `qualified`, and the score is absent from every network
-   response the browser receives.
-6. Register the Calendly webhook; make a real test booking; confirm `booked` flips.
-7. Only then point paid traffic at the page.
+2. Set the env vars in §12.
+3. Set `window.ADSCADE_ENDPOINT` to the deployed action URL, **before** the page script
+   runs. In WordPress that means a small inline `<script>` in the header, not the footer.
+4. Submit one real lead and confirm four things: the row exists with all five answers, the
+   modal closed without a page reload, the calendar appeared, and no secret appears in any
+   network response the browser receives.
+5. Submit the **same** `submissionId` twice and confirm exactly one row exists.
+6. Submit with a deliberately bad email and confirm the modal stays open with a retryable
+   error and the calendar stays hidden.
+7. Register the Calendly webhook; make a real test booking; confirm `booked` flips.
+8. Only then point paid traffic at the page.
 
-**Do not skip step 5.** Everything upstream of it is untested against a real backend.
+**Do not skip steps 4–6.** Everything upstream of them is tested against a stub, not a
+backend.
 
 ---
 
 ## 14. Not in scope
 
-- No Convex project has been created.
-- The WordPress plugin at `wordpress/adscade-lead-capture.php` is **superseded prototype
-  work and must not be installed.** It exists only as a reference implementation of
+- No Convex project has been created, and none will be created as part of this work.
+- The WordPress plugin is **superseded prototype work and must not be installed.** It has
+  been renamed to `wordpress/SUPERSEDED-do-not-install/adscade-lead-capture.php.reference`
+  so WordPress cannot load it. It survives only as a reference implementation of
   validation, honeypot, rate limiting and CSV-injection escaping.
 - GTM is not installed and no container ID exists.
+- The v1 scoring model is deleted, not disabled. See §6.
