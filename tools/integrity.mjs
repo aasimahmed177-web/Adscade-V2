@@ -72,7 +72,11 @@ const dom = await p.evaluate(() => {
     h1: document.querySelectorAll('h1').length,
     dupIds: [...new Set(dupIds)], dupNames: [...new Set(dupNames)],
     badFor, badControls, emptyHrefs, looseRadios,
+    // The bot trap is deliberately unlabelled — a label is exactly what autofill reads,
+    // and a labelled trap gets filled for real visitors. It is aria-hidden and out of the
+    // tab order, so no assistive-tech user ever reaches it.
     unlabelledInputs: [...document.querySelectorAll('input:not([type=hidden])')]
+      .filter(i => i.getAttribute('tabindex') !== '-1' && !i.closest('[aria-hidden="true"]'))
       .filter(i => !i.closest('label') && !document.querySelector(`label[for="${i.id}"]`)).length,
   };
 });

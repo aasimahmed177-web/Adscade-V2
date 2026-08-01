@@ -64,7 +64,7 @@ t('privacy states there is no automatic assessment', /no scoring/i.test(priv));
 console.log('\n── the form is exactly five fields + consent ──');
 let p = await page();
 const names = await p.$$eval('#lead-form [name]',
-  e => [...new Set(e.map(x => x.name))].filter(n => n !== 'website'));
+  e => [...new Set(e.map(x => x.name))].filter(n => n !== 'hp_ref'));
 t('exactly [name,email,phone,inventory,media_budget,consent]',
   JSON.stringify(names.slice().sort()) ===
   JSON.stringify(['consent','email','inventory','media_budget','name','phone']),

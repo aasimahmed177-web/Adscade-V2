@@ -174,13 +174,22 @@ const submitLead = httpAction(async (ctx, request) => {
     return json(400, { ok: false, code: "malformed_body" }, origin);
   }
 
-  // Honeypot. Accept and discard: a bot that gets a 4xx learns what tripped it.
-  // Nothing is written, and the caller is told stored:false so the page does not
-  // present a fake success or reveal the calendar.
-  const honeypot = typeof body.website === "string" ? body.website.trim() : "";
-  if (honeypot.length > 0) {
-    return json(200, { ok: true, submissionId: null, stored: false }, origin);
-  }
+  // Honeypot — FLAG, DO NOT DISCARD.
+  //
+  // This previously returned stored:false and wrote nothing. In production that silently
+  // destroyed real leads: browsers and password managers autofill a hidden field named
+  // "website", so any visitor with autofill enabled was classified as a bot, saw only the
+  // generic save error, and never reached the calendar. It caught zero spam and lost
+  // genuine enquiries.
+  //
+  // Losing a real developer costs far more than storing a bot row, so a tripped honeypot
+  // now stores the lead with status "suspect" instead. The sales queue works "submitted";
+  // "suspect" is reviewed separately. `website` is the legacy field name and is still read
+  // so pages running the older widget are fixed by this deploy alone.
+  const honeypot =
+    (typeof body.hp_ref === "string" ? body.hp_ref.trim() : "") ||
+    (typeof body.website === "string" ? body.website.trim() : "");
+  const suspect = honeypot.length > 0;
 
   // A client-supplied verdict is a sign the payload was tampered with or that a stale
   // build is deployed. Fail loudly rather than silently dropping the field.
@@ -240,6 +249,7 @@ const submitLead = httpAction(async (ctx, request) => {
       activeInventory: activeInventory as "1_19" | "20_49" | "50_99" | "100_plus",
       monthlyMediaBudget: monthlyMediaBudget as "below_1l" | "1_3l" | "3_5l" | "above_5l",
       consent: true,
+      suspect,
       landingPage: safeUrl(body.landingPage, MAX.url),
       referrer: safeUrl(body.referrer, MAX.url),
       utmSource: deformulaOpt(optional(attribution.utm_source, MAX.utm)),

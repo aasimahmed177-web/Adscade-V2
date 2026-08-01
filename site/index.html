@@ -1013,8 +1013,13 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
     <div class="modal__body">
     <form id="lead-form" novalidate>
+      <!-- Bot trap. It was named "website" with a "Company website" label, which is
+           precisely what browser autofill and password managers target — real visitors
+           had it filled for them and were classified as bots. The name is now semantically
+           meaningless so no autofill heuristic matches it, and the label is gone. The
+           server also treats a tripped trap as "flag for review", never as "discard". -->
       <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
-        <label>Company website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        <input type="text" name="hp_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
       </div>
 
       <div class="field" aria-live="polite">
@@ -1490,7 +1495,7 @@ body.modal-open .dock{transform:translateY(110%)}
       activeInventory:    d.get('inventory'),
       monthlyMediaBudget: d.get('media_budget'),
       consent:      true,
-      website:      d.get('website') || '',       // honeypot — must arrive empty
+      hp_ref:       d.get('hp_ref') || '',        // bot trap — must arrive empty
       landingPage:  location.href,
       referrer:     document.referrer || null,
       device:       window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',

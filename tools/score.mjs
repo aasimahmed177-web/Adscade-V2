@@ -246,7 +246,7 @@ category('Lead modal', 120);
     JSON.stringify(semantics));
 
   const names = await page.$$eval('#lead-form [name]',
-    els => [...new Set(els.map(e => e.name))].filter(n => n !== 'website'));
+    els => [...new Set(els.map(e => e.name))].filter(n => n !== 'hp_ref'));
   const required = ['name', 'email', 'phone', 'inventory', 'media_budget', 'consent'];
   const missing = required.filter(n => !names.includes(n));
   const extra   = names.filter(n => !required.includes(n));

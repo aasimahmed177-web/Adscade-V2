@@ -17,6 +17,8 @@ export const insertLead = internalMutation({
     activeInventory: activeInventoryValidator,
     monthlyMediaBudget: mediaBudgetValidator,
     consent: v.literal(true), // consent is the only permitted value; false cannot be stored
+    // Computed by the HTTP action from the honeypot, never supplied by the browser.
+    suspect: v.optional(v.boolean()),
     landingPage: v.optional(v.string()),
     referrer: v.optional(v.string()),
     utmSource: v.optional(v.string()),
@@ -44,10 +46,12 @@ export const insertLead = internalMutation({
       return { submissionId: existing.submissionId, duplicate: true };
     }
 
+    const { suspect, ...lead } = args;
     await ctx.db.insert("leads", {
-      ...args,
+      ...lead,
       createdAt: Date.now(), // server clock; the client never supplies this
-      status: "submitted", // the only status the intake path may write
+      // The intake path may write these two values and no others.
+      status: suspect ? "suspect" : "submitted",
     });
 
     return { submissionId: args.submissionId, duplicate: false };

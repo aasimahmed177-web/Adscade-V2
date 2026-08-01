@@ -95,10 +95,14 @@ for (const [label, phone] of [
 
 /* ── abuse & malformed ────────────────────────────────────────────── */
 console.log('\n— abuse and malformed input —');
-let res = await post(base_payload({ website: 'http://spam.example' }));
+// A tripped trap must STORE and flag, never discard. Discarding silently destroyed real
+// leads whose browser autofilled the field.
+let res = await post(base_payload({ hp_ref: 'http://spam.example' }));
 let body = await res.json();
-t('honeypot returns ok but stored:false', res.status === 200 && body.ok === true && body.stored === false,
+t('tripped trap still stores the lead', res.status === 200 && body.ok === true && body.stored === true,
   JSON.stringify(body));
+const legacy = await post(base_payload({ website: 'http://spam.example' }));
+t('legacy field name is still honoured', (await legacy.json()).stored === true);
 
 res = await post('{not json');
 t('malformed JSON → 400 malformed_body', res.status === 400 && (await res.json()).code === 'malformed_body');

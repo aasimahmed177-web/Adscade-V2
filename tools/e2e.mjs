@@ -127,9 +127,10 @@ for (const [label, impl] of [
   ['network failure', `async () => { throw new Error('network'); }`],
   ['malformed JSON',  `async () => ({ok:true, json: async()=>{ throw new SyntaxError('bad'); }})`],
   ['ok:false body',   `async () => ({ok:true, json: async()=>({ok:false})})`],
-  // The honeypot path returns a 200 that looks successful. It must fail exactly like a
-  // server error, or a bot submission would open the calendar and book real time.
-  ['honeypot stored:false', `async () => ({ok:true, json: async()=>({ok:true, stored:false, submissionId:null})})`],
+  // The live server no longer returns stored:false — a tripped trap is stored and flagged.
+  // The client must still refuse to open the calendar if it ever sees stored:false, so a
+  // future server change cannot silently grant a booking for an unsaved lead.
+  ['stored:false response', `async () => ({ok:true, json: async()=>({ok:true, stored:false, submissionId:null})})`],
   ['ok:true but stored missing', `async () => ({ok:true, json: async()=>({ok:true})})`],
 ]) {
   p = await page();

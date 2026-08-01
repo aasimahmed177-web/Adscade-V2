@@ -128,7 +128,7 @@ console.log('\n— dialog behaviour —');
   }), await p.evaluate(() => document.activeElement.name || document.activeElement.id));
   t('typing straight after opening goes into the name field, not the honeypot', await (async () => {
     await p.keyboard.type('Rajesh Kumar');
-    return await p.evaluate(() => document.querySelector('input[name="website"]').value === ''
+    return await p.evaluate(() => document.querySelector('input[name="hp_ref"]').value === ''
       && document.getElementById('name').value === 'Rajesh Kumar');
   })());
   await p.fill('#name', '');
@@ -187,6 +187,39 @@ console.log('\n— validation feedback —');
   await p.waitForTimeout(400);
   t('aria-invalid clears once corrected',
     await p.evaluate(() => document.getElementById('name').getAttribute('aria-invalid') === null));
+  await p.close();
+}
+
+/* ── the bot trap must be invisible to autofill ───────────────────── */
+console.log('\n— bot trap —');
+{
+  const p = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+  await p.goto('file://' + process.cwd() + '/site/index.html'); await p.waitForTimeout(300);
+  const hp = await p.evaluate(() => {
+    const inputs = [...document.querySelectorAll('#lead-form input')];
+    const real = ['name', 'email', 'phone', 'inventory', 'media_budget', 'consent'];
+    const trap = inputs.find(i => !real.includes(i.name));
+    if (!trap) return null;
+    const label = trap.closest('label') || document.querySelector(`label[for="${trap.id}"]`);
+    return {
+      name: trap.name,
+      hasLabel: !!label,
+      labelText: label ? label.textContent.trim() : '',
+      autocomplete: trap.getAttribute('autocomplete'),
+      tabindex: trap.getAttribute('tabindex'),
+      ariaHidden: !!trap.closest('[aria-hidden="true"]'),
+    };
+  });
+  t('a bot trap exists', hp !== null);
+  // Autofill engines match on name/id/label semantics. Any of these words and a browser
+  // or password manager fills the trap FOR a real visitor, who is then treated as a bot.
+  t('trap name carries no autofillable semantics',
+    !/(website|url|company|organisation|organization|address|name|email|phone|tel|user)/i.test(hp.name),
+    hp.name);
+  t('trap has no label for autofill to read', !hp.hasLabel, hp.labelText);
+  t('trap is excluded from autocomplete', hp.autocomplete === 'off');
+  t('trap is out of the tab order', hp.tabindex === '-1');
+  t('trap is hidden from assistive tech', hp.ariaHidden);
   await p.close();
 }
 
