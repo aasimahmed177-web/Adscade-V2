@@ -584,7 +584,7 @@ body.modal-open .dock{transform:translateY(110%)}
       <img class="brandbar__mark" src="https://adscade.com/wp-content/uploads/2026/07/logo.png" alt="Adscade" width="146" height="132" fetchpriority="high" decoding="async">
       <span class="brandbar__name">Adscade</span>
     </span>
-    <button class="brandbar__fit js-cta" type="button" data-keep-label>Book a call</button>
+    <button class="brandbar__fit js-cta" type="button">Tell Us About Your Project</button>
   </div>
 </div>
 
@@ -619,7 +619,7 @@ body.modal-open .dock{transform:translateY(110%)}
       </div>
 
       <aside class="card rail">
-        <p class="rail__k">See whether your funnel is a fit</p>
+        <p class="rail__k">See where your funnel is leaking</p>
         <ul class="rail__list">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Current ad and funnel structure</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Lead qualification and leakage</li>
@@ -746,7 +746,7 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <div style="text-align:center;margin-top:2.2rem">
-      <a class="cta cta--ghost" href="#book">Check Fit &amp; Pick a Time</a>
+      <a class="cta cta--ghost" href="#book">Tell Us About Your Project</a>
     </div>
   </div>
 </section>
@@ -842,7 +842,7 @@ body.modal-open .dock{transform:translateY(110%)}
       <div class="faq__a" id="a6" hidden><p>Your sales team does. Adscade builds the automated first response and the qualification that reaches them, so the enquiry arrives with budget, location and timeline already on record. We do not sell on your behalf or take over your buyer relationships.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a7">What happens after we complete the form?</button>
-      <div class="faq__a" id="a7" hidden><p>A booking calendar appears on this page and you choose a time that suits you. Before the call we look at what you are running now. On the call we go through your current setup, where the drop-off is, and what a connected system would look like for your project.</p></div>
+      <div class="faq__a" id="a7" hidden><p>After you submit the five project details, you are taken directly to Calendly to choose an available time. Your name and email are carried forward, so you do not need to enter them again. Before the call, we review the information you submitted so the conversation can focus on your project and acquisition setup.</p></div>
     </div>
 
     <div class="faq-cta" style="text-align:center;margin-top:2.4rem">
@@ -951,7 +951,7 @@ body.modal-open .dock{transform:translateY(110%)}
 </div>
 
 <div class="dock" id="dock">
-  <a class="cta cta--wide" href="#book">Check Fit &amp; Pick a Time</a>
+  <a class="cta cta--wide" href="#book">Tell Us About Your Project</a>
   <button class="dock__x" id="dock-x" type="button" aria-label="Hide this bar">&times;</button>
 </div>
 
@@ -1072,14 +1072,11 @@ body.modal-open .dock{transform:translateY(110%)}
   }
 
   function paintCtas(){
+    // The old data-keep-label special case existed only because a second CTA state used
+    // to swap this text at runtime, and the header pill needed to dodge that reflow. That
+    // state is gone — every CTA gets the same static label, once, at load.
     ctaButtons().forEach(function(el){
-      // The header pill is a narrow shortcut, not a primary CTA. Painting the long label
-      // into it wrapped it to two lines and made the whole header 49px taller on every
-      // page load; when the label later shortened, scroll anchoring yanked the page.
-      // It keeps its own short label and only takes the click behaviour.
-      if (!el.hasAttribute('data-keep-label')) {
-        el.textContent = LABEL_BEFORE;
-      }
+      el.textContent = LABEL_BEFORE;
       el.setAttribute('aria-haspopup', 'dialog');
     });
   }

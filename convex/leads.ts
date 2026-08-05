@@ -50,8 +50,9 @@ export const insertLead = internalMutation({
     await ctx.db.insert("leads", {
       ...lead,
       createdAt: Date.now(), // server clock; the client never supplies this
-      // The intake path may write these two values and no others.
+      // The intake path may write these three values and no others.
       status: suspect ? "suspect" : "submitted",
+      calendlyStatus: "not_booked", // convex/calendly.ts owns every transition from here
     });
 
     return { submissionId: args.submissionId, duplicate: false };

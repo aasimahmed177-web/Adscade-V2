@@ -157,6 +157,12 @@ t('no Convex deploy key in either artefact',
   !/(prod|dev):[A-Za-z0-9-]+\|[A-Za-z0-9+/=]{16,}/.test(headTags + widget));
 t('no convex.cloud (admin) URL in either artefact',
   !/convex\.cloud/.test(headTags + widget));
+// CALENDLY_PAT is a server-only Convex env var (convex/calendlyClient.ts, convex/calendly.ts).
+// The frontend never imports either file and never needs the token — this asserts that
+// stays true, since a shipped token would be a live credential leak to every visitor.
+t('no CALENDLY_PAT (name or value) in either artefact',
+  !/CALENDLY_PAT/.test(headTags + widget) && !/calendly\.com\/(users|event_types|scheduled_events)\//.test(headTags + widget));
+t('the page source has no CALENDLY_PAT reference either', !/CALENDLY_PAT/.test(src));
 t('no development comment markers',         !/<!--\s*(TODO|DEBUG|FIXME)/i.test(widget));
 t('no JavaScript errors on load',           pageErrors.length === 0, pageErrors.join(' | '));
 

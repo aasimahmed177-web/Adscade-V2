@@ -111,10 +111,12 @@ category('Message match & congruency', 150);
   // This is a specification change, not a tuning of the ruler.
   // CONSEQUENCE: the YouTube end cards must be re-cut to AD_CTA, or Demand Gen will
   // disapprove on ad<->page mismatch. They currently read "Book My Free Audit Call".
+  // CHANGED 1 Aug 2026 (funnel-flow-override brief). Every CTA, including the header
+  // shortcut, now reads the one standard string. 'Book a call' is retired — the brief
+  // explicitly lists it among phrases that must not remain. 'Continue' is the modal's
+  // submit button; nothing else is permitted.
   const AD_CTA = 'Tell Us About Your Project';
-  // 'Continue' is the modal's submit button. 'Book a call' is the header shortcut, which
-  // keeps a short label so the header does not wrap. Nothing else is permitted.
-  const CTA_ALLOWED = [AD_CTA, 'Continue', 'Book a call'];
+  const CTA_ALLOWED = [AD_CTA, 'Continue'];
 
   const h1 = norm(await page.evaluate(() => document.querySelector('h1')?.innerText || ''));
   check('H1 matches ad headline exactly', 30,
@@ -128,7 +130,11 @@ category('Message match & congruency', 150);
   const primary = ctaTexts.filter(t => !/^(continue|back|sending)/i.test(t));
   // There is no post-storage label any more — a stored lead leaves the page. Assert the
   // absence, so the removed state cannot creep back in.
-  check('No post-storage CTA state', 10, !/['"`]Choose a Time['"`]/.test(html));
+  // One check, not two: both assert the same thing — no retired CTA state or phrase has
+  // crept back in. Merged so the category budget stays at 150.
+  check('No retired CTA state or phrase remains', 10,
+    !/['"`]Choose a Time['"`]/.test(html) &&
+    !/Book a call|Check Fit\s*&|Book a Fit Call/i.test(text));
   const allowedLc = CTA_ALLOWED.map(lc);
   const offBrand = primary.filter(t => !allowedLc.includes(lc(t)));
   check('No competing primary CTA copy', 20, offBrand.length === 0, offBrand.join(' | '));

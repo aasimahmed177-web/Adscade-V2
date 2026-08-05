@@ -278,20 +278,24 @@ diary full of fake appointments.
 
 ---
 
-## Future: the Calendly webhook
+## Booking sync — implemented, see docs/CALENDLY_FREE_SYNC.md
 
-There is no booking signal on the landing page at all: the visitor is redirected to
+There is no booking signal on the landing page itself: the visitor is redirected to
 Calendly and books after leaving the site, so nothing in the browser can honestly report
-it. Read booked calls from the Calendly dashboard, or make them authoritative here:
+it. This used to be a "future" section sketching a webhook design keyed on a
+`calendarToken` appended to the redirect URL — that plan was superseded before it was
+built. What's actually implemented (`convex/calendly.ts`, `convex/crons.ts`) is a
+**five-minute poll of the Calendly API**, since webhooks require a paid Calendly plan and
+this account is on Free. Matching is by normalised email, not a URL token — the redirect
+URL was kept simple (name + email + UTM only, no phone, no token) rather than growing a
+booking-tracking parameter into it.
 
-1. Add `calendarToken` (server-minted, opaque) to the schema and return it on success.
-2. Append it to the redirect URL as a Calendly UTM/custom field.
-3. Add `POST /calendly-webhook`, verify `Calendly-Webhook-Signature` (HMAC) on **every**
-   request, look up `by_calendarToken`, set `booked`, `bookedAt`, `calendlyEventUri`.
-4. Subscribe to `invitee.created` and `invitee.canceled`.
+Full design, setup, matching rules, cancellation/reschedule handling, and how to run a
+real test booking: **`docs/CALENDLY_FREE_SYNC.md`**.
 
-**Never key a booking update on `submissionId`.** It is generated in the browser and
-travels through a query string; anyone who saw one could mark arbitrary leads as converted.
+If Calendly is ever upgraded to a plan with webhooks, that document's final section
+("Moving to webhooks later") explains how to add one **alongside** the polling, reusing
+the same mutations, rather than replacing it outright.
 
 ---
 

@@ -124,17 +124,20 @@ is used, the four thresholds must remain once-only.
 
 ---
 
-## Why there is no `booked_call` on this page
+## Why there is no `booked_call` dataLayer event on this page
 
 The booking happens on `calendly.com`, after the visitor has left the site. There is no
-embedded iframe to receive a `postMessage` from and no honest way for this page to know a
-meeting was scheduled. **Do not fabricate one** — a conversion event fired on redirect
-would count every visitor who reached the calendar, not every visitor who booked.
+embedded iframe to receive a `postMessage` from and no honest way for **this page** to know
+a meeting was scheduled. **Do not fabricate one** — a conversion event fired on redirect
+would count every visitor who reached the calendar, not every visitor who booked. Treat
+`calendly_redirect` as "reached the calendar," which is what it actually measures, nothing
+more.
 
-The authoritative source is a **Calendly webhook** writing back to Convex. See
-`docs/CONVEX_SETUP.md` → *Future: the Calendly webhook*. Until that exists, read booked
-calls from the Calendly dashboard, and treat `calendly_redirect` as "reached the calendar",
-which is what it actually measures.
+**A `booked_call` record exists — server-side, in Convex, not as a tracking event here.**
+`convex/calendly.ts` polls the Calendly API every five minutes (Free plan has no webhooks)
+and writes one `bookedCallEvents` row when a real, matched booking is found. Full design:
+`docs/CALENDLY_FREE_SYNC.md`. Until that table is wired into an actual Ads upload, read
+booked calls from the Calendly dashboard or the Convex dashboard, not from GTM.
 
 ### Attribution across the hand-off
 
