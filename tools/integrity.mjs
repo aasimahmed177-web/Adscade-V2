@@ -129,7 +129,18 @@ t('paste file has no document wrapper',    !/<(html|head|body)[\s>]/i.test(widge
 t('paste file carries the storage adapter', /window\.ADSCADE_LEAD_ENDPOINT/.test(widget));
 // Scoring was removed on 31 Jul 2026 — every stored lead now reaches the calendar.
 // What must be present instead is the CTA state machine and the modal.
-t('paste file carries the CTA state machine', /leadStored/.test(widget));
+// The two-state machine was replaced by a redirect: a stored lead leaves the page, so
+// there is no post-submission state to hold. What must ship is the redirect builder.
+t('paste file carries the Calendly redirect builder', /calendlyRedirectUrl/.test(widget));
+t('paste file redirects in the same tab', /window\.location\.assign\(/.test(widget));
+t('no inline Calendly embed remains',
+  !/initInlineWidget|assets\.calendly\.com|calendly-mount|calendar_view/.test(widget));
+// Match executable code, not prose: a comment explaining why something is absent must
+// not fail a check asserting its absence.
+t('no post-submission CTA label remains', !/['"`]Choose a Time['"`]/.test(widget));
+t('no post-submission state variable remains', !/\bleadStored\b\s*[=;)]/.test(widget));
+t('no scheduling CTA event is emitted', !/track\(\s*['"`]scheduling_cta_click/.test(widget));
+t('booked_call is not fired from this page', !/track\(\s*['"`]booked_call/.test(widget));
 t('paste file carries the lead modal',        /id="lead-modal"/.test(widget));
 t('no scoring model remains',                 !/__adscadeEvaluate|score_band/.test(widget));
 t('privacy link resolves to a WP path',     /href="\/privacy\/"/.test(widget));

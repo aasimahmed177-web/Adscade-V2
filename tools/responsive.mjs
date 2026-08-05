@@ -80,36 +80,9 @@ console.log(' ', t('modal content is reachable by scrolling inside the panel',
 await p.keyboard.press('Escape');
 await p.waitForTimeout(300);
 
-await submitLead(p);
-await p.evaluate(()=>document.getElementById('schedule').scrollIntoView());
-await p.waitForTimeout(900);
-console.log(' ', t('dock stays hidden over the calendar',
-  await p.evaluate(()=>document.getElementById('dock').classList.contains('hide'))),
-  '— dock stays hidden over the calendar');
-console.log(' ', t('calendar area has no horizontal overflow',
-  await p.evaluate(()=>{const c=document.querySelector('.cal');
-    return !c || c.scrollWidth <= c.clientWidth + 1;})),
-  '— calendar area has no horizontal overflow');
-console.log(' ', t('no horizontal page overflow after calendar mounts',
-  await p.evaluate(()=>document.documentElement.scrollWidth - document.documentElement.clientWidth <= 1)),
-  '— no page overflow after calendar mounts');
-
-/* Calendly failure path — the visitor must never face an empty 900px box */
-const f = await (await b.newContext({viewport:{width:390,height:844}})).newPage();
-await f.route('**/assets.calendly.com/**', r => r.abort());
-await f.goto(URL); await f.waitForTimeout(400);
-await submitLead(f);
-await f.waitForTimeout(1200);
-const fb = await f.evaluate(()=>({
-  shown: document.getElementById('cal-fallback').classList.contains('on'),
-  box: Math.round(document.querySelector('.cal').getBoundingClientRect().height),
-  href: [...document.querySelectorAll('#cal-fallback a')].map(a=>a.href)[0] }));
-console.log('\n— Calendly failure path —');
-console.log(' ', t('fallback surfaces when the embed is blocked', fb.shown), '— fallback surfaces when the embed is blocked');
-console.log(' ', t('reserved space collapses', fb.box === 0), '— reserved space collapses');
-console.log(' ', t('fallback points at the event URL',
-  fb.href === 'https://calendly.com/aasim-ahmed177/realestate-growth-systems'),
-  '— fallback points at the event URL');
+// The scheduling section and the Calendly failure path were removed with the inline
+// embed: a stored lead now leaves this page for calendly.com. Redirect behaviour is
+// covered by tools/redirect.mjs.
 
 await b.close();
 console.log(fails ? `\n${fails} FAILED\n` : '\nall passed\n');

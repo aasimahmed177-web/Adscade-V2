@@ -33,10 +33,9 @@ site's actual behaviour is the specific failure regulators and ad platforms look
 
 Two other gaps exist regardless of analytics:
 
-1. **Calendly** is now embedded inline on the page for every visitor who submits the form.
-   The current policy describes Calendly as a page the visitor is handed to, not an embed
-   loaded in-page. **Name, email address and phone number are all prefilled into it** — the
-   phone travels as a Calendly custom answer.
+1. **Calendly is a redirect, not an embed.** Once the lead is stored, the visitor is sent
+   to calendly.com in the same tab and leaves the site. **Name and email are prefilled via
+   the URL; the phone number is not passed at all.**
 2. **Form storage will move to Convex**, a third-party hosted database, and is **not yet
    connected**. The policy currently says submissions are "stored with our hosting and
    database provider" — that will become inaccurate in a specific way once Convex is live,
@@ -56,7 +55,7 @@ Two other gaps exist regardless of analytics:
 |---|---|---|
 | "What we collect" | Lists form fields only | Update field list; add hashed IP |
 | "Where it is stored" | Generic | Name the site database; state retention |
-| "Scheduling" | Describes hand-off | Rewrite for an inline embed |
+| "Scheduling" | Describes a hand-off with no detail | Rewrite for the redirect: name + email prefilled, phone not passed |
 | "Cookies" | "This site sets no cookies" | **Must change before GTM** |
 | — | No analytics section | **Add before GTM** |
 | — | No advertising/remarketing section | **Add before Ads/remarketing** |
@@ -103,24 +102,24 @@ call. There is now no automated decision-making to disclose.
 
 ### Scheduling — replace the existing section
 
-> Once you submit the form, a Calendly booking calendar is loaded directly into the page so
-> you can choose a time. Calendly is a third-party scheduling service with its own privacy
-> policy. When the calendar loads, Calendly may set cookies and receives your browser's
-> technical information.
+> Once your details are saved, you are redirected to Calendly, a third-party scheduling
+> service with its own privacy policy, so you can choose a time. This happens in the same
+> browser tab, and you leave this website at that point.
 >
-> Your name, email address and phone number are passed to the calendar so you do not have to
-> type them again. Your answers about inventory and advertising budget are **not** passed to
-> Calendly. If you close the calendar without booking, no booking is created — but the
-> details you submitted have already been saved to our own records.
+> Only your name and email address are carried across to prefill the booking form. Your
+> phone number is not passed to Calendly — it is already saved in our own records. Your
+> answers about inventory and advertising budget are not passed either. Calendly may ask
+> you for further details of its own; anything you enter there is collected by Calendly
+> under its policy as well as being shared with us as part of the booking.
+>
+> If you leave the Calendly page without booking, no booking is created — but the details
+> you submitted before the redirect have already been saved to our records, and you can ask
+> us to delete them at any time.
 
-> **⚠ Verify this against the live Calendly event before publishing.** The phone number is
-> passed as a Calendly *custom answer*, which means it is stored in the Calendly booking
-> record and visible to anyone with access to that Calendly account. The last sentence
-> matters too: under v1 an unqualified visitor's details were stored but no calendar
-> appeared, so "close the calendar without booking" left an ambiguous trail. Now the
-> sequence is explicit — storage happens first, scheduling second — and the wording should
-> say so plainly rather than let a visitor assume abandoning the calendar undoes the
-> submission.
+> **Note for review.** The campaign parameters from the link you arrived on (`utm_*`) are
+> forwarded to Calendly so a booking can be attributed to the advertising that produced it.
+> These describe a campaign, not a person. No phone number, answer, consent value or
+> internal identifier appears in the redirect URL.
 
 ### Cookies — replace entirely, **before GTM goes live**
 
@@ -199,7 +198,7 @@ Also confirm before Convex activation:
 
 - A data-processing position on Convex as a processor, including where data is hosted.
 - The retention cron is actually scheduled, not merely specified.
-- The deletion and export paths in `docs/CONVEX_LEAD_CAPTURE_SPEC.md` §10 are implemented
+- The deletion and export paths in `docs/CONVEX_SETUP.md` are implemented
   and tested against a real record.
 
 **Do not reorder these.** Steps 3 and 4 must precede step 5.

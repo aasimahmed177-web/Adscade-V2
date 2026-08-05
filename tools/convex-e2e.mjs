@@ -32,6 +32,12 @@ async function open(width = 390, height = 844) {
   p.on('console', m => {
     if (m.type() !== 'error') return;
     if (/Failed to load resource/i.test(m.text())) return;
+    // The page's own [Adscade] diagnostics are deliberate on every failure path — one of
+    // the tests below provokes a real 422 to prove the failure handling works.
+    if (/^\[Adscade\]/.test(m.text())) return;
+    // Chromium emits this when the stubbed Calendly page loads in a sandboxed context.
+    // It comes from the browser, not the page under test.
+    if (/requestStorageAccess/i.test(m.text())) return;
     fails++; console.log('FAIL  console: ' + m.text());
   });
   // Injected before the widget script runs — the production pattern.
@@ -55,32 +61,28 @@ console.log(`\nbrowser ${ORIGIN}  →  ${ENDPOINT}\n`);
 console.log('— the full journey —');
 const before = rows().length ? rows()[0].submissionId : null;
 let p = await open();
-await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, 1500); });
-await p.waitForTimeout(250);
-const y0 = await p.evaluate(() => window.scrollY);
-const url0 = p.url();
+// Capture the hand-off rather than following it, so the redirect URL can be asserted.
+await p.route('https://calendly.com/**', r =>
+  r.fulfill({ status: 200, contentType: 'text/html', body: 'calendly stub' }));
+const startUrl = p.url();
 
-t('Calendly hidden before submission', await p.evaluate(() => document.getElementById('schedule').hidden));
+t('no scheduling section on the page', await p.evaluate(() => !document.getElementById('schedule')));
 await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 t('initial CTA opened the modal', await p.evaluate(() => !document.getElementById('lead-modal').hidden));
 
 await fill(p);
 await p.click('#lead-form button[type=submit]');
-await p.waitForTimeout(2500);
+await p.waitForTimeout(3000);
 
-const after = await p.evaluate(() => ({
-  modalClosed: document.getElementById('lead-modal').hidden,
-  scheduleShown: !document.getElementById('schedule').hidden,
-  y: window.scrollY,
-  labels: [...document.querySelectorAll('.cta:not([type=submit]):not([data-keep-label]), .js-cta:not([data-keep-label])')]
-    .filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()),
-}));
-t('modal closed', after.modalClosed);
-t('Calendly section revealed', after.scheduleShown);
-t('no reload or redirect', p.url() === url0);
-t(`scroll preserved (${y0} → ${after.y})`, Math.abs(after.y - y0) < 40);
-t('every CTA now reads "Choose a Time"',
-  after.labels.length >= 3 && after.labels.every(x => x === 'Choose a Time'), after.labels.join('|'));
+const landed = new URL(p.url());
+t('redirected away from the landing page', p.url() !== startUrl);
+t('redirected to the configured Calendly event',
+  landed.origin + landed.pathname === 'https://calendly.com/aasim-ahmed177/realestate-growth-systems',
+  landed.origin + landed.pathname);
+t('name prefilled', landed.searchParams.get('name') === 'Priya Nair');
+t('email prefilled', landed.searchParams.get('email') === 'priya@nairbuilders.in');
+t('phone absent from the redirect URL',
+  !/9845011223|98450/.test(decodeURIComponent(p.url())) && landed.searchParams.get('phone') === null);
 
 /* ── the lead is really in the database ───────────────────────────── */
 console.log('\n— the row in Convex —');
@@ -101,34 +103,7 @@ t('no scoring fields stored',
   !('disqualificationReason' in latest) && !('manualReview' in latest),
   Object.keys(latest).join(','));
 
-/* ── Calendly handoff ─────────────────────────────────────────────── */
-console.log('\n— Calendly handoff —');
-await p.waitForTimeout(2500);
-const cal = await p.evaluate(() => {
-  const mount = document.querySelector('#cal, .cal, [data-calendly-mount]');
-  const iframes = document.querySelectorAll('#schedule iframe');
-  return {
-    mounts: iframes.length,
-    src: iframes[0] ? iframes[0].src : null,
-    prefill: window.__adscadeCalendlyPrefill || null,
-  };
-});
-t('Calendly initialised exactly once', cal.mounts <= 1, `${cal.mounts} iframes`);
-t('page URL carries no personal data', !/priya|9845|nairbuilders/i.test(p.url()), p.url());
-
-/* ── later CTA clicks scroll to Calendly ──────────────────────────── */
-await p.evaluate(() => window.scrollTo(0, 0));
-await p.waitForTimeout(250);
-await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
-await p.waitForTimeout(1600);
-t('later CTA scrolls to Calendly', await p.evaluate(() => {
-  const r = document.getElementById('schedule').getBoundingClientRect();
-  return r.top < window.innerHeight && r.bottom > 0;
-}));
-t('modal does not reopen', await p.evaluate(() => document.getElementById('lead-modal').hidden));
-await p.close();
-
-/* ── a rejected submission must not reveal Calendly ───────────────── */
+/* ── a rejected submission must not hand off ──────────────────────── */
 console.log('\n— real 422 from the real backend —');
 const countBefore = count();
 p = await open();
@@ -139,8 +114,7 @@ await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').
 await fill(p, { email: 'priya@nairbuilders..in' });
 await p.click('#lead-form button[type=submit]');
 await p.waitForTimeout(2500);
-t('server rejection keeps Calendly hidden',
-  await p.evaluate(() => document.getElementById('schedule').hidden));
+t('server rejection does not redirect', !/calendly\.com/.test(p.url()), p.url());
 t('server rejection keeps the modal open',
   await p.evaluate(() => !document.getElementById('lead-modal').hidden));
 t('server rejection shows the compact error',

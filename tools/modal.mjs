@@ -280,7 +280,9 @@ t('is announced via aria-live', /id="submit-err"[^>]*aria-live="assertive"/.test
       gap: Math.round(box.getBoundingClientRect().top - btn.getBoundingClientRect().bottom),
       preserved: document.getElementById('name').value === 'Rajesh Kumar'
         && document.querySelector('input[name="inventory"]:checked')?.value === '100_plus',
-      calendlyHidden: document.getElementById('schedule').hidden,
+      // #schedule is gone with the inline flow; what matters is that a failure does not
+    // navigate the visitor away.
+    stillHere: location.pathname.endsWith('index.html'),
       retryable: !btn.disabled,
       overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     };
@@ -290,16 +292,19 @@ t('is announced via aria-live', /id="submit-err"[^>]*aria-live="assertive"/.test
   t('error is compact (≤110px)', e.h <= 110, `${e.h}px`);
   t('error sits next to the submit button (≤24px gap)', e.gap <= 24, `${e.gap}px`);
   t('entered values are preserved', e.preserved);
-  t('Calendly stays hidden', e.calendlyHidden);
+  t('a failure does not navigate away', e.stillHere);
   t('retry is possible', e.retryable);
   t('no horizontal overflow from the error', e.overflowX === 0);
 
-  // clears on the next successful submission
+  // A successful retry now leaves the page for Calendly, so "the error is gone" is
+  // asserted as "the visitor was handed off" rather than by reading a DOM node that
+  // no longer exists.
+  await p.route('https://calendly.com/**', r =>
+    r.fulfill({ status: 200, contentType: 'text/html', body: 'stub' }));
   await p.evaluate(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, stored: true }) }); });
   await p.click('#lead-form button[type=submit]');
-  await p.waitForTimeout(900);
-  t('error is gone after a successful retry',
-    await p.evaluate(() => !document.getElementById('submit-err').classList.contains('invalid')));
+  await p.waitForTimeout(2000);
+  t('a successful retry hands off to Calendly', /calendly\.com/.test(p.url()), p.url());
   await p.close();
 }
 

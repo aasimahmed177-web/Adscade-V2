@@ -144,8 +144,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .band--light .cta{background:#14241A;color:var(--adscade-light);border-color:#14241A}
 /* The only other gold *fill* carrying text. It is the fallback link for a blocked embed,
    so it should not compete with the primary CTA — outline rather than a second solid. */
-.band--light .book-slot{background:transparent;color:#14241A;border-color:#14241A}
-.band--light .book-slot:hover{background:rgba(20,36,26,.08)}
 .band--light .cta:hover{background:#1E3527}
 .band--light .cta--ghost{background:transparent;color:#14241A;border-color:var(--adscade-light-border)}
 .band--light .cta--ghost:hover{background:rgba(20,36,26,.06)}
@@ -395,9 +393,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 /* ─── form ───────────────────────────────────────────────────────────── */
 .form-band{background:var(--ink-warm)}
 .form{max-width:660px;margin-inline:auto;padding:clamp(1.25rem,3.5vw,2.5rem)}
-.form__prog{display:flex;gap:.4rem;margin-bottom:1.6rem}
-.form__prog i{flex:1;height:3px;background:rgba(201,160,74,.2);border-radius:2px;transition:background .3s ease}
-.form__prog i.on{background:var(--gold)}
 .step{display:none}
 .step.on{display:block;animation:fade .3s ease}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -471,35 +466,9 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .rera__q{font-size:var(--t-body);line-height:1.45;margin:0 0 .9rem;color:var(--text)}
 .rera__note{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:.8rem 0 0}
 .opt-tag{font-size:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--adscade-muted);font-weight:700;margin-left:.4rem}
-/* Calendly inline embed. Fixed min-height so the panel does not jump when the
-   widget finishes loading, and no nested horizontal scroll on a phone. */
-.cal{
-  min-height:680px;width:100%;margin:1.4rem 0 .6rem;
-  border:var(--hair);border-radius:14px;overflow:hidden;background:var(--elev);
-}
-.cal iframe{width:100%!important;min-height:680px;border:0;display:block}
-/* Collapse the reserved space if the widget never arrives. Two classes so this
-   beats the 900px mobile min-height that is declared later in the sheet. */
-.cal.cal--failed{min-height:0;height:0;border:0;margin:0;overflow:hidden}
-.cal-fallback{display:none;margin:1.4rem 0 .4rem}
-.cal-fallback.on{display:block}
-@media(max-width:560px){.cal,.cal iframe{min-height:900px}}
-.done__tick{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;margin:0 auto 1.3rem}
-.done__tick svg{width:26px;height:26px}
-/* the scheduler hand-off — a different action from the page's CTA, so a different class */
-.book-slot{
-  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
-  font-family:var(--sans);font-size:var(--t-small);font-weight:800;
-  letter-spacing:.1em;text-transform:uppercase;
-  background:var(--gold);color:#1A1204;border:1px solid var(--gold);
-  padding:1.05rem 2.2rem;border-radius:999px;text-decoration:none;min-height:52px;
-  transition:transform .18s ease,background .18s ease;
-}
-.book-slot:hover{background:#EFCB80;transform:translateY(-2px)}
-/* disqualification lives inside the step that triggered it — never trailing the submit button */
-.dq{display:none;border:1px solid rgba(210,82,66,.45);background:rgba(210,82,66,.09);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.3rem;font-size:var(--t-small);line-height:1.55;color:rgba(234,224,200,.88)}
-.dq.on{display:block}
-.dq b{color:var(--error-text)}
+/* The inline Calendly embed, its fallback, the done-state tick, the scheduler
+   hand-off button and the disqualification panel were all removed with the
+   same-page scheduling flow. Their rules are deleted rather than left dormant. */
 .alt-exit{
   display:inline-flex;align-items:center;margin-top:.9rem;background:none;
   border:1px solid var(--adscade-border-strong);
@@ -917,22 +886,7 @@ body.modal-open .dock{transform:translateY(110%)}
     <div class="cta-wrap" style="margin-top:1.6rem">
       <button class="cta js-cta" type="button">Tell Us About Your Project</button>
     </div>
-    <p class="cta-note" id="cta-success" hidden>Thanks. When you're ready, choose a suitable time.</p>
-  </div>
-</section>
-
-<!-- ═══ Calendly — hidden until a lead is stored ════════════════════ -->
-<section class="band band--light" id="schedule" hidden>
-  <div class="wrap">
-    <p class="eyebrow" style="text-align:center">Scheduling</p>
-    <h2 class="h2 h2--center" style="max-width:18ch">Choose a suitable time.</h2>
-    <p class="lead lead--center">Select a time to discuss your project, current marketing setup and enquiry process with Aasim.</p>
-    <div id="calendly-mount" class="cal"></div>
-    <div class="cal-fallback" id="cal-fallback">
-      <p class="lead lead--center lead--sm">The booking calendar could not load in this browser.</p>
-      <a class="book-slot" href="https://calendly.com/aasim-ahmed177/realestate-growth-systems" target="_blank" rel="noopener">Open the calendar in a new tab</a>
-    </div>
-    <p class="cta-note" style="text-align:center">Prefer to message instead?
+    <p class="cta-note">Prefer to message instead?
       <a href="https://wa.me/917019698301">WhatsApp us on +91 70196 98301</a>.</p>
   </div>
 </section>
@@ -1119,9 +1073,8 @@ body.modal-open .dock{transform:translateY(110%)}
   }
   window.adscadeTrack = track;
 
-  // CTA events are emitted by the state machine below — initial_cta_click before a
-  // lead is stored, scheduling_cta_click afterwards. One generic primary_cta_click
-  // would conflate two different intents.
+  // Every CTA emits initial_cta_click. There is no second CTA intent to distinguish:
+  // a stored lead leaves this page for Calendly rather than returning to a CTA.
 
   /* ── FAQ ───────────────────────────────────────────────────────── */
   document.querySelectorAll('.faq__q').forEach(function(btn){
@@ -1169,7 +1122,7 @@ body.modal-open .dock{transform:translateY(110%)}
     // card meant a sliver of visible card counted as "a CTA is on screen" while the
     // button inside it was still 200px below the fold — so the first screen had no
     // tappable CTA at all and the dock stayed hidden.
-    var watched = [document.getElementById('book'), document.getElementById('schedule')];
+    var watched = [document.getElementById('book')];
     document.querySelectorAll('.cta').forEach(function(el){
       // the header pill is a shortcut, not a primary CTA — it must not suppress the dock
       if (!el.closest('.dock') && !el.closest('#lead-modal')
@@ -1185,16 +1138,14 @@ body.modal-open .dock{transform:translateY(110%)}
   });
 
   /* ══ CTA state machine ═══════════════════════════════════════════
-     Two states, one source of truth. Every CTA on the page — hero rail,
+     One state, one source of truth. Every CTA on the page — hero rail,
      mid-page, FAQ closer, sticky dock, CTA band — is driven from here, so a
      new CTA can never end up with stale copy or the wrong behaviour.
 
-       before storage : "Tell Us About Your Project"  → opens the modal
-       after  storage : "Choose a Time"               → scrolls to Calendly
+     There is no post-submission state: a stored lead leaves this page for
+     Calendly, so nothing here ever needs a second label.
   ═══════════════════════════════════════════════════════════════════ */
   var LABEL_BEFORE = 'Tell Us About Your Project';
-  var LABEL_AFTER  = 'Choose a Time';
-  var leadStored   = false;
 
   function ctaButtons(){
     return Array.prototype.slice.call(
@@ -1209,21 +1160,16 @@ body.modal-open .dock{transform:translateY(110%)}
       // page load; when the label later shortened, scroll anchoring yanked the page.
       // It keeps its own short label and only takes the click behaviour.
       if (!el.hasAttribute('data-keep-label')) {
-        el.textContent = leadStored ? LABEL_AFTER : LABEL_BEFORE;
+        el.textContent = LABEL_BEFORE;
       }
-      el.setAttribute('aria-haspopup', leadStored ? 'false' : 'dialog');
+      el.setAttribute('aria-haspopup', 'dialog');
     });
   }
 
   function onCtaClick(e){
     var el = e.currentTarget;
-    if (leadStored) {
-      track('scheduling_cta_click', {cta_text: el.textContent.trim()});
-      document.getElementById('schedule').scrollIntoView({behavior:'smooth', block:'start'});
-    } else {
-      track('initial_cta_click', {cta_text: el.textContent.trim()});
-      openModal(el);
-    }
+    track('initial_cta_click', {cta_text: el.textContent.trim()});
+    openModal(el);
   }
 
   ctaButtons().forEach(function(el){
@@ -1266,7 +1212,7 @@ body.modal-open .dock{transform:translateY(110%)}
   function closeModal(){
     modal.hidden = true;
     document.body.classList.remove('modal-open');
-    if (!leadStored) dock.classList.remove('hide');
+    dock.classList.remove('hide');
     // returning focus to the control that opened it is what makes this usable
     // without a mouse — without it the caret lands back at the top of the document
     if (opener && document.contains(opener)) opener.focus({preventScroll:true});
@@ -1423,61 +1369,37 @@ body.modal-open .dock{transform:translateY(110%)}
     } finally { if (timer) clearTimeout(timer); }
   }
 
-  /* ── Calendly ─────────────────────────────────────────────────────
-     CALENDLY_PHONE_ANSWER maps the phone number onto Calendly's invitee
-     questions. Calendly numbers them a1…a10 in the order they appear on the
-     event. The owner must add "What is your WhatsApp or phone number?" FIRST.
-     If that order ever changes, change this ONE value.
+  /* ── Calendly hand-off ────────────────────────────────────────────
+     The visitor leaves this page for Calendly once the lead is stored. There is
+     no inline embed, no widget script and no second opt-in.
+
+     Only name and email are prefilled. The phone number is already in Convex and
+     is deliberately NOT put in the URL: a query string is visible in the address
+     bar, in browser history, and in the Referer header sent onward from Calendly.
   ─────────────────────────────────────────────────────────────────── */
   var CALENDLY_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
-  var CALENDLY_PHONE_ANSWER = 'a1';
-  var calendlyInit = false;
 
-  function failCalendar(){
-    var m = document.getElementById('calendly-mount');
-    var n = document.getElementById('cal-fallback');
-    if (m) m.classList.add('cal--failed');
-    if (n) n.classList.add('on');
-  }
+  // Campaign attribution only. Nothing here identifies a person.
+  var FORWARDED_PARAMS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
 
-  function mountCalendly(lead){
-    if (calendlyInit) return;
-    calendlyInit = true;
-    var mount = document.getElementById('calendly-mount');
-    if (!mount) return;
+  function calendlyRedirectUrl(lead){
+    var url = new URL(CALENDLY_URL);
+    if (lead.name)  url.searchParams.set('name',  lead.name);
+    if (lead.email) url.searchParams.set('email', lead.email);
 
-    var prefill = {name: lead.name || '', email: lead.email || '', customAnswers: {}};
-    prefill.customAnswers[CALENDLY_PHONE_ANSWER] = lead.phone || '';
-
-    var css = document.createElement('link');
-    css.rel = 'stylesheet'; css.href = 'https://assets.calendly.com/assets/external/widget.css';
-    document.head.appendChild(css);
-
-    var js = document.createElement('script');
-    js.src = 'https://assets.calendly.com/assets/external/widget.js'; js.async = true;
-    js.onerror = failCalendar;
-    js.onload = function(){
-      if (!window.Calendly) return failCalendar();
-      // Advanced inline embed: name, email and the phone custom answer are passed
-      // through the API, never through a visible query string.
-      window.Calendly.initInlineWidget({
-        url: CALENDLY_URL + '?hide_gdpr_banner=1',
-        parentElement: mount,
-        prefill: prefill
-      });
-      var tries = 0;
-      var poll = setInterval(function(){
-        if (mount.querySelector('iframe')){ clearInterval(poll); track('calendar_view', null, true); }
-        else if (++tries > 40) clearInterval(poll);
-      }, 200);
-    };
-    document.head.appendChild(js);
-
-    setTimeout(function(){ if (!mount.querySelector('iframe')) failCalendar(); }, 8000);
+    // Carry the campaign through so a booking can be attributed to the ad that
+    // produced it. Only parameters that genuinely arrived are appended.
+    var here = new URLSearchParams(window.location.search);
+    FORWARDED_PARAMS.forEach(function(k){
+      var v = here.get(k);
+      if (v) url.searchParams.set(k, v);
+    });
+    return url.toString();
   }
 
   /* ══ submit ══════════════════════════════════════════════════════ */
   var submitting = false;
+  var redirecting = false;
 
   form.addEventListener('submit', async function(e){
     e.preventDefault();
@@ -1510,19 +1432,19 @@ body.modal-open .dock{transform:translateY(110%)}
 
     try {
       await submitLead(payload);
+      // Only reached when Convex confirmed stored:true. Every failure path throws.
       track('lead_form_stored', null, true);
 
-      // Same page, same scroll position. Reloading here would interrupt the VSL and
-      // throw away the visitor's place in it.
-      leadStored = true;
-      closeModal();
-      paintCtas();
-      document.getElementById('cta-success').hidden = false;
-      var sched = document.getElementById('schedule');
-      sched.hidden = false;
-      mountCalendly(payload);
-      dock.classList.remove('hide');
-      // deliberately NOT scrolled to — the visitor may still be watching the video
+      var target = calendlyRedirectUrl(payload);
+      track('calendly_redirect', null, true);
+
+      // Same tab, no reload beforehand. `redirecting` keeps the button disabled and
+      // the modal open through the navigation, so the visitor cannot fire a second
+      // submission in the moment before the browser leaves the page.
+      redirecting = true;
+      btn.textContent = 'Opening the calendar…';
+      window.location.assign(target);
+      return;
     } catch (err){
       document.getElementById('submit-err').classList.add('invalid');
       // The visitor sees one calm, recoverable message whatever went wrong. The precise
@@ -1538,19 +1460,23 @@ body.modal-open .dock{transform:translateY(110%)}
         console.error('[Adscade] endpoint =', leadEndpoint() || '(none)');
       }
     } finally {
-      submitting = false;
-      btn.disabled = false;
-      btn.textContent = 'Continue';
+      // On the success path the browser is already navigating away — re-enabling the
+      // button would let a fast double-tap post a second lead during the hand-off.
+      if (!redirecting) {
+        submitting = false;
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+      }
     }
   });
 
-  window.addEventListener('message', function(e){
-    if (!/^https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin || '')) return;
-    if (e.data && e.data.event === 'calendly.event_scheduled') track('booked_call', null, true);
-  });
+  // booked_call cannot fire here: the booking happens on calendly.com after the
+  // visitor has left. A Calendly webhook is the only honest source for it —
+  // see docs/CONVEX_SETUP.md.
 
-  // test hooks — no scoring exists to expose
-  window.__adscadeState = function(){ return {leadStored: leadStored, calendlyInit: calendlyInit}; };
+  // test hooks
+  window.__adscadeState = function(){ return {redirecting: redirecting}; };
+  window.__adscadeCalendlyUrl = calendlyRedirectUrl;
 })();
 </script>
 </body>

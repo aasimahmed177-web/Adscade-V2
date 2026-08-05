@@ -112,9 +112,13 @@ in production** — check with `npx convex env list --prod`.
 { "ok": false, "code": "server_error" }                                 // 500
 ```
 
-**`stored: true` is the only thing that unlocks the calendar.** The honeypot reply is a 200
-that looks successful; the frontend treats it exactly like a server error. No internal
+**`stored: true` is the only thing that triggers the redirect to Calendly.** No internal
 database id is ever returned.
+
+A tripped bot trap no longer returns `stored: false` — it stores the lead with
+`status: "suspect"` and returns `stored: true`, because discarding silently destroyed real
+leads whose browser autofilled the hidden field. The client still refuses to redirect on
+`stored: false`, so a future server change cannot hand off an unsaved lead.
 
 ---
 
@@ -179,8 +183,8 @@ snippet (`dist/head-tags.txt` already contains it, commented, with a placeholder
 ```
 
 The page reads it at call time, so header/widget load order does not matter. If it is
-missing or empty the form fails visibly and the calendar stays hidden — it never pretends
-to have saved anything.
+missing or empty the form fails visibly and the visitor is **not** redirected — it never
+pretends to have saved anything.
 
 ---
 
@@ -276,11 +280,12 @@ diary full of fake appointments.
 
 ## Future: the Calendly webhook
 
-Today `booked_call` is a browser `postMessage` — an analytics signal, not proof. To make
-bookings authoritative:
+There is no booking signal on the landing page at all: the visitor is redirected to
+Calendly and books after leaving the site, so nothing in the browser can honestly report
+it. Read booked calls from the Calendly dashboard, or make them authoritative here:
 
 1. Add `calendarToken` (server-minted, opaque) to the schema and return it on success.
-2. Pass it into the embed as a Calendly UTM/custom field.
+2. Append it to the redirect URL as a Calendly UTM/custom field.
 3. Add `POST /calendly-webhook`, verify `Calendly-Webhook-Signature` (HMAC) on **every**
    request, look up `by_calendarToken`, set `booked`, `bookedAt`, `calendlyEventUri`.
 4. Subscribe to `invitee.created` and `invitee.canceled`.

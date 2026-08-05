@@ -1,10 +1,11 @@
 # Adscade — Tracking Specification
 
-Version 2.0 · 31 July 2026 · Landing page — current slug `/vsl-4/` (configurable; no slug is hard-coded in the page)
+Version 3.0 · 1 August 2026 · Landing page — current slug `/vsl-4/` (configurable; no slug is hard-coded in the page)
 
-> **What changed in v2.** Scoring and the three outcome states were removed, so
-> `qualification_outcome`, `qualification_question_complete` and `score_band` are gone. The
-> CTA is now a two-state machine, which needs two distinct click events rather than one.
+> **What changed in v3.** The inline Calendly embed was replaced by a redirect: once Convex
+> confirms storage, the visitor leaves this page for calendly.com in the same tab. So the
+> two-state CTA, `scheduling_cta_click`, `calendar_view` and `booked_call` are all gone, and
+> `calendly_redirect` is the new final event on this page.
 
 **Google Tag Manager is not installed.** No container script is present, and none will be
 added without a container ID supplied by the owner. The page publishes to
@@ -49,54 +50,48 @@ function track(event, data, once) {
 
 ## Event schema
 
-Nine events. Every one of them is in `site/index.html`; nothing here is aspirational except
-the four VSL progress events, which are called out below.
+Six events. Every one is in `site/index.html`; nothing here is aspirational except the four
+VSL progress events, which are called out below.
 
 | Event | Fires when | Once | Parameters |
 |---|---|---|---|
 | `main_vsl_play` | Visitor starts the video | yes | — |
-| `initial_cta_click` | A CTA is clicked **before** the lead is stored | no | `cta_text` |
+| `initial_cta_click` | Any CTA is clicked | no | `cta_text` |
 | `lead_modal_open` | The modal opens | yes | — |
 | `lead_form_start` | First interaction with any field in the modal | yes | — |
 | `lead_form_submit` | Submit pressed and client validation passed | yes | — |
-| `lead_form_stored` | Server confirmed storage | yes | — |
-| `scheduling_cta_click` | A CTA is clicked **after** the lead is stored | no | `cta_text` |
-| `calendar_view` | Calendly embed actually rendered (iframe confirmed present) | yes | — |
-| `booked_call` | **Confirmed** Calendly scheduling event | yes | — |
+| `lead_form_stored` | **Convex confirmed `stored: true`** | yes | — |
+| `calendly_redirect` | Immediately before `window.location.assign` | yes | — |
 
-### The two CTA events are the point
-
-`initial_cta_click` and `scheduling_cta_click` come from the same buttons — the same DOM
-elements, relabelled in place. Splitting them is what makes the funnel legible:
+### The funnel
 
 ```
 initial_cta_click → lead_modal_open → lead_form_start → lead_form_submit
-                  → lead_form_stored → calendar_view → booked_call
-                                     ↘ scheduling_cta_click (return visits to the calendar)
+                  → lead_form_stored → calendly_redirect → [visitor leaves the site]
 ```
 
-A drop between `lead_form_submit` and `lead_form_stored` is a **backend or validation
-problem**, not a copy problem — the visitor did everything asked and the storage call
-failed. That gap is the single most important thing to watch after launch, and it did not
-exist as a measurable step in v1.
+`lead_form_stored` fires **only** after the server confirms the write. Every failure path —
+validation, network, timeout, CORS, 4xx, 5xx, malformed JSON, a `stored:false` body —
+throws before it, so a gap between `lead_form_submit` and `lead_form_stored` is a **backend
+problem, not a copy problem**. That gap is the single most important thing to watch after
+launch.
 
-`scheduling_cta_click` firing repeatedly is normal and healthy: it means a visitor who
-already gave their details is scrolling back to the calendar. It is not a re-submission.
+`calendly_redirect` and `lead_form_stored` should track 1:1. If they diverge, something is
+failing between the confirmed write and the navigation.
 
 ### Controlled values
 
-- `cta_text` — the rendered button label, which is one of exactly two strings:
-  `Tell Us About Your Project` or `Choose a Time`. It is a label, not free text.
+- `cta_text` — the rendered button label: `Tell Us About Your Project` for every primary
+  CTA, or `Book a call` for the header shortcut. A label, never free text.
 
-### Retired in v2
+### Retired in v3
 
-`primary_cta_click` · `qualification_form_start` · `qualification_question_complete` ·
-`contact_details_submitted` · `qualification_form_complete` · `qualification_outcome` ·
-`score_band` · `outcome` · `answer_key`.
+`scheduling_cta_click` · `calendar_view` · `booked_call` — all three belonged to the
+same-page embed. A container still configured for them will report a funnel that no longer
+exists. `tools/redirect.mjs` asserts none of them is emitted.
 
-If any of these appear in a container, the container is configured against v1 and will
-report a funnel that no longer exists. `tools/e2e.mjs` asserts that no event name matching
-`/qualification|score/` is ever pushed.
+Retired earlier, in v2: `primary_cta_click` · `qualification_*` · `score_band` · `outcome`
+· `answer_key`.
 
 ---
 
@@ -129,40 +124,30 @@ is used, the four thresholds must remain once-only.
 
 ---
 
-## booked_call — the one that must not misfire
+## Why there is no `booked_call` on this page
 
-`booked_call` is the conversion. It fires **only** on a confirmed scheduling message from
-Calendly:
+The booking happens on `calendly.com`, after the visitor has left the site. There is no
+embedded iframe to receive a `postMessage` from and no honest way for this page to know a
+meeting was scheduled. **Do not fabricate one** — a conversion event fired on redirect
+would count every visitor who reached the calendar, not every visitor who booked.
 
-```js
-window.addEventListener('message', e => {
-  if (!/^https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin)) return;
-  if (e.data && e.data.event === 'calendly.event_scheduled') track('booked_call', null, true);
-});
-```
+The authoritative source is a **Calendly webhook** writing back to Convex. See
+`docs/CONVEX_SETUP.md` → *Future: the Calendly webhook*. Until that exists, read booked
+calls from the Calendly dashboard, and treat `calendly_redirect` as "reached the calendar",
+which is what it actually measures.
 
-It must **never** fire on: embed load · calendar view · date selection · time selection ·
-closing the calendar. The origin check is strict — a message from any other origin is
-ignored, so a hostile page cannot forge a conversion.
+### Attribution across the hand-off
 
-The authoritative record of a booking is the **Calendly webhook**, verified by HMAC and
-correlated on the server-minted `calendarToken` — see `docs/CONVEX_LEAD_CAPTURE_SPEC.md` §9.
-`booked_call` is the analytics signal for the same event; the two are independent on
-purpose, because a `postMessage` from a browser is not evidence.
+`utm_source`, `utm_medium`, `utm_campaign`, `utm_content` and `utm_term` are appended to
+the Calendly URL when they are present on the landing-page URL, so a booking can still be
+attributed to the ad that produced it. `gclid` is **not** forwarded — it is a
+Google-specific click identifier that Calendly has no use for, and the lead row in Convex
+already carries it.
+
+Nothing else is appended: no phone number, no answers, no consent value, no submission id,
+no deployment detail.
 
 ---
-
-## Known coverage gap — bookings made via the fallback link
-
-`booked_call` depends on a `postMessage` from the **embedded** Calendly iframe. If the
-embed fails to load (blocked script, corporate firewall, offline) the visitor is offered a
-direct link that opens Calendly in a **new tab**. A booking completed in that tab cannot
-message back to the funnel window, so `booked_call` and the `calendly_booked` database
-update will not fire for that visitor.
-
-The lead itself is still stored — only the booking confirmation is missed. During QA, do
-not read a gap between `calendar_view` and `booked_call` as lost bookings without first
-checking Calendly's own dashboard.
 
 ## Activation checklist
 
@@ -173,10 +158,12 @@ Before switching tracking on, in order:
 3. Any required consent mechanism is in place.
 4. GTM container script is added (header + body).
 5. Verify in GTM Preview: each event fires once, carries attribution, and carries **no PII**.
-6. Confirm `booked_call` fires only after a real test booking — not on opening the calendar.
-7. Confirm no event carries `name`, `email`, `phone` or `cta_text` other than the two
-   permitted labels. `tools/e2e.mjs` checks this against the stub; check it again in GTM
-   Preview against the real container.
+6. Confirm `calendly_redirect` fires once per stored lead, and that no event carries
+   `name`, `email`, `phone`, or a `cta_text` other than the two permitted labels.
+   `tools/redirect.mjs` checks this against a stub; check it again in GTM Preview against
+   the real container.
+7. Remember the conversion is **not** measurable on this page. Set the Ads conversion on a
+   Calendly webhook or Calendly's own reporting, never on `calendly_redirect`.
 
 Until step 1, the page is correct and complete as it stands: it publishes events that
 nothing yet reads.

@@ -111,24 +111,24 @@ category('Message match & congruency', 150);
   // This is a specification change, not a tuning of the ruler.
   // CONSEQUENCE: the YouTube end cards must be re-cut to AD_CTA, or Demand Gen will
   // disapprove on ad<->page mismatch. They currently read "Book My Free Audit Call".
-  const AD_CTA    = 'Tell Us About Your Project';
-  const CTA_AFTER = 'Choose a Time';
-  // 'Continue' is the modal's submit button. Nothing else is permitted.
-  const CTA_ALLOWED = [AD_CTA, CTA_AFTER, 'Continue'];
+  const AD_CTA = 'Tell Us About Your Project';
+  // 'Continue' is the modal's submit button. 'Book a call' is the header shortcut, which
+  // keeps a short label so the header does not wrap. Nothing else is permitted.
+  const CTA_ALLOWED = [AD_CTA, 'Continue', 'Book a call'];
 
   const h1 = norm(await page.evaluate(() => document.querySelector('h1')?.innerText || ''));
   check('H1 matches ad headline exactly', 30,
     lc(h1) === lc(AD_HEADLINE), `h1="${h1}"`);
 
-  // 25 points split 15/10 across the two CTA states — the concern is unchanged, but it
-  // is now carried by two strings instead of one. The category budget stays at 150.
+  // 25 points split 15/10: the CTA string must be present, and the removed post-storage
+  // label must stay removed. Category budget unchanged at 150.
   check('Ad CTA string present verbatim', 15, text.includes(AD_CTA));
 
   const ctaTexts = await page.$$eval('.cta', els => els.map(e => e.innerText.replace(/\s+/g, ' ').trim()));
   const primary = ctaTexts.filter(t => !/^(continue|back|sending)/i.test(t));
-  // The post-storage label must also be present in source, so a drifted second string
-  // cannot hide behind the fact that it is only rendered after submission.
-  check('Post-storage CTA string present verbatim', 10, html.includes(CTA_AFTER));
+  // There is no post-storage label any more — a stored lead leaves the page. Assert the
+  // absence, so the removed state cannot creep back in.
+  check('No post-storage CTA state', 10, !/['"`]Choose a Time['"`]/.test(html));
   const allowedLc = CTA_ALLOWED.map(lc);
   const offBrand = primary.filter(t => !allowedLc.includes(lc(t)));
   check('No competing primary CTA copy', 20, offBrand.length === 0, offBrand.join(' | '));
@@ -214,12 +214,12 @@ category('VSL funnel architecture', 150);
     .map(a => a.getAttribute('href'))
     .filter(h => /^(https?:)?\/\//i.test(h))
     .filter(h => !allowed.some(host => h.includes(host))), ALLOWED_HOSTS);
-  // ...and the permitted one must not be reachable until the form is done, or it becomes
-  // exactly the attention leak the rule exists to prevent.
-  const schedulerHidden = await page.evaluate(() => {
-    const links = [...document.querySelectorAll('a[href*="calendly.com"], a[href*="wa.me"]')];
-    return links.every(a => a.getBoundingClientRect().width === 0);
-  });
+  // CHANGED 1 Aug 2026. The scheduler is reached by redirect after storage, not by a link
+  // on the page, so there is no longer a calendly.com anchor to keep hidden. The rule is
+  // unchanged — no visible link may take a visitor off the funnel before they convert —
+  // but a WhatsApp fallback is a deliberate, permitted contact route, not a leak.
+  const schedulerHidden = await page.evaluate(() =>
+    document.querySelectorAll('a[href*="calendly.com"]').length === 0);
   check('No outbound links off the funnel', 20, leaks.length === 0 && schedulerHidden,
     leaks.join(' ') + (schedulerHidden ? '' : ' scheduler visible pre-submit'));
 }
@@ -275,11 +275,13 @@ category('Lead modal', 120);
   // Two-state CTA machine: one label before storage, one after, applied to every CTA.
   const machine = await page.evaluate(() => ({
     hasState: typeof window.__adscadeState === 'function',
-    stored: typeof window.__adscadeState === 'function' ? window.__adscadeState().leadStored : null,
-    scheduleHidden: !!document.getElementById('schedule')?.hidden,
+    notRedirecting: typeof window.__adscadeState === 'function'
+      ? window.__adscadeState().redirecting === false : null,
+    buildsRedirect: typeof window.__adscadeCalendlyUrl === 'function',
+    noSchedulingSection: document.getElementById('schedule') === null,
   }));
-  check('CTA state machine present and starts un-stored', 15,
-    machine.hasState && machine.stored === false && machine.scheduleHidden,
+  check('Redirect hand-off wired, no on-page scheduler', 15,
+    machine.hasState && machine.notRedirecting && machine.buildsRedirect && machine.noSchedulingSection,
     JSON.stringify(machine));
 }
 

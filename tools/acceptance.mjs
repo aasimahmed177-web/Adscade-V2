@@ -57,8 +57,10 @@ t('privacy lists the five fields and no more',
 t('privacy no longer claims six qualifying questions', !/six qualif/i.test(priv));
 t('privacy no longer claims to collect city or business name',
   !/micro-market you sell in/i.test(priv) && !/name and business name/i.test(priv));
-t('privacy states the phone number is passed to Calendly',
-  /name, email address and phone number are passed to Calendly/i.test(priv));
+t('privacy states the phone is NOT passed to Calendly',
+  /phone number is not passed to Calendly/i.test(priv));
+t('privacy states the visitor is redirected to Calendly',
+  /redirect(ed)? to Calendly/i.test(priv));
 t('privacy states there is no automatic assessment', /no scoring/i.test(priv));
 
 console.log('\n── the form is exactly five fields + consent ──');
@@ -85,108 +87,47 @@ const before = await p.$$eval('.cta:not([type=submit]):not([data-keep-label]), .
   e => e.filter(x => !x.closest('#lead-modal')).map(x => x.textContent.trim()));
 t(`all CTAs start as "Tell Us About Your Project" (${before.length})`,
   before.length >= 3 && before.every(x => x === 'Tell Us About Your Project'));
-t('Calendly hidden before storage', await p.evaluate(() => document.getElementById('schedule').hidden));
+t('no scheduling section exists on the page', await p.evaluate(() => !document.getElementById('schedule')));
 await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 t('initial CTA opens the modal', await p.evaluate(() => !document.getElementById('lead-modal').hidden));
 await p.keyboard.press('Escape');
 
-console.log('\n── failed storage must not grant Calendly access ──');
+console.log('\n── failed storage must not hand off to Calendly ──');
 const pf = await page();
 await pf.evaluate(() => { window.ADSCADE_LEAD_ENDPOINT = '/stub';
   window.fetch = async () => ({ ok: false, status: 500, json: async () => ({ ok: false }) }); });
 await pf.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 await fill(pf);
+const pfUrl = pf.url();
 await pf.click('#lead-form button[type=submit]');
-await pf.waitForTimeout(700);
-t('storage failure leaves Calendly hidden',
-  await pf.evaluate(() => document.getElementById('schedule').hidden));
-t('storage failure keeps the original CTA label',
-  (await pf.$eval('.js-cta:not([data-keep-label])', e => e.textContent.trim())) === 'Tell Us About Your Project');
+await pf.waitForTimeout(900);
+t('storage failure does not redirect', pf.url() === pfUrl && !/calendly/.test(pf.url()));
+t('storage failure keeps the modal open',
+  await pf.evaluate(() => !document.getElementById('lead-modal').hidden));
 t('storage failure shows a retryable error',
   await pf.evaluate(() => document.getElementById('submit-err').classList.contains('invalid')
     && !document.querySelector('#lead-form button[type=submit]').disabled));
 await pf.close();
 
-console.log('\n── successful storage grants Calendly access ──');
-p = await page();
-await stubOK(p);
-await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, 1400); });
-await p.waitForTimeout(200);
-const y0 = await p.evaluate(() => window.scrollY);
-const url0 = p.url();
-await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
-await fill(p);
-await p.click('#lead-form button[type=submit]');
-await p.waitForTimeout(900);
-
-const st = await p.evaluate(() => ({
-  scheduleShown: !document.getElementById('schedule').hidden,
-  modalClosed: document.getElementById('lead-modal').hidden,
-  y: window.scrollY, reloaded: window.__reloaded,
-  labels: [...document.querySelectorAll('.cta:not([type=submit]):not([data-keep-label]), .js-cta:not([data-keep-label])')]
-    .filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()),
-}));
-t('every stored submission is offered Calendly', st.scheduleShown);
-t('modal closes on success', st.modalClosed);
-t('every CTA becomes "Choose a Time"',
-  st.labels.length >= 3 && st.labels.every(x => x === 'Choose a Time'), st.labels.join('|'));
-t('no reload or redirect', !st.reloaded && p.url() === url0);
-t(`scroll position preserved (${y0} → ${st.y})`, Math.abs(st.y - y0) < 40);
-
-await p.evaluate(() => window.scrollTo(0, 0));
-await p.waitForTimeout(200);
-await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
-await p.waitForTimeout(1500);
-t('updated CTA scrolls to the Calendly section', await p.evaluate(() => {
-  const r = document.getElementById('schedule').getBoundingClientRect();
-  return r.top < window.innerHeight && r.bottom > 0;
-}));
-t('modal does not reopen after storage',
-  await p.evaluate(() => document.getElementById('lead-modal').hidden));
-
-console.log('\n── the header shortcut keeps a stable label ──');
+console.log('\n── successful storage hands off to Calendly ──');
 {
-  const ph = await page();
-  const h0 = await ph.evaluate(() => Math.round(document.querySelector('.brandbar').getBoundingClientRect().height));
-  await ph.evaluate(() => {
-    window.ADSCADE_LEAD_ENDPOINT = '/stub';
-    window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, stored: true }) });
-  });
-  await ph.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
-  await fill(ph);
-  await ph.click('#lead-form button[type=submit]');
-  await ph.waitForTimeout(900);
-  const h1 = await ph.evaluate(() => Math.round(document.querySelector('.brandbar').getBoundingClientRect().height));
-  // A repainted header pill wraps to two lines and moves the whole page under the reader.
-  t('header height is unchanged by the CTA state change', h0 === h1, `${h0} → ${h1}`);
-  t('header pill keeps its own short label',
-    (await ph.$eval('.brandbar__fit', e => e.textContent.trim())) === 'Book a call');
-  await ph.close();
-}
-
-console.log('\n── idempotency key is stable across retries ──');
-{
-  const pr = await page();
-  await pr.evaluate(() => {
-    window.ADSCADE_LEAD_ENDPOINT = '/stub';
-    window.__ids = [];
-    let n = 0;
-    window.fetch = async (u, o) => {
-      window.__ids.push(JSON.parse(o.body).submissionId);
-      n++;
-      if (n === 1) throw new Error('network');          // first attempt fails
-      return { ok: true, json: async () => ({ ok: true, stored: true }) };
-    };
-  });
-  await pr.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
-  await fill(pr);
-  await pr.click('#lead-form button[type=submit]');
-  await pr.waitForTimeout(700);
-  await pr.click('#lead-form button[type=submit]');     // retry
-  await pr.waitForTimeout(900);
-  const ids = await pr.evaluate(() => window.__ids);
-  t('a retry reuses the same submissionId', ids.length === 2 && ids[0] === ids[1], ids.join(' | '));
-  await pr.close();
+  const ps = await page();
+  await ps.route('https://calendly.com/**', r =>
+    r.fulfill({ status: 200, contentType: 'text/html', body: 'stub' }));
+  await stubOK(ps);
+  await ps.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
+  await fill(ps);
+  await ps.click('#lead-form button[type=submit]');
+  await ps.waitForTimeout(2500);
+  const u = new URL(ps.url());
+  t('redirects to the configured Calendly event',
+    u.origin + u.pathname === 'https://calendly.com/aasim-ahmed177/realestate-growth-systems',
+    u.origin + u.pathname);
+  t('name and email are prefilled',
+    u.searchParams.get('name') === 'Rajesh Kumar' && u.searchParams.get('email') === 'rajesh@kumardev.in');
+  t('the phone number is not in the redirect URL',
+    !/9876543210/.test(decodeURIComponent(ps.url())) && u.searchParams.get('phone') === null);
+  await ps.close();
 }
 
 console.log('\n── no second video, no second page ──');
@@ -196,7 +137,7 @@ t('exactly one VSL region', (await p.$$('.vsl')).length === 1, media.join(','));
 t('no second landing page in site/',
   execSync('ls site/*.html').toString().trim().split('\n').sort().join(',') ===
   'site/brand-guidelines.html,site/index.html,site/privacy.html,site/terms.html');
-t('one Calendly mount only', (await p.$$('#cal, .cal')).length <= 2 && (await p.$$('#schedule')).length === 1);
+t('no inline Calendly mount remains', (await p.$$('#calendly-mount, .cal, #schedule')).length === 0);
 
 console.log('\n── images placed as directed ──');
 for (const [img, sect] of [

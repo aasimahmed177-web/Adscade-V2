@@ -1,3 +1,18 @@
+> # ⚠ SUPERSEDED — do not implement from this document
+>
+> This was the **design** written before the backend existed. The backend now exists, and
+> this document disagrees with it in ways that matter: it specifies a `/lead` endpoint
+> (the real one is `/submit-lead`), a `calendarToken`, `booked`/`bookedAt` fields and an
+> `ipHash` (none of which are in the schema), a `website` honeypot field (renamed `hp_ref`),
+> `submittedAt` (now `createdAt`), and an inline Calendly embed (now a redirect).
+>
+> **The authoritative document is [`CONVEX_SETUP.md`](CONVEX_SETUP.md).**
+>
+> Kept only as a record of the reasoning behind the CORS, validation, idempotency and
+> CSV-injection decisions, which did carry through to the implementation.
+
+---
+
 # Convex lead capture — integration specification
 
 Version 2.0 · 31 July 2026
@@ -335,27 +350,39 @@ real conversions on this audience and the honeypot is already doing the work.
 
 ---
 
-## 9. Calendly webhook — the authoritative booking source
+## 9. Calendly — a redirect, not an embed
 
-The browser's `postMessage` listener is a **UX signal only**. It fires `booked_call` for
-analytics. It must not be the source of truth for whether a call exists.
+**Changed 1 August 2026.** There is no inline embed and no `calendarToken`. Once this
+endpoint returns `stored: true`, the landing page redirects the visitor to Calendly in the
+same tab:
 
 ```
-stored lead ──> calendarToken minted server-side
-            └─> embed opens with the token in a Calendly UTM/custom field
-Calendly booking ──> webhook POST /calendly-webhook
-                 └─> verify Calendly-Webhook-Signature (HMAC, CALENDLY_WEBHOOK_SECRET)
-                 └─> look up by_calendarToken
-                 └─> set booked = true, bookedAt, calendlyEventUri, status = "booked"
+https://calendly.com/aasim-ahmed177/realestate-growth-systems?name=…&email=…&utm_*=…
 ```
 
-Subscribe to `invitee.created` and `invitee.canceled`. Verify the signature on every
-request and reject anything unsigned — otherwise the endpoint is a public "mark this lead
-booked" button.
+Only `name` and `email` are prefilled. The **phone number is deliberately not passed** — it
+is already stored here, and a query string is visible in the address bar, in browser
+history, and in the `Referer` sent onward. Campaign parameters are forwarded when present
+so a booking can still be attributed.
 
-**Never accept a booking update keyed only on `submissionId`.** That value is generated in
-the browser and appears in a query string; treating it as proof of a booking would let
-anyone mark arbitrary leads as converted.
+Because the booking happens after the visitor leaves the site, **this backend has no record
+of whether a meeting was scheduled.** The row's `status` stays `submitted` until a person
+or a webhook updates it.
+
+### If booking state is ever needed in Convex
+
+Add a webhook, and key it on something the server minted:
+
+1. Return an opaque `calendarToken` on success and append it to the redirect as a Calendly
+   UTM/custom field.
+2. Add `POST /calendly-webhook`; verify `Calendly-Webhook-Signature` (HMAC) on **every**
+   request; reject anything unsigned, or the endpoint is a public "mark this lead booked"
+   button.
+3. Look up `by_calendarToken`, set `booked`, `bookedAt`, `calendlyEventUri`, `status`.
+4. Subscribe to `invitee.created` and `invitee.canceled`.
+
+**Never key a booking update on `submissionId`.** It is generated in the browser and
+travels through a query string; anyone who saw one could mark arbitrary leads as converted.
 
 ---
 
