@@ -20,7 +20,16 @@ async function open(width = 390, height = 844, query = '') {
   p.__posts = 0;
   p.__events = [];
   p.__payloads = [];
-  await p.exposeFunction('__mirrorPost', body => { p.__posts++; p.__payloads.push(body); });
+  // CHANGED 18 Aug 2026: the page now also fires a fire-and-forget mirror POST to a
+  // Google Sheets webhook alongside every real Convex submission. Both go through this
+  // same fetch override, so counting is done per-URL: __posts stays "how many times did
+  // the Convex/lead endpoint get hit" (the invariant that actually matters — one real
+  // lead per click), tracked separately from the Sheets mirror's own call count.
+  p.__sheetsPosts = 0;
+  await p.exposeFunction('__mirrorPost', (url, body) => {
+    if (url && url.includes('script.google.com')) { p.__sheetsPosts++; return; }
+    p.__posts++; p.__payloads.push(body);
+  });
   await p.exposeFunction('__mirrorEvent', e => { p.__events.push(e); });
   await p.addInitScript(() => {
     // Capture dataLayer pushes at the source rather than reading the array afterwards.
@@ -49,7 +58,7 @@ async function open(width = 390, height = 844, query = '') {
 const stub = (p, impl) => p.evaluate(f => {
   window.ADSCADE_LEAD_ENDPOINT = '/stub';
   const inner = new Function('return ' + f)();
-  window.fetch = async (u, o) => { window.__mirrorPost(o && o.body ? o.body : ''); return inner(); };
+  window.fetch = async (u, o) => { window.__mirrorPost(String(u), o && o.body ? o.body : ''); return inner(); };
 }, impl);
 const OK = `async () => ({ok:true, json: async()=>({ok:true, stored:true, submissionId:'s-1'})})`;
 const p_posts = p => p.__posts;
@@ -82,7 +91,7 @@ for (const [w, h] of [[360,800],[375,812],[390,844],[430,932],[768,1024],[1440,9
   const p = await open(w, h);
   const ctas = await p.$$eval('.cta:not([type=submit]):not([data-keep-label]), .js-cta:not([data-keep-label])',
     els => els.filter(e => !e.closest('#lead-modal')).map(e => e.textContent.trim()));
-  const allSame = ctas.length >= 3 && ctas.every(x => x === 'Tell Us About Your Project');
+  const allSame = ctas.length >= 3 && ctas.every(x => x === 'Contact Us');
 
   // every CTA must open the SAME modal
   const total = await p.evaluate(() =>
@@ -110,7 +119,7 @@ for (const [w, h] of [[360,800],[375,812],[390,844],[430,932],[768,1024],[1440,9
   });
   const label = `${w}x${h}`.padEnd(9);
   t(`${label} 1. every CTA opens the same modal (${total})`, allOpen);
-  t(`${label} 1. all CTAs read "Tell Us About Your Project"`, allSame, ctas.join('|'));
+  t(`${label} 1. all CTAs read "Contact Us"`, allSame, ctas.join('|'));
   t(`${label} 2. exactly five fields + consent`,
     st.names === 'consent,email,inventory,media_budget,name,phone', st.names);
   t(`${label} 3. no default radio answer`, st.inv === 0 && st.bud === 0);
@@ -160,7 +169,15 @@ for (const [label, impl] of [
   ['bot/honeypot stored:false', `async () => ({ok:true, json: async()=>({ok:true, stored:false, submissionId:null})})`],
 ]) {
   const p = await open();
-  if (impl) await stub(p, impl);
+  if (impl) {
+    await stub(p, impl);
+  } else {
+    // CHANGED 18 Aug 2026: site/index.html's own <head> now hardcodes the real production
+    // endpoint (the owner's own paste does this directly, matching what ships). Without
+    // this, "no endpoint configured" would instead make a REAL cross-origin fetch from a
+    // file:// test page, which CORS legitimately blocks — testing something else entirely.
+    await p.evaluate(() => { window.ADSCADE_LEAD_ENDPOINT = ''; });
+  }
   await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
   await fill(p);
   const before = p.url();
@@ -177,7 +194,7 @@ for (const [label, impl] of [
   }));
   t(`${label}: no redirect, modal open, values kept, retryable`,
     p.url() === before && !/calendly\.com/.test(p.url()) &&
-    r.modalOpen && r.err && r.retryable && r.values && r.label === 'Continue',
+    r.modalOpen && r.err && r.retryable && r.values && r.label === 'Choose My Time',
     `url=${p.url() === before ? 'same' : p.url()} modal=${r.modalOpen} err=${r.err} retry=${r.retryable} kept=${r.values}`);
   await p.close();
 }
@@ -248,6 +265,11 @@ console.log('\n— 16. double submission —');
   });
   await p.waitForTimeout(2500);
   t('16. exactly one POST', p.__posts === 1, String(p.__posts));
+  // The Sheets mirror fires 'pending' before the Convex await and 'stored' after it
+  // resolves — two calls per genuine submission, not per click. A triple-click must not
+  // triple that either.
+  t('16. Sheets mirror fires exactly twice (pending + stored), not per click',
+    p.__sheetsPosts === 2, String(p.__sheetsPosts));
   t('16. exactly one redirect', navs.length === 1, `${navs.length}`);
   await p.close();
 }

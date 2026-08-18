@@ -36,10 +36,18 @@ for (const [w,h] of [[360,800],[375,812],[390,844],[430,932],[768,1024],[1440,90
       .filter(e=>{const c=getComputedStyle(e);return c.textTransform!=='uppercase'&&parseFloat(c.fontSize)<16;}).length;
     const tap=[...document.querySelectorAll('button, a.cta, .opt, .brandbar__fit')]
       .filter(e=>{const b=e.getBoundingClientRect();return b.width>0&&b.height>0&&b.height<48;}).length;
-    const btn=document.querySelector('.rail .cta').getBoundingClientRect();
+    // CHANGED 18 Aug 2026: this checked only .rail .cta specifically. The hero now carries
+    // its own CTA (.hero__action .cta) ahead of the rail card in document order, and on a
+    // narrow viewport that hero CTA is what's actually on the first screen — the rail
+    // button sits below the tall hero image. Checking one hardcoded button was already
+    // fragile; check whether ANY .cta is visible, matching what a visitor actually sees.
+    const anyCtaVisible = [...document.querySelectorAll('.cta')].some(e => {
+      const r = e.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.top < innerHeight && r.bottom > 0;
+    });
     return {o:de.scrollWidth-de.clientWidth, h:document.body.scrollHeight, small, tap,
       h1:document.querySelectorAll('h1').length,
-      cta:(btn.top<innerHeight&&btn.bottom>0)||!document.getElementById('dock').classList.contains('hide')};
+      cta:anyCtaVisible||!document.getElementById('dock').classList.contains('hide')};
   });
   const ok = r.o===0 && r.small===0 && r.tap===0 && r.h1===1 && r.cta && errs.length===0;
   if(!ok) fails++;

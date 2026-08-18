@@ -13,12 +13,19 @@ import { pathToFileURL } from 'url';
 export const LEAD_ENDPOINT = "https://pastel-minnow-203.convex.site/submit-lead";
 
 export const WP = {
-  'assets/asim-ahmed.webp':   'https://adscade.com/wp-content/uploads/2026/07/asim-ahmed.webp',
+  // asim-ahmed.webp is retired — the founder section now uses a single designed poster
+  // image (adscade-founder-*) instead of a live bio card with a separate photo.
   'assets/adscade-mark.png':  'https://adscade.com/wp-content/uploads/2026/07/logo.png',
   'assets/residential.webp':  'https://adscade.com/wp-content/uploads/2026/07/residential.webp',
   'assets/before-after.webp': 'https://adscade.com/wp-content/uploads/2026/07/before-after.webp',
   'assets/pipeline.webp':     'https://adscade.com/wp-content/uploads/2026/07/pipeline.webp',
   'assets/favicon.png':       'https://adscade.com/wp-content/uploads/2026/07/favicon.png',
+  'assets/adscade-hero-mobile.webp':        'https://adscade.com/wp-content/uploads/2026/08/adscade-hero-mobile.webp',
+  'assets/adscade-hero-desktop.webp':       'https://adscade.com/wp-content/uploads/2026/08/adscade-hero-desktop.webp',
+  'assets/adscade-before-after-mobile.webp':'https://adscade.com/wp-content/uploads/2026/08/adscade-before-after-mobile.webp',
+  'assets/adscade-pipeline-mobile.webp':    'https://adscade.com/wp-content/uploads/2026/08/adscade-pipeline-mobile.webp',
+  'assets/adscade-founder-mobile.webp':     'https://adscade.com/wp-content/uploads/2026/08/adscade-founder-mobile.webp',
+  'assets/adscade-founder-desktop.webp':    'https://adscade.com/wp-content/uploads/2026/08/adscade-founder-desktop.webp',
   'href="privacy.html"':      'href="/privacy/"',
   'href="terms.html"':        'href="/terms/"',
 };
@@ -49,12 +56,16 @@ export function buildHead(src) {
   out = out.split('\n').filter(l => !/<meta charset|name="viewport"/.test(l)).join('\n');
   // The one configuration value the page needs. It is a PUBLIC URL, not a secret — no
   // deploy key, token or admin key may ever be placed here or anywhere in WordPress.
-  // The one configuration value the page needs. This is a PUBLIC URL, not a secret:
-  // it accepts only validated lead payloads from the two Adscade origins. The deploy key
-  // is a different thing entirely and must never appear in WordPress.
-  out += `
+  // CHANGED 18 Aug 2026: site/index.html's own <head> now carries this assignment
+  // directly (the owner edits and reviews it there), so auto-appending a second one
+  // unconditionally produced a duplicate <script> block in the shipped head tags —
+  // harmless in effect (same value, last one wins) but wrong to ship. Only inject the
+  // fallback if the source doesn't already set it.
+  if (!/ADSCADE_LEAD_ENDPOINT\s*=/.test(out)) {
+    out += `
 <!-- Adscade lead endpoint — public HTTP Action URL, safe to publish. -->
 <script>window.ADSCADE_LEAD_ENDPOINT = "${LEAD_ENDPOINT}";</script>`;
+  }
   return out.trim() + '\n';
 }
 

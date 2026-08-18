@@ -150,8 +150,13 @@ t('head tags carry the /vsl-4/ canonical',  /rel="canonical" href="https:\/\/ads
 t('head tags carry an uploaded og:image',   /og:image" content="https:\/\/adscade\.com\/wp-content\/uploads\//.test(headTags));
 t('head tags have no local asset paths',    !/(?:src|href)="assets\//.test(headTags));
 t('head tags contain no style or body',     !/<style|<body/i.test(headTags));
+// Tolerate the multi-line form ("window.ADSCADE_LEAD_ENDPOINT =\n  \"https://...\";"),
+// which is how the owner's own edited header snippet formats it.
 t('head tags wire the deployed lead endpoint',
-  /window\.ADSCADE_LEAD_ENDPOINT = "https:\/\/[a-z0-9-]+\.convex\.site\/submit-lead"/.test(headTags));
+  /window\.ADSCADE_LEAD_ENDPOINT\s*=\s*"https:\/\/[a-z0-9-]+\.convex\.site\/submit-lead"/.test(headTags));
+t('exactly one lead-endpoint assignment ships, not a duplicate',
+  (headTags.match(/ADSCADE_LEAD_ENDPOINT\s*=/g) || []).length === 1,
+  `${(headTags.match(/ADSCADE_LEAD_ENDPOINT\s*=/g) || []).length} assignments`);
 // A deploy key is `prod:<name>|<base64>` / `dev:<name>|<base64>`. It must never ship.
 t('no Convex deploy key in either artefact',
   !/(prod|dev):[A-Za-z0-9-]+\|[A-Za-z0-9+/=]{16,}/.test(headTags + widget));

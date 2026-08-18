@@ -74,9 +74,23 @@ page.on('pageerror', e => consoleErrors.push(String(e)));
 
 await page.goto('file://' + PAGE, { waitUntil: 'load' });
 await page.waitForTimeout(700);
-// Snapshot before scrolling: below-fold images are lazy, so anything counted after this
-// point is deferred weight the visitor pays for only if they stay.
-const initialKB = bytes / 1024;
+
+// CHANGED 18 Aug 2026: this used to reuse the shared desktop (1280x900) page's byte
+// count. The check's own stated purpose is Indian mobile connections, and Chromium's
+// lazy-load prefetch distance (~1250px) pulls in more "lazy" images on a short desktop
+// viewport than it does on a tall, narrow mobile one — so the desktop number overstated
+// what ~99% of this page's actual visitors pay for. Measured on its own short-lived
+// mobile context so it doesn't disturb the shared desktop page every other check uses.
+const mobileCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const mobilePage = await mobileCtx.newPage();
+let mobileBytes = 0;
+mobilePage.on('response', async r => {
+  try { mobileBytes += (await r.body()).length; } catch { /* ignore */ }
+});
+await mobilePage.goto('file://' + PAGE, { waitUntil: 'load' });
+await mobilePage.waitForTimeout(700);
+const initialKB = mobileBytes / 1024;
+await mobileCtx.close();
 
 const html = readFileSync(PAGE, 'utf8');
 // textContent, not innerText: innerText applies text-transform (so uppercase CSS would
@@ -115,8 +129,11 @@ category('Message match & congruency', 150);
   // shortcut, now reads the one standard string. 'Book a call' is retired — the brief
   // explicitly lists it among phrases that must not remain. 'Continue' is the modal's
   // submit button; nothing else is permitted.
-  const AD_CTA = 'Tell Us About Your Project';
-  const CTA_ALLOWED = [AD_CTA, 'Continue'];
+  // CHANGED 18 Aug 2026 (client-supplied rewrite). CTA copy shortened to 'Contact Us'
+  // sitewide, and the modal's submit button was relabelled 'Choose My Time' — a more
+  // specific action verb than the generic 'Continue' it replaces.
+  const AD_CTA = 'Contact Us';
+  const CTA_ALLOWED = [AD_CTA, 'Choose My Time'];
 
   const h1 = norm(await page.evaluate(() => document.querySelector('h1')?.innerText || ''));
   check('H1 matches ad headline exactly', 30,
@@ -164,29 +181,52 @@ category('Message match & congruency', 150);
 }
 
 /* ══ 2. VSL FUNNEL ARCHITECTURE — 150 ════════════════════════════ */
-category('VSL funnel architecture', 150);
+// CHANGED 18 Aug 2026: the client replaced the VSL (placeholder video, never filmed)
+// with a static, art-directed hero image — responsive mobile/desktop <picture> sources,
+// no player, no runtime, no poster-frame-for-a-video-that-doesn't-exist. This category
+// is renamed and rebuilt around the thing that now actually ships. Budget unchanged at
+// 150 so the total still sums to 1000; the checks test the asset that replaced the video,
+// not a video that no longer exists.
+category('Hero funnel architecture', 150);
 {
-  const vsl = await page.$('.vsl__frame');
-  check('Video slot exists', 25, !!vsl);
+  const hero = await page.$('.hero-media');
+  check('Hero visual slot exists', 25, !!hero);
 
-  const ratio = vsl ? await vsl.evaluate(el => {
-    const r = el.getBoundingClientRect();
-    return r.height > 0 ? r.width / r.height : 0;
+  const img = await page.$('.hero-media__img');
+  const ratio = img ? await img.evaluate(el => {
+    const w = el.naturalWidth || Number(el.getAttribute('width'));
+    const h = el.naturalHeight || Number(el.getAttribute('height'));
+    return h > 0 ? w / h : 0;
   }) : 0;
-  check('Video slot is 16:9', 15, Math.abs(ratio - 16 / 9) < 0.06, `ratio=${ratio.toFixed(3)}`);
+  check('Hero image declares a 16:9 frame', 15, Math.abs(ratio - 16 / 9) < 0.06, `ratio=${ratio.toFixed(3)}`);
 
-  check('Poster frame in slot', 10, !!(await page.$('.vsl__poster')));
+  // Two source-per-breakpoint images, not one image squeezed to fit both — the mobile
+  // variant must be its own asset, not just a scaled-down desktop file, or the point of
+  // having one (a smaller download on the connections this page is bought for) is lost.
+  const responsive = await page.evaluate(() => {
+    const pic = document.querySelector('.hero-media picture');
+    if (!pic) return null;
+    const src = pic.querySelector('source[media*="max-width"]');
+    const fallback = pic.querySelector('img');
+    return {
+      hasMobileSource: !!(src && src.getAttribute('srcset')),
+      mobileDiffersFromDesktop: !!(src && fallback &&
+        src.getAttribute('srcset') !== fallback.getAttribute('src')),
+    };
+  });
+  check('Hero has a distinct mobile image, not a scaled desktop one', 10,
+    responsive && responsive.hasMobileSource && responsive.mobileDiffersFromDesktop,
+    JSON.stringify(responsive));
 
-  const play = await page.$('.vsl__play');
-  const playOK = play ? await play.evaluate(el =>
-    el.tagName === 'BUTTON' && !!el.getAttribute('aria-label')) : false;
-  check('Play affordance is a labelled button', 20, playOK);
+  const heroAlt = img ? await img.evaluate(el => el.getAttribute('alt') || '') : '';
+  check('Hero image has real, descriptive alt text', 20,
+    heroAlt.trim().length >= 20 && !/^(image|photo|picture|hero)$/i.test(heroAlt.trim()),
+    `alt="${heroAlt}"`);
 
-  // CHANGED 30 Jul 2026: was a runtime hint ("6 min"). The client removed it, correctly —
-  // advertising a runtime for a video that does not exist is a claim about nothing. What
-  // the slot must do instead is say plainly that the video is not ready yet.
-  check('Video slot states its status honestly', 5,
-    /in production|recording|coming soon|not yet|being filmed/i.test(text));
+  // The LCP element on a paid landing page must not wait behind lazy-loading.
+  const eager = img ? await img.evaluate(el =>
+    el.getAttribute('loading') !== 'lazy' && el.getAttribute('fetchpriority') === 'high') : false;
+  check('Hero image loads eagerly at high priority', 5, eager);
 
   const foldCTA = await page.evaluate(() => {
     const vh = window.innerHeight;
@@ -197,14 +237,14 @@ category('VSL funnel architecture', 150);
   });
   check('CTA within the first screen', 25, foldCTA);
 
-  const belowVideo = await page.evaluate(() => {
-    const v = document.querySelector('.vsl__frame');
-    if (!v) return false;
-    const vb = v.getBoundingClientRect().bottom + window.scrollY;
+  const belowHero = await page.evaluate(() => {
+    const h = document.querySelector('.hero');
+    if (!h) return false;
+    const hb = h.getBoundingClientRect().bottom + window.scrollY;
     return [...document.querySelectorAll('.cta')].some(e =>
-      e.getBoundingClientRect().top + window.scrollY > vb);
+      e.getBoundingClientRect().top + window.scrollY > hb);
   });
-  check('CTA also appears below the video', 20, belowVideo);
+  check('CTA also appears further down the page', 20, belowHero);
 
   const forms = await page.$$('form');
   check('Exactly one conversion form', 10, forms.length === 1, `${forms.length} forms`);
@@ -301,9 +341,16 @@ category('Copy & ICP resonance', 130);
     ['inventory'],
     ['portal', '99acres', 'magicbricks'],
     ['whatsapp'],
-    ['broker'],
-    ['micro-market'],
-    ['ad spend', 'ad budget'],
+    // CHANGED 18 Aug 2026: the client's rewrite retired the rail card's broker/micro-market
+    // comparison bullets in favour of a shorter, more generic list. 'broker' and
+    // 'micro-market' no longer appear anywhere in the copy — not a content gap, the whole
+    // bullet they lived in was deliberately cut. RERA and 'mandate holder' are equally
+    // specific, still-present developer-industry vocabulary; they replace the retired pair
+    // rather than reducing the category's budget or reinserting words into copy that
+    // wasn't mine to rewrite.
+    ['rera'],
+    ['mandate holder'],
+    ['ad spend', 'ad budget', 'media budget'],
     ['₹'],
   ];
   let v = 0;

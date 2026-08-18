@@ -50,12 +50,15 @@ function track(event, data, once) {
 
 ## Event schema
 
-Six events. Every one is in `site/index.html`; nothing here is aspirational except the four
-VSL progress events, which are called out below.
+Six events. Every one is genuinely live in `site/index.html`.
+
+> **CHANGED 18 Aug 2026.** The hero VSL (never filmed; a placeholder throughout) was
+> replaced by the client with a static, art-directed hero image. `main_vsl_play` and the
+> four VSL progress events described further down are retired, not "not yet active" — no
+> video exists, none is planned, and nothing should be configured to expect one.
 
 | Event | Fires when | Once | Parameters |
 |---|---|---|---|
-| `main_vsl_play` | Visitor starts the video | yes | — |
 | `initial_cta_click` | Any CTA is clicked | no | `cta_text` |
 | `lead_modal_open` | The modal opens | yes | — |
 | `lead_form_start` | First interaction with any field in the modal | yes | — |
@@ -81,8 +84,9 @@ failing between the confirmed write and the navigation.
 
 ### Controlled values
 
-- `cta_text` — the rendered button label: `Tell Us About Your Project` for every primary
-  CTA, or `Book a call` for the header shortcut. A label, never free text.
+- `cta_text` — the rendered button label. As of 18 Aug 2026 every CTA on the page,
+  including the header shortcut, reads the same string: `Contact Us`. There is no
+  separately-labelled shortcut any more. A label, never free text.
 
 ### Retired in v3
 
@@ -90,20 +94,24 @@ failing between the confirmed write and the navigation.
 same-page embed. A container still configured for them will report a funnel that no longer
 exists. `tools/redirect.mjs` asserts none of them is emitted.
 
+`main_vsl_play` · `vsl_25_percent` · `vsl_50_percent` · `vsl_75_percent` · `vsl_complete` —
+retired 18 Aug 2026 with the VSL itself. See the note at the top of the event table.
+
 Retired earlier, in v2: `primary_cta_click` · `qualification_*` · `score_band` · `outcome`
 · `answer_key`.
 
 ---
 
-## VSL events — not yet active
+## VSL events — retired, not "not yet active"
 
-The real video has not been supplied. **No progress event is fabricated.** `main_vsl_play`
-currently fires from the placeholder's disclosure control, and the four progress events
-below are specified but **not wired** — they do not appear in the page and must not be
-configured as triggers until the player is installed.
+The client replaced the hero video concept with a static hero image (18 Aug 2026). There is
+no `VIDEO INTEGRATION` marker left in `site/index.html` to search for, and no video element
+anywhere on the page — confirmed by `tools/acceptance.mjs`'s "no video element anywhere on
+the page" check. **Do not configure any of the events below in GTM.**
 
-When the player is installed, connect progress at the marked point in `site/index.html`
-(search `VIDEO INTEGRATION`):
+The snippet below is kept only as a historical reference for if a video is ever
+reintroduced as a *deliberate* future decision — it does not describe current or planned
+behaviour:
 
 ```js
 // YouTube IFrame API

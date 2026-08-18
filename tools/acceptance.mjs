@@ -85,8 +85,8 @@ t('no scoring vocabulary in source', !/not_current_fit|manual_review|score_band|
 console.log('\n── CTA behaviour ──');
 const before = await p.$$eval('.cta:not([type=submit]):not([data-keep-label]), .js-cta:not([data-keep-label])',
   e => e.filter(x => !x.closest('#lead-modal')).map(x => x.textContent.trim()));
-t(`all CTAs start as "Tell Us About Your Project" (${before.length})`,
-  before.length >= 3 && before.every(x => x === 'Tell Us About Your Project'));
+t(`all CTAs start as "Contact Us" (${before.length})`,
+  before.length >= 3 && before.every(x => x === 'Contact Us'));
 t('no scheduling section exists on the page', await p.evaluate(() => !document.getElementById('schedule')));
 await p.evaluate(() => document.querySelector('.js-cta:not([data-keep-label])').click());
 t('initial CTA opens the modal', await p.evaluate(() => !document.getElementById('lead-modal').hidden));
@@ -131,9 +131,14 @@ console.log('\n── successful storage hands off to Calendly ──');
 }
 
 console.log('\n── no second video, no second page ──');
-const media = await p.$$eval('video, iframe[src*="youtube"], iframe[src*="vimeo"], .vsl',
+// CHANGED 18 Aug 2026: the client replaced the VSL (never-filmed placeholder video) with
+// a static, art-directed hero image. There is no .vsl class or video element to find any
+// more — that is the point. What must still be true: no video reappeared anywhere, and
+// there is exactly one hero visual region.
+const media = await p.$$eval('video, iframe[src*="youtube"], iframe[src*="vimeo"]',
   e => e.map(x => x.tagName + '.' + (x.className || '')));
-t('exactly one VSL region', (await p.$$('.vsl')).length === 1, media.join(','));
+t('no video element anywhere on the page', media.length === 0, media.join(','));
+t('exactly one hero visual region', (await p.$$('.hero-media')).length === 1);
 t('no second landing page in site/',
   execSync('ls site/*.html').toString().trim().split('\n').sort().join(',') ===
   'site/brand-guidelines.html,site/index.html,site/privacy.html,site/terms.html');
@@ -142,7 +147,7 @@ t('no inline Calendly mount remains', (await p.$$('#calendly-mount, .cal, #sched
 console.log('\n── images placed as directed ──');
 for (const [img, sect] of [
   ['residential.webp', 'leak'], ['before-after.webp', 'compare'],
-  ['pipeline.webp', 'report'], ['asim-ahmed.webp', 'founder'],
+  ['pipeline.webp', 'report'], ['adscade-founder-desktop.webp', 'founder'],
 ]) {
   const where = await p.evaluate(i => {
     const el = document.querySelector(`img[src*="${i}"]`);

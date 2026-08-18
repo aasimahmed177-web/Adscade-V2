@@ -1,25 +1,50 @@
 <title>Stop Losing Money on Scattered Real Estate Marketing — Adscade</title>
-<meta name="description" content="Adscade connects ads, landing pages, qualification, follow-up and sales feedback into one managed acquisition system for Indian residential developers. Tell us about your project and pick a time to talk.">
-<!-- A paid VSL landing page should not compete with the homepage in organic search, and
-     its message is written to match an ad rather than a query. Change to "index, follow"
-     if this page is ever meant to rank on its own. -->
+<meta name="description" content="Adscade connects campaigns, landing pages, qualification, follow-up and sales feedback into one managed acquisition system for Indian residential developers. Tell us about your project and pick a time to talk.">
+
+<!-- Paid acquisition landing page: keep it out of organic search unless you deliberately decide otherwise. -->
 <meta name="robots" content="noindex, follow">
 <link rel="canonical" href="https://adscade.com/vsl-4/">
+
 <meta property="og:type" content="website">
 <meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — Adscade">
-<meta property="og:description" content="One team builds and owns your entire buyer funnel — so the leads that reach you already have their budget, location and timeline on record.">
-<meta property="og:image" content="https://adscade.com/wp-content/uploads/2026/07/featured-image.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:description" content="One connected buyer journey from ad to qualified enquiry, follow-up and site visit — built for residential developers.">
+<meta property="og:image" content="https://adscade.com/wp-content/uploads/2026/08/adscade-hero-desktop.webp">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
 <meta property="og:url" content="https://adscade.com/vsl-4/">
 <meta property="og:locale" content="en_IN">
+
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#05100A">
+
 <link rel="icon" type="image/png" href="https://adscade.com/wp-content/uploads/2026/07/favicon.png">
-<link rel="preload" as="image" href="https://adscade.com/wp-content/uploads/2026/07/logo.png">
+
+<!-- Preload exactly one hero variant for the visitor's viewport. -->
+<link
+  rel="preload"
+  as="image"
+  href="https://adscade.com/wp-content/uploads/2026/08/adscade-hero-mobile.webp"
+  type="image/webp"
+  media="(max-width: 640px)"
+  fetchpriority="high">
+
+<link
+  rel="preload"
+  as="image"
+  href="https://adscade.com/wp-content/uploads/2026/08/adscade-hero-desktop.webp"
+  type="image/webp"
+  media="(min-width: 641px)"
+  fetchpriority="high">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&display=swap"
+  rel="stylesheet">
 
 <!-- Adscade lead endpoint — public HTTP Action URL, safe to publish. -->
-<script>window.ADSCADE_LEAD_ENDPOINT = "https://pastel-minnow-203.convex.site/submit-lead";</script>
+<script>
+  window.ADSCADE_LEAD_ENDPOINT =
+    "https://pastel-minnow-203.convex.site/submit-lead";
+</script>

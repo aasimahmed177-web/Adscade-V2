@@ -40,9 +40,14 @@ async function open(width = 390, height = 844) {
     if (/requestStorageAccess/i.test(m.text())) return;
     fails++; console.log('FAIL  console: ' + m.text());
   });
-  // Injected before the widget script runs — the production pattern.
+  // CHANGED 18 Aug 2026: site/index.html's own <head> now hardcodes the real production
+  // endpoint directly (the owner's own paste does this). addInitScript alone no longer
+  // wins — it runs before the page's own scripts, so the page's head assignment executes
+  // afterward and overwrites it back to production. Set it again after load, since
+  // leadEndpoint() reads window.ADSCADE_LEAD_ENDPOINT at call time, not parse time.
   await p.addInitScript(url => { window.ADSCADE_LEAD_ENDPOINT = url; }, ENDPOINT);
   await p.goto(ORIGIN + '/index.html');
+  await p.evaluate(url => { window.ADSCADE_LEAD_ENDPOINT = url; }, ENDPOINT);
   await p.waitForTimeout(600);
   return p;
 }

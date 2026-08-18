@@ -4,27 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stop Losing Money on Scattered Real Estate Marketing — Adscade</title>
-<meta name="description" content="Adscade connects ads, landing pages, qualification, follow-up and sales feedback into one managed acquisition system for Indian residential developers. Tell us about your project and pick a time to talk.">
-<!-- A paid VSL landing page should not compete with the homepage in organic search, and
-     its message is written to match an ad rather than a query. Change to "index, follow"
-     if this page is ever meant to rank on its own. -->
+<meta name="description" content="Adscade connects campaigns, landing pages, qualification, follow-up and sales feedback into one managed acquisition system for Indian residential developers. Tell us about your project and pick a time to talk.">
+
+<!-- Paid acquisition landing page: keep it out of organic search unless you deliberately decide otherwise. -->
 <meta name="robots" content="noindex, follow">
 <link rel="canonical" href="https://adscade.com/vsl-4/">
+
 <meta property="og:type" content="website">
 <meta property="og:title" content="Stop Losing Money on Scattered Real Estate Marketing — Adscade">
-<meta property="og:description" content="One team builds and owns your entire buyer funnel — so the leads that reach you already have their budget, location and timeline on record.">
-<meta property="og:image" content="https://adscade.com/wp-content/uploads/2026/07/featured-image.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:description" content="One connected buyer journey from ad to qualified enquiry, follow-up and site visit — built for residential developers.">
+<meta property="og:image" content="assets/adscade-hero-desktop.webp">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
 <meta property="og:url" content="https://adscade.com/vsl-4/">
 <meta property="og:locale" content="en_IN">
+
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#05100A">
+
 <link rel="icon" type="image/png" href="assets/favicon.png">
-<link rel="preload" as="image" href="assets/adscade-mark.png">
+
+<!-- Preload exactly one hero variant for the visitor's viewport. -->
+<link
+  rel="preload"
+  as="image"
+  href="assets/adscade-hero-mobile.webp"
+  type="image/webp"
+  media="(max-width: 640px)"
+  fetchpriority="high">
+
+<link
+  rel="preload"
+  as="image"
+  href="assets/adscade-hero-desktop.webp"
+  type="image/webp"
+  media="(min-width: 641px)"
+  fetchpriority="high">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;600;700;800&display=swap"
+  rel="stylesheet">
+
+<!-- Adscade lead endpoint — public HTTP Action URL, safe to publish. -->
+<script>
+  window.ADSCADE_LEAD_ENDPOINT =
+    "https://pastel-minnow-203.convex.site/submit-lead";
+</script>
 <style>
 /* ─── tokens ─────────────────────────────────────────────────────────── */
 :root{
@@ -135,13 +163,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
    way to legibility on cream — they need explicit light values. */
 .band--light .lead,
 .band--light .rail__list li,
-.band--light .vsl__agenda ol,
 .band--light .deliv li,
 .band--light .pains li,
 .band--light .faq__a,
 .band--light .consent{color:var(--adscade-light-muted)}
 .band--light .h2 em{color:#8A6B1F}
-.band--light .cta{background:#14241A;color:var(--adscade-light);border-color:#14241A}
+.band--light .cta{background:#14241A;color:var(--adscade-light);border-color:#14241A;box-shadow:0 8px 24px rgba(20,36,26,.12)}
 /* The only other gold *fill* carrying text. It is the fallback link for a blocked embed,
    so it should not compete with the primary CTA — outline rather than a second solid. */
 .band--light .cta:hover{background:#1E3527}
@@ -175,41 +202,59 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .dim{color:var(--cream-dim)}
 .card{background:var(--forest);border:var(--hair);border-radius:14px}
 
-/* CTA — gold is the only colour a button may be */
+/* CTA — primary actions deliberately separate from the site's gold accents. */
 .cta{
   display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
   font-family:var(--sans);font-size:var(--t-small);font-weight:800;
   letter-spacing:.1em;text-transform:uppercase;
-  background:var(--gold);color:#1A1204;border:1px solid var(--gold);
-  padding:1.05rem 1.9rem;border-radius:999px;cursor:pointer;
-  text-decoration:none;transition:transform .18s ease,background .18s ease;
-  min-height:52px;
+  background:#F6EBD5;color:#082016;border:1px solid var(--gold);
+  padding:1.08rem 2rem;border-radius:999px;cursor:pointer;
+  text-decoration:none;
+  box-shadow:0 8px 28px rgba(226,185,91,.18),0 1px 0 rgba(255,255,255,.22) inset;
+  transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
+  min-height:56px;
 }
-.cta:hover{background:#EFCB80;transform:translateY(-2px)}
-.cta--ghost{background:transparent;color:var(--gold);border-color:var(--gold-deep)}
-.cta--ghost:hover{background:rgba(224,184,101,.1)}
+.cta:hover{background:#FFF5E3;transform:translateY(-2px);box-shadow:0 11px 32px rgba(226,185,91,.23),0 1px 0 rgba(255,255,255,.28) inset}
+.cta:active{transform:translateY(0);box-shadow:0 5px 18px rgba(226,185,91,.16)}
+.cta--ghost{background:transparent;color:var(--gold);border-color:var(--gold-deep);box-shadow:none}
+.cta--ghost:hover{background:rgba(224,184,101,.1);box-shadow:none}
 .cta--wide{width:100%}
 .cta-note{font-size:var(--t-small);color:var(--cream-dim);margin:.75rem 0 0}
+
+/* First-viewport CTA: sits before the hero visual so mobile visitors never have to
+   scroll through the artwork to discover the primary action. */
+.hero__action{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.15rem;margin:0 auto 1.6rem;
+}
+.hero__action .cta{min-width:min(280px,100%)}
+.hero__action .cta-note{margin:.65rem 0 0;text-align:center}
 /* secondary by colour and separation, not by shrinking below the reading floor */
 .qual-note{line-height:1.5;border-top:var(--hair);padding-top:.7rem;margin-top:.7rem;opacity:.85}
 
 /* ─── brand bar ──────────────────────────────────────────────────────── */
 .brandbar{
-  border-bottom:var(--hair);padding-block:.9rem;
-  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  border-bottom:var(--hair);padding-block:.75rem;
+  display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:nowrap;
+  min-width:0;
 }
-.brandbar__id{display:flex;align-items:center;gap:.55rem;color:var(--cream)}
-.brandbar__mark{width:auto;height:32px}
-.brandbar__name{font-family:var(--serif);font-size:1.3rem;letter-spacing:.02em;margin:0}
+.brandbar__id{display:flex;align-items:center;gap:.5rem;color:var(--cream);min-width:0;flex:1 1 auto}
+.brandbar__mark{
+  width:34px !important;height:34px !important;max-width:34px !important;
+  object-fit:contain;flex:0 0 34px;
+}
+.brandbar__name{
+  font-family:var(--serif);font-size:1.15rem;letter-spacing:.02em;margin:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .brandbar__fit{
-  font-size:var(--t-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--gold);text-decoration:none;border:1px solid var(--adscade-border-strong);
-  border-radius:999px;padding:.7rem 1.15rem;min-height:48px;display:inline-flex;align-items:center;
-  /* it is a <button> now, so the UA's buttonface background and font must be reset —
-     gold on the default light-grey button ground measures 1.6:1 */
-  background:none;font-family:var(--sans);cursor:pointer;white-space:nowrap;
+  font-size:var(--t-label);font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:#082016;text-decoration:none;border:1px solid var(--gold);
+  border-radius:999px;padding:.68rem 1.05rem;min-height:48px;display:inline-flex;align-items:center;justify-content:center;       /* 48px tap floor */
+  background:#F6EBD5;font-family:var(--sans);cursor:pointer;white-space:nowrap;flex:0 0 auto;
+  box-shadow:0 7px 22px rgba(226,185,91,.14);transition:background .18s ease,transform .18s ease,box-shadow .18s ease;
 }
-.brandbar__fit:hover{background:rgba(226,185,91,.1)}
+.brandbar__fit:hover{background:#FFF5E3;transform:translateY(-1px);box-shadow:0 9px 25px rgba(226,185,91,.19)}
 
 /* ─── hero ───────────────────────────────────────────────────────────── */
 .hero{padding-block:clamp(2rem,5vw,4rem) var(--pad);text-align:center;position:relative}
@@ -248,39 +293,20 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 }
 .notice b{color:var(--gold)}
 
-/* ─── VSL + booking rail ─────────────────────────────────────────────── */
+/* ─── hero system visual + booking rail ─────────────────────────────── */
 .stage{
-  display:grid;grid-template-columns:1.55fr 1fr;gap:1.4rem;
+  display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:1.4rem;
   align-items:start;margin-bottom:1.8rem;text-align:left;
 }
-.vsl{overflow:hidden;position:relative}
-.vsl__frame{aspect-ratio:16/9;position:relative;display:grid;place-items:center;background:var(--elev)}
-.vsl__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-/* the poster is atmosphere, not content — this keeps it from competing with the label */
-.vsl__frame::after{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 72% 72% at 50% 55%,rgba(5,16,10,.82),rgba(5,16,10,.3));
+.stage>*{min-width:0}
+.hero-media{
+  margin:0;overflow:hidden;position:relative;background:var(--elev);
+  border:var(--hair);border-radius:14px;
 }
-.vsl__body{position:relative;z-index:1;text-align:center;padding:1.2rem}
-.vsl__play{
-  width:66px;height:66px;border-radius:50%;margin:0 auto .9rem;
-  border:1px solid var(--gold-deep);background:rgba(15,13,8,.82);
-  display:grid;place-items:center;cursor:pointer;color:var(--gold);
-  transition:background .2s ease,transform .2s ease;
+.hero-media picture{display:block}
+.hero-media__img{
+  display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;
 }
-.vsl__play:hover{background:rgba(224,184,101,.24);transform:scale(1.06)}
-.vsl__play svg{width:20px;height:20px;margin-left:3px}
-.vsl__label{
-  font-size:var(--t-label);font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--gold);margin:0 0 .35rem;
-}
-.vsl__hint{font-size:var(--t-small);color:var(--cream);margin:0 auto;max-width:36ch}
-/* revealed in place by the play control — never a jump to somewhere else */
-.vsl__agenda{display:none;padding:1.2rem 1.4rem;border-top:var(--hair);text-align:left}
-.vsl__agenda.on{display:block}
-.vsl__agenda ol{margin:0;padding-left:1.1rem;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.88)}
-.vsl__agenda li{margin-bottom:.45rem}
-
 .rail{padding:clamp(1.25rem,3vw,2rem)}
 .rail__k{font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 1rem}
 .rail__list{list-style:none;margin:0 0 1.4rem;padding:0;display:grid;gap:.85rem}
@@ -349,7 +375,6 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 }
 .leak__note{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0}
 
-
 /* comparison — pairs stay together so mobile can label them */
 .cmp{border:var(--hair);border-radius:14px;overflow:hidden}
 .cmp__head{
@@ -377,15 +402,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .report__row b{font-family:var(--serif);font-size:var(--t-h4);color:var(--gold);font-weight:400;white-space:nowrap}
 .report__foot{font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);margin:0;border-top:var(--hair);padding-top:.9rem}
 
-
-/* founder — its own band, deliberately away from the video */
-.founder{display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(1.8rem,5vw,3.5rem);align-items:center}
-.founder__img{border-radius:14px;border:1px solid rgba(201,160,74,.3);aspect-ratio:4/5;object-fit:cover;object-position:center 18%;width:100%;height:auto}
-.founder__quote{
-  font-family:var(--serif);font-style:italic;font-size:var(--t-h3);line-height:1.4;
-  color:var(--cream);border-left:2px solid var(--gold-deep);padding-left:1.3rem;margin:1.6rem 0 0;
+/* founder credibility poster */
+.founder-poster{max-width:720px;margin:0 auto}
+.founder-poster picture{display:block}
+.founder-poster__img{
+  display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;
+  border-radius:14px;border:1px solid rgba(201,160,74,.3);
 }
-
 /* guarantee */
 .guarantee{border:1px solid var(--adscade-border-strong);border-radius:14px;padding:clamp(1.4rem,3vw,2.4rem);background:rgba(226,185,91,.05);text-align:center}
 .guarantee__terms{font-size:var(--t-small);line-height:1.55;color:var(--cream-dim);max-width:66ch;margin:1.2rem auto 0;border-top:var(--hair);padding-top:1rem;text-align:left}
@@ -478,13 +501,10 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .alt-exit:hover{background:rgba(224,184,101,.1)}
 
 /* ─── lead modal ─────────────────────────────────────────────────── */
-/* The two detailed diagrams carry small baked-in text that is unreadable on a phone and
-   would otherwise invite horizontal scrubbing of an infographic. Their meaning is already
-   carried natively — by the before/after comparison table and the report card — so below
-   640px they are dropped, not shrunk. display:none also means the browser never downloads
-   them on mobile, which is where the bandwidth matters. The residential photo stays: it is
-   contextual imagery with no text in it. */
-@media (max-width:639.98px){ .figure--detail{display:none} }
+/* Detailed infographic figures use responsive <picture> sources below. Desktop/tablet keep
+   the original 1200×675 assets; phones receive mobile-specific WebP layouts so the baked-in
+   labels remain readable without hiding the section or downloading the desktop graphic. */
+.figure--detail picture{display:block}
 
 .modal{
   position:fixed;inset:0;z-index:80;display:grid;place-items:center;
@@ -561,10 +581,14 @@ body.modal-open{overflow:hidden}
 
 /* ─── sticky mobile cta ──────────────────────────────────────────────── */
 .dock{
-  display:none;align-items:center;gap:.6rem;position:fixed;left:0;right:0;bottom:0;z-index:40;
-  padding:.7rem 4vw calc(.7rem + env(safe-area-inset-bottom));
+  display:none;align-items:center;gap:.55rem;position:fixed;left:0;right:0;bottom:0;z-index:40;
+  padding:.65rem max(12px,3vw) calc(.65rem + env(safe-area-inset-bottom));
   background:rgba(5,16,10,.96);border-top:var(--hair);backdrop-filter:blur(8px);
-  transition:transform .25s ease;
+  transition:transform .25s ease;min-width:0;
+}
+.dock .cta{
+  width:auto;flex:1 1 auto;min-width:0;white-space:nowrap;
+  padding:.85rem .8rem;font-size:.75rem;letter-spacing:.06em;line-height:1.15;
 }
 .dock.hide{transform:translateY(110%)}
 /* The dock sits below the modal overlay, so it only ever showed through dimmed — but a
@@ -585,15 +609,30 @@ body.modal-open .dock{transform:translateY(110%)}
     --t-h1:clamp(2.4375rem,11vw,3.25rem);   /* 39 → 52px */
     --t-body:1rem; --t-lead:1.0625rem; --t-small:1rem; --t-micro:.75rem;
   }
-  .stage,.leak,.founder,.foot__top{grid-template-columns:1fr}
-  .founder__img{max-width:260px}
-  .founder{gap:1.6rem}
+  .stage,.leak,.foot__top{grid-template-columns:1fr}
+  .hero-media{width:100%}
+  .hero-media__img{width:100%;height:auto}
+  .founder-poster{max-width:720px}
 }
 @media(max-width:560px){
   :root{--pad:3.5rem}
   .dock{display:flex}
-  body{padding-bottom:calc(5.5rem + env(safe-area-inset-bottom))}
-  .hero{padding-top:1.4rem}
+  body{padding-bottom:calc(5rem + env(safe-area-inset-bottom))}
+  .hero{padding-top:1.25rem}
+  .brandbar{padding-block:.55rem;gap:.45rem}
+  .brandbar__mark{width:30px !important;height:30px !important;max-width:30px !important;flex-basis:30px}
+  .brandbar__name{font-size:1rem}
+  .brandbar__fit{
+    max-width:56vw;min-height:48px;padding:.5rem .7rem;       /* 48px tap floor — see ADSCADE_BRAND_GUIDELINES.md */
+    font-size:.64rem;letter-spacing:.045em;line-height:1.15;white-space:normal;text-align:center;
+  }
+  .hero__sub{margin-bottom:1.1rem}
+  .hero__action{margin-bottom:1.35rem}
+  .hero__action .cta{width:min(100%,320px);min-height:58px;font-size:.92rem}
+  .hero__action .cta-note{font-size:1rem;line-height:1.35}       /* 16px floor — see ADSCADE_BRAND_GUIDELINES.md */
+  .hero-media{border-radius:10px}
+  .rail{padding:1.15rem}
+  .dock .cta{font-size:.72rem;letter-spacing:.045em;padding:.8rem .6rem;white-space:normal;text-align:center;line-height:1.15}
   /* Below 760px the two-column table becomes two stacked cards. A shrunk desktop table
      forces ~10 characters per line, which is not a comparison anyone reads. */
   .cmp__grid{grid-template-columns:1fr}
@@ -602,6 +641,14 @@ body.modal-open .dock{transform:translateY(110%)}
   .cmp__cell--new,.cmp__head--new{border-left:none}
   .trust{gap:.5rem 1.2rem}
 }
+@media(max-width:360px){
+  .brandbar__name{display:none}
+  .brandbar__fit{max-width:74vw;font-size:.61rem;padding-inline:.55rem}
+  .dock{padding-inline:8px}
+  .dock__x{width:48px;height:48px}       /* 48px tap floor — see ADSCADE_BRAND_GUIDELINES.md */
+  .dock .cta{font-size:.68rem;letter-spacing:.025em}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
 }
@@ -609,78 +656,47 @@ body.modal-open .dock{transform:translateY(110%)}
 </head>
 <body>
 
-<!-- ═══ brand bar ════════════════════════════════════════════════════ -->
 <div class="wrap">
   <div class="brandbar">
     <span class="brandbar__id">
-      <img class="brandbar__mark" src="assets/adscade-mark.png" alt="Adscade" width="146" height="132" fetchpriority="high" decoding="async">
+      <img class="brandbar__mark" src="assets/adscade-mark.png" alt="Adscade" width="146" height="132" loading="eager" decoding="async" data-no-lazy="1">
       <span class="brandbar__name">Adscade</span>
     </span>
-    <button class="brandbar__fit js-cta" type="button">Tell Us About Your Project</button>
+    <button class="brandbar__fit js-cta" type="button">Contact Us</button>
   </div>
 </div>
 
-<!-- ═══ hero ═════════════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="wrap">
     <p class="hero__kicker">For regional residential developers</p>
     <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
     <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and sales feedback into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified buyer conversations.</p>
 
-    <!-- VSL + booking rail -->
+    <div class="hero__action">
+      <button class="cta js-cta" type="button">Contact Us</button>
+      <p class="cta-note">5 quick details, then choose a time.</p>
+    </div>
+
     <div class="stage">
-      <!-- ══════════════════ VIDEO INTEGRATION ══════════════════════════
-           The final VSL is not yet supplied. This block is structurally ready
-           for a hosted MP4, a YouTube embed, a Vimeo embed or another player.
 
-           1. EMBED — replace the contents of .vsl__frame (keeping the 16:9
-              container and its class) with the player. Examples:
-                <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0"
-                        title="Adscade walkthrough" allowfullscreen
-                        style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
-                <video controls playsinline preload="none"
-                       poster="POSTER_URL" style="position:absolute;inset:0;width:100%;height:100%">
-                  <source src="VIDEO_URL.mp4" type="video/mp4">
-                  <track kind="captions" src="CAPTIONS.vtt" srclang="en" label="English" default>
-                </video>
-              Do NOT autoplay with sound. Keep playsinline for iOS Safari.
-
-           2. POSTER — replace the .vsl__poster data-URI below with the real
-              poster image. Keep width/height attributes so nothing shifts.
-
-           3. PROGRESS CALLBACKS — wire vsl_play / vsl_25_percent /
-              vsl_50_percent / vsl_75_percent / vsl_complete at the marked
-              point in the script block (search "VSL PROGRESS"). Until a real
-              player can report progress, those events stay unwired — see
-              docs/ADSCADE_TRACKING_SPEC.md.
-
-           4. CAPTIONS — add a <track kind="captions"> for a hosted file, or
-              enable captions in the YouTube/Vimeo settings.
-
-           5. END CARD — must read "Tell Us About Your Project" with the line
-              "Five details, then choose an available slot." It must
-              not say Free Audit, Free Strategy Call or Claim Your Spot.
-      ══════════════════════════════════════════════════════════════════ -->
-      <div class="card vsl">
-        <div class="vsl__frame">
-          <img class="vsl__poster" width="1280" height="720" alt="" aria-hidden="true" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231A3322'/%3E%3Cstop offset='1' stop-color='%230F0D08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='320' height='180' fill='url(%23g)'/%3E%3Cg stroke='%23C9A04A' stroke-opacity='.14'%3E%3Cpath d='M0 45h320M0 90h320M0 135h320M80 0v180M160 0v180M240 0v180'/%3E%3C/g%3E%3Cg fill='none' stroke='%23E0B865' stroke-opacity='.45'%3E%3Crect x='96' y='48' width='128' height='16'/%3E%3Crect x='109' y='74' width='102' height='16'/%3E%3Crect x='122' y='100' width='76' height='16'/%3E%3Crect x='135' y='126' width='50' height='16'/%3E%3C/g%3E%3C/svg%3E">
-          <div class="vsl__body">
-            <button class="vsl__play" id="play" type="button" aria-label="Show what the walkthrough covers" aria-expanded="false" aria-controls="agenda">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <p class="vsl__label">Walkthrough · in production</p>
-            <p class="vsl__hint">Aasim walks through exactly where the money leaks in a real estate funnel, and what a fixed one looks like.</p>
-          </div>
-        </div>
-        <div class="vsl__agenda" id="agenda">
-          <ol>
-            <li>The four places a broker's funnel loses money, in order</li>
-            <li>Why portal leads and Meta leads behave completely differently</li>
-            <li>What a qualified lead should cost in a Tier-1 versus Tier-2 micro-market</li>
-            <li>The WhatsApp sequence that filters budget, location and timeline before you pick up</li>
-          </ol>
-        </div>
-      </div>
+      <figure class="hero-media">
+        <picture>
+          <source
+            media="(max-width: 640px)"
+            srcset="assets/adscade-hero-mobile.webp"
+            type="image/webp">
+          <img
+            class="hero-media__img"
+            src="assets/adscade-hero-desktop.webp"
+            width="1280"
+            height="720"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            data-no-lazy="1"
+            alt="One connected buyer journey from ad to landing page, qualified enquiry, follow-up and site visit for a residential development.">
+        </picture>
+      </figure>
 
       <aside class="card rail">
         <p class="rail__k">See where your funnel is leaking</p>
@@ -690,7 +706,7 @@ body.modal-open .dock{transform:translateY(110%)}
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Follow-up and tracking gaps</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Practical next steps</li>
         </ul>
-        <button class="cta cta--wide js-cta" type="button">Tell Us About Your Project</button>
+        <button class="cta cta--wide js-cta" type="button">Contact Us</button>
         <p class="cta-note">Five details, then choose an available slot.</p>
         <p class="cta-note qual-note">Most suited to developers with active inventory, a structured follow-up process and ₹1&nbsp;lakh+ monthly media capacity.</p>
         <div class="rail__meta">
@@ -705,7 +721,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </header>
 
-<!-- ═══ trust strip ══════════════════════════════════════════════════ -->
 <div class="wrap">
   <div class="trust">
     <span>Funnel live in <b>one week</b></span>
@@ -713,7 +728,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </div>
 
-<!-- ═══ residential visual transition ═════════════════════════════ -->
 <section class="band band--light band--visual">
   <div class="wrap">
     <figure class="figure">
@@ -724,7 +738,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ signature: the leak ══════════════════════════════════════════ -->
 <section class="band band--light">
   <div class="wrap leak">
     <div>
@@ -765,7 +778,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ the difference + what's in it, merged ══════════════════════ -->
 <section class="band band--warm">
   <div class="wrap">
     <p class="eyebrow">The difference</p>
@@ -792,8 +804,16 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <figure class="figure figure--detail" style="margin-top:2.2rem">
-      <img src="assets/before-after.webp" width="1200" height="675" loading="lazy" decoding="async"
-           alt="Side-by-side diagram: fragmented marketing with disconnected ads, landing page, enquiries and reporting, versus one connected Adscade system with structured follow-up, qualified enquiries and sales feedback.">
+      <picture>
+        <source
+          media="(max-width: 640px)"
+          srcset="assets/adscade-before-after-mobile.webp"
+          type="image/webp"
+          width="720"
+          height="1588">
+        <img src="assets/before-after.webp" width="1200" height="675" loading="lazy" decoding="async"
+             alt="Side-by-side diagram: fragmented marketing with disconnected ads, landing page, enquiries and reporting, versus one connected Adscade system with structured follow-up, qualified enquiries and sales feedback.">
+      </picture>
       <figcaption>Illustrative diagram of the two approaches.</figcaption>
     </figure>
 
@@ -814,12 +834,11 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <div style="text-align:center;margin-top:2.2rem">
-      <a class="cta cta--ghost" href="#book">Tell Us About Your Project</a>
+      <a class="cta cta--ghost" href="#book">Contact Us</a>
     </div>
   </div>
 </section>
 
-<!-- ═══ sample report — proof of the differentiator ══════════════════ -->
 <section class="band band--light">
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Reporting</p>
@@ -843,28 +862,43 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <figure class="figure figure--detail" style="margin-top:2.4rem">
-      <img src="assets/pipeline.webp" width="1200" height="675" loading="lazy" decoding="async"
-           alt="Pipeline diagram: ads, landing page, enquiries, qualification, follow-up, site visits and sales conversations, with weekly reporting at each stage.">
+      <picture>
+        <source
+          media="(max-width: 640px)"
+          srcset="assets/adscade-pipeline-mobile.webp"
+          type="image/webp"
+          width="720"
+          height="2426">
+        <img src="assets/pipeline.webp" width="1200" height="675" loading="lazy" decoding="async"
+             alt="Pipeline diagram: ads, landing page, enquiries, qualification, follow-up, site visits and sales conversations, with weekly reporting at each stage.">
+      </picture>
       <figcaption>Illustrative pipeline and reporting view. Figures are examples, not client results.</figcaption>
     </figure>
   </div>
 </section>
 
-<!-- ═══ founder — deliberately its own section ═══════════════════════ -->
 <section class="band">
-  <div class="wrap founder">
-    <img class="founder__img" src="assets/asim-ahmed.webp" alt="Aasim Ahmed, founder of Adscade" width="480" height="600" loading="lazy" decoding="async">
-    <div>
-      <p class="eyebrow">Built and managed by</p>
-      <h2 class="h2">Aasim Ahmed<br><em>Founder, Adscade</em></h2>
-      <p class="lead">Adscade exists because ads, landing pages, qualification, follow-up and sales reporting are almost always handled as separate activities. Each one looks fine on its own. The loss happens in the gaps between them, and nobody owning a single piece can see it.</p>
-      <p class="lead">I approach acquisition as one connected commercial system, and I personally oversee the strategy and the system design. The objective is qualified buyer pipeline and visibility from enquiry through to site visit — not enquiry volume, which is the easiest number in this industry to produce and the least useful one to receive.</p>
-      <blockquote class="founder__quote">"Most developers don't have a demand problem. They have a leak — and nobody has ever shown them where it is."</blockquote>
-    </div>
+  <div class="wrap">
+    <figure class="founder-poster">
+      <picture>
+        <source
+          media="(max-width: 640px)"
+          srcset="assets/adscade-founder-mobile.webp"
+          type="image/webp">
+        <img
+          class="founder-poster__img"
+          src="assets/adscade-founder-desktop.webp"
+          width="1122"
+          height="1402"
+          loading="lazy"
+          fetchpriority="low"
+          decoding="async"
+          alt="Aasim Ahmed, Founder of Adscade, with selected performance marketing outcomes from prior acquisition roles.">
+      </picture>
+    </figure>
   </div>
 </section>
 
-<!-- ═══ qualification before volume ══════════════════════════════════ -->
 <section class="band band--light">
   <div class="wrap">
     <div class="guarantee">
@@ -876,22 +910,19 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </section>
 
-<!-- ═══ booking form ═════════════════════════════════════════════════ -->
-<!-- ═══ CTA band ══════════════════════════════════════════════════ -->
 <section class="band" id="book">
   <div class="wrap" style="text-align:center">
     <p class="eyebrow" style="text-align:center">Next step</p>
     <h2 class="h2 h2--center" style="max-width:20ch">Tell us about your project.</h2>
     <p class="lead lead--center">Five quick details — enough for us to look at your setup properly before we speak.</p>
     <div class="cta-wrap" style="margin-top:1.6rem">
-      <button class="cta js-cta" type="button">Tell Us About Your Project</button>
+      <button class="cta js-cta" type="button">Contact Us</button>
     </div>
     <p class="cta-note">Prefer to message instead?
       <a href="https://wa.me/917019698301">WhatsApp us on +91 70196 98301</a>.</p>
   </div>
 </section>
 
-<!-- ═══ faq ══════════════════════════════════════════════════════════ -->
 <section class="band band--light">
   <div class="wrap" style="max-width:840px">
     <p class="eyebrow">Common questions</p>
@@ -920,18 +951,17 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <div class="faq-cta" style="text-align:center;margin-top:2.4rem">
-      <button class="cta js-cta" type="button">Tell Us About Your Project</button>
+      <button class="cta js-cta" type="button">Contact Us</button>
     </div>
   </div>
 </section>
 
-<!-- ═══ footer ═══════════════════════════════════════════════════════ -->
 <footer class="foot">
   <div class="wrap">
     <div class="foot__top">
       <div>
         <p class="foot__brand"><img class="foot__mark" src="assets/adscade-mark.png" alt="" width="146" height="132" loading="lazy">Adscade</p>
-        <p class="dim" style="margin:0;max-width:36ch">Built and managed as one system — landing page, video, Meta ads and automated lead qualification for real estate developers across India.</p>
+        <p class="dim" style="margin:0;max-width:36ch">Built and managed as one system — campaigns, landing pages, qualification, follow-up and reporting for residential developers across India.</p>
       </div>
       <div>
         <p class="foot__k">Contact</p>
@@ -956,7 +986,6 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </footer>
 
-<!-- ═══ lead modal ═════════════════════════════════════════════════ -->
 <div class="modal" id="lead-modal" hidden>
   <div class="modal__backdrop" data-close></div>
   <div class="modal__panel card" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
@@ -967,11 +996,7 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
     <div class="modal__body">
     <form id="lead-form" novalidate>
-      <!-- Bot trap. It was named "website" with a "Company website" label, which is
-           precisely what browser autofill and password managers target — real visitors
-           had it filled for them and were classified as bots. The name is now semantically
-           meaningless so no autofill heuristic matches it, and the label is gone. The
-           server also treats a tripped trap as "flag for review", never as "discard". -->
+
       <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
         <input type="text" name="hp_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
       </div>
@@ -1020,9 +1045,8 @@ body.modal-open .dock{transform:translateY(110%)}
       </label>
       <div class="errbox" id="consent-err" aria-live="polite"><span class="err" id="err-consent" role="alert">Please tick the consent box so we're allowed to contact you.</span></div>
 
-      <button class="cta cta--wide" type="submit">Continue</button>
-      <!-- aria-live on the container, not the message: a role="alert" that is display:none
-           at parse time is not reliably announced when it later appears. -->
+      <button class="cta cta--wide" type="submit">Choose My Time</button>
+
       <div class="errbox" id="submit-err" aria-live="assertive" aria-atomic="true">
         <span class="err">We couldn't save your details. Check your connection and try again, or <a href="https://wa.me/917019698301" target="_blank" rel="noopener">contact us on WhatsApp</a>.</span>
       </div>
@@ -1031,9 +1055,8 @@ body.modal-open .dock{transform:translateY(110%)}
   </div>
 </div>
 
-<!-- ═══ sticky mobile dock ═══════════════════════════════════════════ -->
 <div class="dock" id="dock">
-  <a class="cta cta--wide" href="#book">Tell Us About Your Project</a>
+  <a class="cta cta--wide" href="#book">Contact Us</a>
   <button class="dock__x" id="dock-x" type="button" aria-label="Hide this bar">&times;</button>
 </div>
 
@@ -1063,6 +1086,8 @@ body.modal-open .dock{transform:translateY(110%)}
     utm_content:  q.get('utm_content')  || null,
     utm_term:     q.get('utm_term')     || null,
     gclid:        q.get('gclid')        || null,
+    gbraid:       q.get('gbraid')       || null,
+    wbraid:       q.get('wbraid')       || null,
     landing_path: location.pathname,
     referrer:     document.referrer || null
   };
@@ -1085,22 +1110,7 @@ body.modal-open .dock{transform:translateY(110%)}
     });
   });
 
-  /* ── VSL: reveal the agenda in place. Never a jump somewhere else. ── */
-  var play = document.getElementById('play');
-  var agenda = document.getElementById('agenda');
-  /* ══ VSL PROGRESS ═════════════════════════════════════════════════
-     When the real player is installed, attach its progress handlers here and
-     fire vsl_25_percent / vsl_50_percent / vsl_75_percent / vsl_complete,
-     each once. No progress event is fabricated while the placeholder stands.
-  ═════════════════════════════════════════════════════════════════════ */
-  play.addEventListener('click', function(){
-    var open = play.getAttribute('aria-expanded') === 'true';
-    play.setAttribute('aria-expanded', String(!open));
-    agenda.classList.toggle('on', !open);
-    // Fires once. When the real video lands, replace this with the player's own
-    // play event and add the 25/50/75/complete progress handlers alongside it.
-    if (!open) track('main_vsl_play', null, true);
-  });
+  /* Hero is now a static communication visual; no VSL/player listeners are required. */
 
   /* ── sticky dock: stand down whenever a real CTA is on screen ───── */
   var dock = document.getElementById('dock');
@@ -1145,7 +1155,7 @@ body.modal-open .dock{transform:translateY(110%)}
      There is no post-submission state: a stored lead leaves this page for
      Calendly, so nothing here ever needs a second label.
   ═══════════════════════════════════════════════════════════════════ */
-  var LABEL_BEFORE = 'Tell Us About Your Project';
+  var LABEL_BEFORE = 'Contact Us';
 
   function ctaButtons(){
     return Array.prototype.slice.call(
@@ -1366,6 +1376,72 @@ body.modal-open .dock{transform:translateY(110%)}
     } finally { if (timer) clearTimeout(timer); }
   }
 
+  /* ── Google Sheets mirror ─────────────────────────────────────────
+     This is a non-blocking operational mirror of the same lead payload sent to
+     Convex. Convex remains the source of truth and the only storage result that
+     is allowed to unlock Calendly.
+
+     Google Apps Script web apps do not need to return a readable browser response
+     here. sendBeacon() is preferred so the request can survive the immediate
+     navigation to Calendly; fetch(...keepalive:true, mode:'no-cors') is the fallback.
+  ─────────────────────────────────────────────────────────────────── */
+  var SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyhDkwG9xEBRqpqoQUkbB913NwlP_t4j2hE2SPNy3bIcwQCqymPJ4HNPIPmsVJm0YWoMg/exec';
+
+  function mirrorLeadToSheets(lead, convexStatus){
+    if (!SHEETS_WEBHOOK || !lead) return;
+
+    var a = lead.attribution || {};
+    var body = new URLSearchParams();
+    body.set('submissionId', lead.submissionId || '');
+    body.set('timestamp', lead.timestamp || '');
+    body.set('name', lead.name || '');
+    body.set('email', lead.email || '');
+    body.set('phone', lead.phone || '');
+    body.set('activeInventory', lead.activeInventory || '');
+    body.set('monthlyMediaBudget', lead.monthlyMediaBudget || '');
+    body.set('consent', lead.consent ? 'true' : 'false');
+    body.set('hp_ref', lead.hp_ref || '');
+    body.set('landingPage', lead.landingPage || location.href);
+    body.set('referrer', lead.referrer || document.referrer || '');
+    body.set('device', lead.device || '');
+    body.set('utm_source', a.utm_source || '');
+    body.set('utm_medium', a.utm_medium || '');
+    body.set('utm_campaign', a.utm_campaign || '');
+    body.set('utm_content', a.utm_content || '');
+    body.set('utm_term', a.utm_term || '');
+    body.set('gclid', a.gclid || '');
+    body.set('gbraid', a.gbraid || '');
+    body.set('wbraid', a.wbraid || '');
+    body.set('convex_status', convexStatus || '');
+    body.set('convex_updated_at', new Date().toISOString());
+    body.set('source', 'vsl-4');
+
+    // Start with fetch so the request is actually initiated while this page is
+    // still alive. no-cors is intentional: Apps Script is cross-origin and we
+    // do not need to read its response. keepalive lets a small POST continue
+    // during the later Calendly navigation.
+    try {
+      fetch(SHEETS_WEBHOOK, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: body,
+        keepalive: true,
+        credentials: 'omit',
+        redirect: 'follow'
+      }).catch(function(){
+        // Best-effort fallback for browsers/network paths where fetch fails.
+        try {
+          if (navigator.sendBeacon) navigator.sendBeacon(SHEETS_WEBHOOK, body);
+        } catch (_) {}
+      });
+      return;
+    } catch (_) {}
+
+    try {
+      if (navigator.sendBeacon) navigator.sendBeacon(SHEETS_WEBHOOK, body);
+    } catch (_) {}
+  }
+
   /* ── Calendly hand-off ────────────────────────────────────────────
      The visitor leaves this page for Calendly once the lead is stored. There is
      no inline embed, no widget script and no second opt-in.
@@ -1427,9 +1503,16 @@ body.modal-open .dock{transform:translateY(110%)}
     btn.textContent = 'Sending…';
     track('lead_form_submit', null, true);
 
+    // Independent safety copy: start the Sheets POST BEFORE waiting on Convex.
+    // This gives the backup several seconds to complete while the Convex request
+    // is in flight. It is not awaited and can never block the conversion flow.
+    mirrorLeadToSheets(payload, 'pending');
+
     try {
       await submitLead(payload);
       // Only reached when Convex confirmed stored:true. Every failure path throws.
+      // Mirror the complete lead to Sheets without making Sheets a gate for Calendly.
+      mirrorLeadToSheets(payload, 'stored');
       track('lead_form_stored', null, true);
 
       var target = calendlyRedirectUrl(payload);
@@ -1443,6 +1526,8 @@ body.modal-open .dock{transform:translateY(110%)}
       window.location.assign(target);
       return;
     } catch (err){
+      // Preserve the lead in Sheets even when Convex fails, so the failure is visible.
+      mirrorLeadToSheets(payload, 'failed');
       document.getElementById('submit-err').classList.add('invalid');
       // The visitor sees one calm, recoverable message whatever went wrong. The precise
       // reason goes to the console and to window.__adscadeLastError so a failure on a
@@ -1462,7 +1547,7 @@ body.modal-open .dock{transform:translateY(110%)}
       if (!redirecting) {
         submitting = false;
         btn.disabled = false;
-        btn.textContent = 'Continue';
+        btn.textContent = 'Choose My Time';
       }
     }
   });
