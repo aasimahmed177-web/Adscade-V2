@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { ACCEPTED_MEDIA_BUDGET, ACTIVE_INVENTORY } from "./schema";
+import { ACCEPTED_MEDIA_BUDGET, ACTIVE_INVENTORY, FUNNEL_EVENT_NAMES } from "./schema";
 
 /**
  * Public intake endpoint for the /vsl-4/ landing page.
@@ -286,6 +286,10 @@ const submitLead = httpAction(async (ctx, request) => {
       utmContent: deformulaOpt(optional(attribution.utm_content, MAX.utm)),
       utmTerm: deformulaOpt(optional(attribution.utm_term, MAX.utm)),
       gclid: deformulaOpt(optional(attribution.gclid, MAX.utm)),
+      // Google's cookieless click identifiers. The frontend has always captured these;
+      // persisting them is additive and every historical row stays valid without them.
+      gbraid: deformulaOpt(optional(attribution.gbraid, MAX.utm)),
+      wbraid: deformulaOpt(optional(attribution.wbraid, MAX.utm)),
       deviceCategory: optional(body.device, 16),
       // Kept for operational triage only (did a whole browser family fail?). Truncated,
       // and never used to build a profile.
@@ -305,6 +309,128 @@ const submitLead = httpAction(async (ctx, request) => {
   );
 });
 
+/* ══════════════════════════════════════════════════════════════════
+   POST /track-event — anonymous first-party funnel telemetry
+   ══════════════════════════════════════════════════════════════════ */
+
+const MAX_TELEMETRY_BODY_BYTES = 2 * 1024; // one tiny row; far smaller than a lead
+
+/**
+ * Keys that belong to the LEAD, never to anonymous telemetry. Rejected outright with a
+ * 400 rather than silently dropped: if a future frontend change starts sending PII here,
+ * that is a bug we want to see immediately, not a quiet privacy leak.
+ */
+const FORBIDDEN_TELEMETRY_KEYS = [
+  "name", "email", "phone",
+  "normalisedemail", "normalisedphone",
+  "activeinventory", "inventory",
+  "monthlymediabudget", "media_budget", "mediabudget",
+  "consent",
+  "questionsandanswers", "questions_and_answers", "calendlyanswers",
+  "firstname", "lastname", "fullname",
+];
+
+const trackEvent = httpAction(async (ctx, request) => {
+  const origin = request.headers.get("Origin");
+
+  if (request.method !== "POST") {
+    return json(405, { ok: false, code: "method_not_allowed" }, origin);
+  }
+
+  // Same origin discipline as /submit-lead: a present-but-disallowed Origin is refused
+  // outright, not merely denied a readable response.
+  if (origin !== null && !allowedOrigins().has(origin)) {
+    return json(403, { ok: false, code: "forbidden_origin" }, origin);
+  }
+
+  // navigator.sendBeacon can only send a few content types without provoking a preflight
+  // it cannot handle, so text/plain is accepted here. Validation is NOT weakened: the
+  // body is parsed as JSON and checked identically either way.
+  const contentType = (request.headers.get("Content-Type") ?? "").toLowerCase().split(";")[0].trim();
+  if (contentType && !["application/json", "text/plain"].includes(contentType)) {
+    return json(415, { ok: false, code: "unsupported_media_type" }, origin);
+  }
+
+  const declared = request.headers.get("Content-Length");
+  if (declared !== null && Number(declared) > MAX_TELEMETRY_BODY_BYTES) {
+    return json(413, { ok: false, code: "payload_too_large" }, origin);
+  }
+
+  const raw = await request.text();
+  if (raw.length > MAX_TELEMETRY_BODY_BYTES) {
+    return json(413, { ok: false, code: "payload_too_large" }, origin);
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return json(400, { ok: false, code: "malformed_body" }, origin);
+    }
+    body = parsed as Record<string, unknown>;
+  } catch {
+    return json(400, { ok: false, code: "malformed_body" }, origin);
+  }
+
+  const offending = Object.keys(body).filter((k) =>
+    FORBIDDEN_TELEMETRY_KEYS.includes(k.toLowerCase()),
+  );
+  if (offending.length > 0) {
+    return json(400, { ok: false, code: "pii_rejected", fields: offending }, origin);
+  }
+
+  const eventName = body.eventName;
+  if (typeof eventName !== "string" ||
+      !(FUNNEL_EVENT_NAMES as readonly string[]).includes(eventName)) {
+    return json(422, { ok: false, code: "unknown_event", fields: ["eventName"] }, origin);
+  }
+
+  const eventId = str(body.eventId, MAX.submissionId);
+  if (eventId === null || !/^[A-Za-z0-9-]{8,64}$/.test(eventId)) {
+    return json(422, { ok: false, code: "validation_error", fields: ["eventId"] }, origin);
+  }
+
+  const sessionId = str(body.sessionId, MAX.submissionId);
+  if (sessionId === null || !/^[A-Za-z0-9-]{8,64}$/.test(sessionId)) {
+    return json(422, { ok: false, code: "validation_error", fields: ["sessionId"] }, origin);
+  }
+
+  const clientTs = typeof body.clientTimestamp === "number" &&
+    Number.isFinite(body.clientTimestamp) ? body.clientTimestamp : undefined;
+
+  const attribution = (typeof body.attribution === "object" && body.attribution !== null)
+    ? (body.attribution as Record<string, unknown>)
+    : {};
+
+  let result: { duplicate: boolean };
+  try {
+    result = await ctx.runMutation(internal.funnel.recordEvent, {
+      eventId,
+      sessionId,
+      eventName: eventName as (typeof FUNNEL_EVENT_NAMES)[number],
+      clientTimestamp: clientTs,
+      submissionId: optional(body.submissionId, MAX.submissionId),
+      ctaText: optional(body.ctaText, 120),
+      deviceCategory: optional(body.device, 16),
+      landingPage: safeUrl(body.landingPage, MAX.url),
+      referrer: safeUrl(body.referrer, MAX.url),
+      utmSource: deformulaOpt(optional(attribution.utm_source, MAX.utm)),
+      utmMedium: deformulaOpt(optional(attribution.utm_medium, MAX.utm)),
+      utmCampaign: deformulaOpt(optional(attribution.utm_campaign, MAX.utm)),
+      utmContent: deformulaOpt(optional(attribution.utm_content, MAX.utm)),
+      utmTerm: deformulaOpt(optional(attribution.utm_term, MAX.utm)),
+      gclid: deformulaOpt(optional(attribution.gclid, MAX.utm)),
+      gbraid: deformulaOpt(optional(attribution.gbraid, MAX.utm)),
+      wbraid: deformulaOpt(optional(attribution.wbraid, MAX.utm)),
+      userAgent: optional(request.headers.get("User-Agent"), MAX.userAgent),
+    });
+  } catch {
+    return json(500, { ok: false, code: "server_error" }, origin);
+  }
+
+  return json(200, { ok: true, recorded: true, duplicate: result.duplicate }, origin);
+});
+
 const preflight = httpAction(async (_ctx, request) => {
   const origin = request.headers.get("Origin");
   return new Response(null, { status: 204, headers: corsHeaders(origin) });
@@ -313,5 +439,7 @@ const preflight = httpAction(async (_ctx, request) => {
 const http = httpRouter();
 http.route({ path: "/submit-lead", method: "POST", handler: submitLead });
 http.route({ path: "/submit-lead", method: "OPTIONS", handler: preflight });
+http.route({ path: "/track-event", method: "POST", handler: trackEvent });
+http.route({ path: "/track-event", method: "OPTIONS", handler: preflight });
 
 export default http;

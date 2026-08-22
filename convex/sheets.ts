@@ -165,6 +165,10 @@ export const syncLead = internalAction({
       utm_content: lead.utmContent ?? "",
       utm_term: lead.utmTerm ?? "",
       gclid: lead.gclid ?? "",
+      // The Apps Script receiver has always had gbraid/wbraid columns, but Convex never
+      // sent them, so those two columns were permanently blank. Now populated.
+      gbraid: lead.gbraid ?? "",
+      wbraid: lead.wbraid ?? "",
       consent: lead.consent,
       lead_status: lead.status,
       calendly_status: bookingStatus,

@@ -14,6 +14,7 @@ import type * as calendlyClient from "../calendlyClient.js";
 import type * as calendlyHash from "../calendlyHash.js";
 import type * as crons from "../crons.js";
 import type * as debug from "../debug.js";
+import type * as funnel from "../funnel.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
 import type * as sheets from "../sheets.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   calendlyHash: typeof calendlyHash;
   crons: typeof crons;
   debug: typeof debug;
+  funnel: typeof funnel;
   http: typeof http;
   leads: typeof leads;
   sheets: typeof sheets;

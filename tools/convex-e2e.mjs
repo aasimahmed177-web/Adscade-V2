@@ -46,6 +46,12 @@ async function open(width = 390, height = 844) {
   // afterward and overwrites it back to production. Set it again after load, since
   // leadEndpoint() reads window.ADSCADE_LEAD_ENDPOINT at call time, not parse time.
   await p.addInitScript(url => { window.ADSCADE_LEAD_ENDPOINT = url; }, ENDPOINT);
+  // landing_page_view fires DURING page scripts, before any post-load evaluate can run, so
+  // the lead-endpoint override above cannot redirect it. ADSCADE_TRACK_ENDPOINT is the hook
+  // the page checks first and never reassigns — without it this suite would beacon at
+  // production on every page load.
+  await p.addInitScript(url => { window.ADSCADE_TRACK_ENDPOINT = url; },
+    ENDPOINT.replace(/\/submit-lead$/, '/track-event'));
   await p.goto(ORIGIN + '/index.html');
   await p.evaluate(url => { window.ADSCADE_LEAD_ENDPOINT = url; }, ENDPOINT);
   await p.waitForTimeout(600);

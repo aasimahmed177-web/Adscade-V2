@@ -170,6 +170,10 @@ export const markBooked = internalMutation({
       leadId: args.leadId,
       submissionId: lead.submissionId,
       gclid: lead.gclid,
+      // Additive: Google's cookieless click identifiers, carried through for the same
+      // future offline-conversion upload the gclid is here for.
+      gbraid: lead.gbraid,
+      wbraid: lead.wbraid,
       hashedEmail,
       hashedPhone,
       calendlyBookedAt: args.bookedAtMs,

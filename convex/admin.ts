@@ -171,3 +171,143 @@ export const googleSheetsMirrorStatus = internalQuery({
     return { total: all.length, pending, synced, failed, neverQueued };
   },
 });
+
+/* ══════════════════════════════════════════════════════════════════
+   Funnel telemetry diagnostics (anonymous — see convex/funnel.ts)
+   ══════════════════════════════════════════════════════════════════ */
+
+import { FUNNEL_EVENT_NAMES } from "./schema";
+
+/**
+ * Stage-to-stage funnel over a lookback window.
+ *
+ * Rates are computed from UNIQUE SESSIONS, not raw rows. Raw counts overstate every
+ * stage where one visitor can act twice — `initial_cta_click` in particular is not a
+ * once-per-session event, so a visitor who taps two CTAs before filling the form would
+ * otherwise inflate the CTA stage and make the funnel look wrong. Raw counts are still
+ * reported alongside, because a large gap between the two is itself informative.
+ *
+ *   npx convex run admin:funnelSummary '{"hours":72}'
+ *   npx convex run admin:funnelSummary '{"hours":72,"utmCampaign":"dg_inm_others_uae_camp"}'
+ */
+export const funnelSummary = internalQuery({
+  args: {
+    hours: v.optional(v.number()),
+    utmCampaign: v.optional(v.string()),
+    utmContent: v.optional(v.string()),
+  },
+  returns: v.any(),
+  handler: async (ctx, { hours, utmCampaign, utmContent }) => {
+    const windowHours = hours ?? 24;
+    const since = Date.now() - windowHours * 60 * 60 * 1000;
+
+    let rows = await ctx.db
+      .query("funnelEvents")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", since))
+      .collect();
+
+    if (utmCampaign !== undefined) rows = rows.filter((r) => r.utmCampaign === utmCampaign);
+    if (utmContent !== undefined) rows = rows.filter((r) => r.utmContent === utmContent);
+
+    const rawCounts: Record<string, number> = {};
+    const sessionSets: Record<string, Set<string>> = {};
+    for (const name of FUNNEL_EVENT_NAMES) {
+      rawCounts[name] = 0;
+      sessionSets[name] = new Set();
+    }
+    for (const row of rows) {
+      rawCounts[row.eventName] += 1;
+      sessionSets[row.eventName].add(row.sessionId);
+    }
+
+    const uniqueSessions: Record<string, number> = {};
+    for (const name of FUNNEL_EVENT_NAMES) uniqueSessions[name] = sessionSets[name].size;
+
+    // Percentage of `from` sessions that also reached `to`. Null when `from` is empty —
+    // reporting 0% for a stage nobody reached would read as a broken funnel.
+    const pct = (from: string, to: string): number | null => {
+      const a = uniqueSessions[from];
+      if (a === 0) return null;
+      return Math.round((uniqueSessions[to] / a) * 1000) / 10;
+    };
+
+    return {
+      windowHours,
+      filters: { utmCampaign: utmCampaign ?? null, utmContent: utmContent ?? null },
+      totalEvents: rows.length,
+      totalSessions: new Set(rows.map((r) => r.sessionId)).size,
+      rawCounts,
+      uniqueSessions,
+      conversion: {
+        "landing -> CTA": pct("landing_page_view", "initial_cta_click"),
+        "CTA -> modal": pct("initial_cta_click", "lead_modal_open"),
+        "modal -> form start": pct("lead_modal_open", "lead_form_start"),
+        "form start -> submit": pct("lead_form_start", "lead_form_submit"),
+        "submit -> stored": pct("lead_form_submit", "lead_form_stored"),
+        "stored -> Calendly redirect": pct("lead_form_stored", "calendly_redirect"),
+        "landing -> stored lead": pct("landing_page_view", "lead_form_stored"),
+      },
+    };
+  },
+});
+
+/**
+ * The same unique-session funnel, grouped so UAE vs Gulf campaigns and individual
+ * creatives can be compared directly.
+ *
+ *   npx convex run admin:funnelBreakdown '{"hours":72,"groupBy":"utmContent"}'
+ */
+export const funnelBreakdown = internalQuery({
+  args: {
+    hours: v.optional(v.number()),
+    groupBy: v.optional(v.union(
+      v.literal("utmCampaign"),
+      v.literal("utmContent"),
+      v.literal("device"),
+    )),
+  },
+  returns: v.any(),
+  handler: async (ctx, { hours, groupBy }) => {
+    const windowHours = hours ?? 24;
+    const key = groupBy ?? "utmCampaign";
+    const since = Date.now() - windowHours * 60 * 60 * 1000;
+
+    const rows = await ctx.db
+      .query("funnelEvents")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", since))
+      .collect();
+
+    const groups = new Map<string, Record<string, Set<string>>>();
+    for (const row of rows) {
+      const g =
+        key === "utmCampaign" ? (row.utmCampaign ?? "(none)")
+        : key === "utmContent" ? (row.utmContent ?? "(none)")
+        : (row.deviceCategory ?? "(none)");
+
+      let bucket = groups.get(g);
+      if (!bucket) {
+        bucket = {};
+        for (const name of FUNNEL_EVENT_NAMES) bucket[name] = new Set();
+        groups.set(g, bucket);
+      }
+      bucket[row.eventName].add(row.sessionId);
+    }
+
+    const out = [...groups.entries()]
+      .map(([group, bucket]) => {
+        const sessions: Record<string, number> = {};
+        for (const name of FUNNEL_EVENT_NAMES) sessions[name] = bucket[name].size;
+        const views = sessions.landing_page_view;
+        return {
+          group,
+          uniqueSessions: sessions,
+          landingToStoredPct:
+            views === 0 ? null : Math.round((sessions.lead_form_stored / views) * 1000) / 10,
+        };
+      })
+      // Busiest first: the campaign with the most landing views is the one worth reading.
+      .sort((a, b) => b.uniqueSessions.landing_page_view - a.uniqueSessions.landing_page_view);
+
+    return { windowHours, groupBy: key, groups: out };
+  },
+});

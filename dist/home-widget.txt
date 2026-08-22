@@ -1081,6 +1081,8 @@ body.modal-open .dock{transform:translateY(110%)}
      attribution already present in the URL.
   ─────────────────────────────────────────────────────────────────── */
   var fired = {};
+  // Declared up here because sendTelemetry() reads it; assigned when the modal opens.
+  var currentSubmissionId = null;
   var q = new URLSearchParams(location.search);
   var attribution = {
     utm_source:   q.get('utm_source')   || null,
@@ -1094,12 +1096,99 @@ body.modal-open .dock{transform:translateY(110%)}
     landing_path: location.pathname,
     referrer:     document.referrer || null
   };
+  /* ── first-party funnel telemetry ─────────────────────────────────
+     ADDITIVE. The dataLayer/GTM push below is unchanged; this simply also
+     persists the same funnel stages to Convex so we can see WHERE visitors
+     abandon, which GTM alone cannot tell us for people who never convert.
+
+     Anonymous by construction: a random per-session id and a random per-event
+     id, no name/email/phone/answers/consent, no fingerprinting, no scroll or
+     mouse tracking. The server rejects lead PII keys outright.
+
+     Never blocks: fire-and-forget, every failure swallowed. If Convex is down
+     the CTA, modal, lead submission and Calendly redirect all behave normally.
+  ─────────────────────────────────────────────────────────────────── */
+  function randomId(){
+    try {
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    } catch (e) {}
+    return 'a-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+  }
+
+  // One id per browser session (per tab). sessionStorage, not a cookie or a
+  // fingerprint — it identifies a visit, never a person, and dies with the tab.
+  var sessionId = (function(){
+    try {
+      var k = 'adscade_sid', v = sessionStorage.getItem(k);
+      if (!v) { v = randomId(); sessionStorage.setItem(k, v); }
+      return v;
+    } catch (e) { return randomId(); }   // private mode / storage disabled
+  })();
+
+  // Derived from the one configured endpoint, so there is no second value to set
+  // in WordPress and the two can never drift apart.
+  function trackEndpoint(){
+    if (window.ADSCADE_TRACK_ENDPOINT) return window.ADSCADE_TRACK_ENDPOINT;
+    var lead = window.ADSCADE_LEAD_ENDPOINT || '';
+    // Derive ONLY when the lead endpoint genuinely ends in /submit-lead. A blind
+    // .replace() is a no-op when it does not match, which would silently POST funnel
+    // events at the LEAD endpoint. Telemetry is never worth risking the lead path for,
+    // so anything unrecognised disables it instead.
+    return /\/submit-lead\/?$/.test(lead)
+      ? lead.replace(/\/submit-lead\/?$/, '/track-event')
+      : '';
+  }
+
+  function sendTelemetry(event, data){
+    var url = trackEndpoint();
+    if (!url) return;
+    try {
+      var payload = {
+        eventId:   randomId(),
+        sessionId: sessionId,
+        eventName: event,
+        clientTimestamp: Date.now(),
+        device:    window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
+        landingPage: location.href,
+        referrer:  document.referrer || null,
+        attribution: attribution
+      };
+      if (currentSubmissionId) payload.submissionId = currentSubmissionId;
+      if (data && data.cta_text) payload.ctaText = data.cta_text;
+
+      var body = JSON.stringify(payload);
+      // keepalive lets this small POST survive the Calendly navigation.
+      if (window.fetch) {
+        fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: body,
+          keepalive: true,
+          credentials: 'omit'
+        }).catch(function(){
+          try { if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([body], {type: 'text/plain'})); } catch (e) {}
+        });
+      } else if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, new Blob([body], {type: 'text/plain'}));
+      }
+    } catch (e) { /* telemetry must never break the funnel */ }
+  }
+
   function track(event, data, once){
     if (once){ if (fired[event]) return; fired[event] = true; }
+    // Before the dataLayer guard on purpose: telemetry must record the funnel even
+    // when no tag manager is installed. The `once` semantics above are shared, so
+    // this cannot double-count a once-only stage.
+    sendTelemetry(event, data);
     if (!window.dataLayer) return;                       // inert until a tag manager exists
     window.dataLayer.push(Object.assign({event: event}, attribution, data || {}));
   }
   window.adscadeTrack = track;
+  window.__adscadeTrackEndpoint = trackEndpoint;   // test hook
+
+  // The top of the funnel. Once per page session — everything below is measured
+  // against this denominator.
+  track('landing_page_view', null, true);
 
   // Every CTA emits initial_cta_click. There is no second CTA intent to distinguish:
   // a stored lead leaves this page for Calendly rather than returning to a CTA.
@@ -1246,8 +1335,6 @@ body.modal-open .dock{transform:translateY(110%)}
 
   /* ══ form ════════════════════════════════════════════════════════ */
   var form = document.getElementById('lead-form');
-
-  var currentSubmissionId = null;
 
   /* Mark or clear a control's invalid state for assistive tech. The visual .invalid class
      alone tells a screen reader nothing. */

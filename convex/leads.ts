@@ -28,6 +28,8 @@ export const insertLead = internalMutation({
     utmContent: v.optional(v.string()),
     utmTerm: v.optional(v.string()),
     gclid: v.optional(v.string()),
+    gbraid: v.optional(v.string()),
+    wbraid: v.optional(v.string()),
     deviceCategory: v.optional(v.string()),
     userAgent: v.optional(v.string()),
   },

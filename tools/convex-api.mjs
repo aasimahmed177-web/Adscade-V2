@@ -35,7 +35,11 @@ const base_payload = (over = {}) => ({
   device: 'mobile',
   attribution: {
     utm_source: 'youtube', utm_medium: 'cpc', utm_campaign: 'carrying-cost',
-    utm_content: null, utm_term: null, gclid: 'Cj0KTest123',
+    utm_content: null, utm_term: null,
+    // Present on EVERY request on purpose: these are only supplied by real Google Ads
+    // clicks, so a missing validator entry would otherwise stay invisible until
+    // production traffic hit it.
+    gclid: 'Cj0KTest123', gbraid: 'GB-test-123', wbraid: 'WB-test-123',
     landing_path: '/vsl-4/', referrer: 'https://www.youtube.com/',
   },
   ...over,

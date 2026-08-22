@@ -26,8 +26,12 @@ async function open(width = 390, height = 844, query = '') {
   // the Convex/lead endpoint get hit" (the invariant that actually matters — one real
   // lead per click), tracked separately from the Sheets mirror's own call count.
   p.__sheetsPosts = 0;
+  p.__telemetryPosts = 0;
   await p.exposeFunction('__mirrorPost', (url, body) => {
     if (url && url.includes('script.google.com')) { p.__sheetsPosts++; return; }
+    // Anonymous funnel telemetry rides the same fetch override. It is not a lead POST and
+    // must not inflate the "exactly one submission per click" invariant.
+    if (url && url.includes('/track-event')) { p.__telemetryPosts++; return; }
     p.__posts++; p.__payloads.push(body);
   });
   await p.exposeFunction('__mirrorEvent', e => { p.__events.push(e); });
@@ -48,6 +52,12 @@ async function open(width = 390, height = 844, query = '') {
     if (/^\[Adscade\]/.test(m.text())) return;
     fails++; console.log('FAIL  console: ' + m.text());
   });
+  // This suite is not testing telemetry. site/index.html's <head> hardcodes the PRODUCTION
+  // endpoint, so without this the page's landing_page_view beacon would fire a real
+  // cross-origin request at production on every test page-load. Intercepted locally.
+  await p.route('**/track-event', route =>
+    route.fulfill({ status: 200, contentType: 'application/json',
+                    body: '{"ok":true,"recorded":true,"duplicate":false}' }));
   await p.route('https://calendly.com/**', route => {
     route.fulfill({ status: 200, contentType: 'text/html', body: '<html><body>calendly stub</body></html>' });
   });

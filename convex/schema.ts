@@ -71,6 +71,35 @@ export const calendlyStatusValidator = v.union(
   v.literal("rescheduled"),
 );
 
+/**
+ * Anonymous first-party funnel telemetry. Deliberately a SEPARATE table from `leads`:
+ * most abandoners never create a lead row at all, so abandonment cannot be measured by
+ * adding columns to `leads`.
+ *
+ * This table must never carry lead PII — no name, email, phone, inventory answer, budget
+ * answer, consent value or Calendly answer. http.ts rejects those keys outright rather
+ * than silently dropping them, so a frontend mistake fails loudly instead of leaking.
+ */
+export const FUNNEL_EVENT_NAMES = [
+  "landing_page_view",
+  "initial_cta_click",
+  "lead_modal_open",
+  "lead_form_start",
+  "lead_form_submit",
+  "lead_form_stored",
+  "calendly_redirect",
+] as const;
+
+export const funnelEventNameValidator = v.union(
+  v.literal("landing_page_view"),
+  v.literal("initial_cta_click"),
+  v.literal("lead_modal_open"),
+  v.literal("lead_form_start"),
+  v.literal("lead_form_submit"),
+  v.literal("lead_form_stored"),
+  v.literal("calendly_redirect"),
+);
+
 export const googleSheetsSyncStatusValidator = v.union(
   v.literal("pending"),
   v.literal("synced"),
@@ -109,6 +138,10 @@ export default defineSchema({
     utmContent: v.optional(v.string()),
     utmTerm: v.optional(v.string()),
     gclid: v.optional(v.string()),
+    // Google's cookieless click identifiers (iOS/app and web-to-app). The frontend has
+    // always captured them; they are optional so every historical row stays valid.
+    gbraid: v.optional(v.string()),
+    wbraid: v.optional(v.string()),
     deviceCategory: v.optional(v.string()), // mobile | tablet | desktop
     userAgent: v.optional(v.string()), // truncated; see http.ts
 
@@ -184,6 +217,8 @@ export default defineSchema({
     leadId: v.id("leads"),
     submissionId: v.string(), // for a human cross-referencing the dashboard
     gclid: v.optional(v.string()),
+    gbraid: v.optional(v.string()),
+    wbraid: v.optional(v.string()),
     hashedEmail: v.string(),
     hashedPhone: v.string(),
     calendlyBookedAt: v.number(),
@@ -196,6 +231,36 @@ export default defineSchema({
    * Singleton. What the last successful sync resolved and did, so a human can tell from
    * the dashboard alone whether the poll is healthy without reading function logs.
    */
+  /**
+   * One compact anonymous row per funnel stage. See FUNNEL_EVENT_NAMES above.
+   */
+  funnelEvents: defineTable({
+    eventId: v.string(),      // client-generated UUID; the idempotency key
+    sessionId: v.string(),    // random per browser session; never a fingerprint
+    eventName: funnelEventNameValidator,
+    createdAt: v.number(),    // authoritative server clock
+    clientTimestamp: v.optional(v.number()),
+    submissionId: v.optional(v.string()), // only exists once the modal has opened
+    ctaText: v.optional(v.string()),
+    deviceCategory: v.optional(v.string()),
+    landingPage: v.optional(v.string()),
+    referrer: v.optional(v.string()),
+    utmSource: v.optional(v.string()),
+    utmMedium: v.optional(v.string()),
+    utmCampaign: v.optional(v.string()),
+    utmContent: v.optional(v.string()),
+    utmTerm: v.optional(v.string()),
+    gclid: v.optional(v.string()),
+    gbraid: v.optional(v.string()),
+    wbraid: v.optional(v.string()),
+    userAgent: v.optional(v.string()), // truncated
+  })
+    .index("by_eventId", ["eventId"])                        // idempotency
+    .index("by_createdAt", ["createdAt"])                    // lookback windows
+    .index("by_session_createdAt", ["sessionId", "createdAt"]) // one visitor's journey
+    .index("by_eventName_createdAt", ["eventName", "createdAt"])
+    .index("by_submissionId", ["submissionId"]),
+
   calendlySyncState: defineTable({
     calendlyUserUri: v.optional(v.string()),
     calendlyOrganizationUri: v.optional(v.string()),
