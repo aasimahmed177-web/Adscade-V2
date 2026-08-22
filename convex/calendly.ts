@@ -155,6 +155,8 @@ export const markBooked = internalMutation({
       calendlyEndTime: args.endTimeMs,
       calendlyQuestionsAndAnswers: args.questionsAndAnswers,
       calendlyLastSyncedAt: Date.now(),
+      googleSheetsSyncStatus: "pending",
+      googleSheetsSyncAttempts: 0,
     });
 
     // Shaped for a future Google Ads offline/enhanced-conversion upload. Hashed here,
@@ -173,6 +175,10 @@ export const markBooked = internalMutation({
       calendlyBookedAt: args.bookedAtMs,
       createdAt: Date.now(),
     });
+
+    // Booking status is part of the reporting mirror. This queues an async upsert but
+    // does not slow the Calendly poll or affect the booking record if Google is down.
+    await ctx.scheduler.runAfter(0, internal.sheets.syncLead, { leadId: args.leadId });
     return null;
   },
 });
@@ -188,7 +194,10 @@ export const markCanceled = internalMutation({
       calendlyStatus: "canceled",
       calendlyCanceledAt: canceledAtMs,
       calendlyLastSyncedAt: Date.now(),
+      googleSheetsSyncStatus: "pending",
+      googleSheetsSyncAttempts: 0,
     });
+    await ctx.scheduler.runAfter(0, internal.sheets.syncLead, { leadId });
     return null;
   },
 });
@@ -223,7 +232,10 @@ export const markRescheduled = internalMutation({
       calendlyEndTime: args.newEndTimeMs,
       calendlyQuestionsAndAnswers: args.newQuestionsAndAnswers,
       calendlyLastSyncedAt: Date.now(),
+      googleSheetsSyncStatus: "pending",
+      googleSheetsSyncAttempts: 0,
     });
+    await ctx.scheduler.runAfter(0, internal.sheets.syncLead, { leadId: args.leadId });
     return null;
   },
 });

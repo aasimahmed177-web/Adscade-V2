@@ -113,10 +113,16 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 .band--light .faq__a,
 .band--light .consent{color:var(--adscade-light-muted)}
 .band--light .h2 em{color:#8A6B1F}
-.band--light .cta{background:#14241A;color:var(--adscade-light);border-color:#14241A;box-shadow:0 8px 24px rgba(20,36,26,.12)}
-/* The only other gold *fill* carrying text. It is the fallback link for a blocked embed,
-   so it should not compete with the primary CTA — outline rather than a second solid. */
-.band--light .cta:hover{background:#1E3527}
+.band--light .cta{
+  background:#E5B640;color:#071B12;
+  border-color:#173D29;border-bottom-color:#173D29;
+  box-shadow:0 12px 28px rgba(20,36,26,.18),0 3px 9px rgba(20,36,26,.16);
+}
+.band--light .cta:not(.cta--ghost)::after{background:#0B281B;color:#FFF3D8}
+.band--light .cta:hover{
+  background:#F0C453;border-color:#173D29;
+  box-shadow:0 15px 32px rgba(20,36,26,.22),0 4px 10px rgba(20,36,26,.18);
+}
 .band--light .cta--ghost{background:transparent;color:#14241A;border-color:var(--adscade-light-border)}
 .band--light .cta--ghost:hover{background:rgba(20,36,26,.06)}
 .band--light .card{background:var(--adscade-light-elevated);border-color:var(--adscade-light-border)}
@@ -124,11 +130,12 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 /* supplied imagery */
 .figure{margin:0}
 .figure img{width:100%;height:auto;display:block;border-radius:14px;border:var(--hair)}
-.figure figcaption{
-  font-size:var(--t-small);line-height:1.5;color:var(--cream-dim);
-  margin-top:.8rem;text-align:center;
+.band--visual{
+  padding-top:clamp(2.25rem,4vw,3.25rem);
+  padding-bottom:0;
 }
-.band--visual{padding-block:clamp(2.5rem,5vw,4rem)}
+.band--reporting{padding-bottom:clamp(1rem,2vw,1.5rem)}
+.band--founder{padding-block:clamp(1.25rem,2.5vw,2rem)}
 .eyebrow{
   font-size:var(--t-label);font-weight:700;letter-spacing:.14em;
   text-transform:uppercase;color:var(--gold);margin:0 0 1.1rem;
@@ -149,22 +156,57 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
 
 /* CTA — primary actions deliberately separate from the site's gold accents. */
 .cta{
-  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
-  font-family:var(--sans);font-size:var(--t-small);font-weight:800;
-  letter-spacing:.1em;text-transform:uppercase;
-  background:#F6EBD5;color:#082016;border:1px solid var(--gold);
-  padding:1.08rem 2rem;border-radius:999px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:.8rem;
+  font-family:var(--sans);font-size:1rem;font-weight:800;
+  letter-spacing:.075em;text-transform:uppercase;
+  background:#F0C453;color:#071B12;
+  border:1px solid #FFD978;
+  border-bottom:4px solid #9A721C;
+  padding:1.02rem 1.35rem 1rem 1.65rem;
+  border-radius:12px;cursor:pointer;
   text-decoration:none;
-  box-shadow:0 8px 28px rgba(226,185,91,.18),0 1px 0 rgba(255,255,255,.22) inset;
-  transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
-  min-height:56px;
+  box-shadow:
+    0 14px 34px rgba(226,185,91,.24),
+    0 3px 10px rgba(0,0,0,.30),
+    0 1px 0 rgba(255,255,255,.55) inset;
+  transition:transform .16s ease,background .16s ease,box-shadow .16s ease,border-color .16s ease;
+  min-height:60px;
 }
-.cta:hover{background:#FFF5E3;transform:translateY(-2px);box-shadow:0 11px 32px rgba(226,185,91,.23),0 1px 0 rgba(255,255,255,.28) inset}
-.cta:active{transform:translateY(0);box-shadow:0 5px 18px rgba(226,185,91,.16)}
-.cta--ghost{background:transparent;color:var(--gold);border-color:var(--gold-deep);box-shadow:none}
+.cta:not(.cta--ghost)::after{
+  content:"→";
+  display:inline-grid;place-items:center;flex:none;
+  width:32px;height:32px;border-radius:8px;
+  background:#0B281B;color:#FFF3D8;
+  font-size:1.15rem;line-height:1;font-weight:800;
+  box-shadow:0 1px 0 rgba(255,255,255,.12) inset;
+}
+.cta:hover{
+  background:#F8D16D;border-color:#FFE69D;
+  transform:translateY(-2px);
+  box-shadow:
+    0 17px 38px rgba(226,185,91,.30),
+    0 4px 12px rgba(0,0,0,.32),
+    0 1px 0 rgba(255,255,255,.62) inset;
+}
+.cta:active{
+  transform:translateY(2px);
+  border-bottom-width:2px;
+  box-shadow:0 7px 18px rgba(226,185,91,.18),0 2px 7px rgba(0,0,0,.26);
+}
+.cta--ghost{
+  background:transparent;color:var(--gold);border:1px solid var(--gold-deep);
+  border-bottom-width:1px;border-radius:999px;box-shadow:none;
+}
 .cta--ghost:hover{background:rgba(224,184,101,.1);box-shadow:none}
 .cta--wide{width:100%}
 .cta-note{font-size:var(--t-small);color:var(--cream-dim);margin:.75rem 0 0}
+
+/* Mobile interaction hardening: keep all high-intent controls immediately tappable
+   without introducing any new behaviour or JavaScript. */
+.cta,.brandbar__fit,.opt,.faq__q,.modal__x,.dock__x,.back{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:rgba(226,185,91,.16);
+}
 
 /* First-viewport CTA: sits before the hero visual so mobile visitors never have to
    scroll through the artwork to discover the primary action. */
@@ -172,8 +214,13 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:.15rem;margin:0 auto 1.6rem;
 }
-.hero__action .cta{min-width:min(280px,100%)}
+.hero__action .cta{width:min(360px,100%);min-height:64px;font-size:1.04rem}
 .hero__action .cta-note{margin:.65rem 0 0;text-align:center}
+.hero__action .cta{animation:cta-arrive .42s ease-out both}
+@keyframes cta-arrive{
+  from{opacity:.72;transform:translateY(5px)}
+  to{opacity:1;transform:translateY(0)}
+}
 /* secondary by colour and separation, not by shrinking below the reading floor */
 .qual-note{line-height:1.5;border-top:var(--hair);padding-top:.7rem;margin-top:.7rem;opacity:.85}
 
@@ -193,13 +240,25 @@ h1,h2,h3,h4,h5,h6,label{color:inherit !important}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .brandbar__fit{
-  font-size:var(--t-label);font-weight:800;letter-spacing:.08em;text-transform:uppercase;
-  color:#082016;text-decoration:none;border:1px solid var(--gold);
-  border-radius:999px;padding:.68rem 1.05rem;min-height:48px;display:inline-flex;align-items:center;justify-content:center;       /* 48px tap floor */
-  background:#F6EBD5;font-family:var(--sans);cursor:pointer;white-space:nowrap;flex:0 0 auto;
-  box-shadow:0 7px 22px rgba(226,185,91,.14);transition:background .18s ease,transform .18s ease,box-shadow .18s ease;
+  font-size:var(--t-label);font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:#071B12;text-decoration:none;
+  border:1px solid #FFD978;border-bottom:3px solid #9A721C;
+  border-radius:10px;padding:.68rem .82rem .62rem 1rem;min-height:48px;
+  display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+  background:#F0C453;font-family:var(--sans);cursor:pointer;white-space:nowrap;flex:0 0 auto;
+  box-shadow:0 8px 22px rgba(226,185,91,.20),0 2px 7px rgba(0,0,0,.25);
+  transition:background .16s ease,transform .16s ease,box-shadow .16s ease;
 }
-.brandbar__fit:hover{background:#FFF5E3;transform:translateY(-1px);box-shadow:0 9px 25px rgba(226,185,91,.19)}
+.brandbar__fit::after{
+  content:"→";display:inline-grid;place-items:center;
+  width:24px;height:24px;border-radius:6px;background:#0B281B;color:#FFF3D8;
+  font-size:.92rem;line-height:1;
+}
+.brandbar__fit:hover{
+  background:#F8D16D;transform:translateY(-1px);
+  box-shadow:0 11px 26px rgba(226,185,91,.26),0 3px 8px rgba(0,0,0,.27);
+}
+.brandbar__fit:active{transform:translateY(1px);border-bottom-width:1px}
 
 /* ─── hero ───────────────────────────────────────────────────────────── */
 .hero{padding-block:clamp(2rem,5vw,4rem) var(--pad);text-align:center;position:relative}
@@ -533,8 +592,11 @@ body.modal-open{overflow:hidden}
 }
 .dock .cta{
   width:auto;flex:1 1 auto;min-width:0;white-space:nowrap;
-  padding:.85rem .8rem;font-size:.75rem;letter-spacing:.06em;line-height:1.15;
+  min-height:58px;padding:.72rem .72rem .68rem 1rem;
+  font-size:.86rem;letter-spacing:.055em;line-height:1.15;
+  border-radius:10px;
 }
+.dock .cta::after{width:30px;height:30px;border-radius:7px}
 .dock.hide{transform:translateY(110%)}
 /* The dock sits below the modal overlay, so it only ever showed through dimmed — but a
    dimmed gold pill under an open dialog is still a second call to action competing with
@@ -568,16 +630,19 @@ body.modal-open .dock{transform:translateY(110%)}
   .brandbar__mark{width:30px !important;height:30px !important;max-width:30px !important;flex-basis:30px}
   .brandbar__name{font-size:1rem}
   .brandbar__fit{
-    max-width:56vw;min-height:48px;padding:.5rem .7rem;       /* 48px tap floor — see ADSCADE_BRAND_GUIDELINES.md */
-    font-size:.64rem;letter-spacing:.045em;line-height:1.15;white-space:normal;text-align:center;
+    max-width:56vw;min-height:48px;padding:.55rem .72rem;   /* 48px tap floor */
+    font-size:.72rem;letter-spacing:.04em;line-height:1.1;white-space:nowrap;text-align:center;
   }
   .hero__sub{margin-bottom:1.1rem}
   .hero__action{margin-bottom:1.35rem}
-  .hero__action .cta{width:min(100%,320px);min-height:58px;font-size:.92rem}
-  .hero__action .cta-note{font-size:1rem;line-height:1.35}       /* 16px floor — see ADSCADE_BRAND_GUIDELINES.md */
+  .hero__action .cta{width:100%;max-width:360px;min-height:64px;font-size:1rem}
+  .hero__action .cta-note{font-size:1rem;line-height:1.35}   /* 16px reading-copy floor */
+  .band--visual{padding-top:1.8rem;padding-bottom:0}
+  .band--reporting{padding-bottom:1rem}
+  .band--founder{padding-block:1.1rem}
   .hero-media{border-radius:10px}
   .rail{padding:1.15rem}
-  .dock .cta{font-size:.72rem;letter-spacing:.045em;padding:.8rem .6rem;white-space:normal;text-align:center;line-height:1.15}
+  .dock .cta{font-size:.86rem;letter-spacing:.045em;padding:.72rem .68rem .68rem .9rem;white-space:nowrap;text-align:center;line-height:1.15}
   /* Below 760px the two-column table becomes two stacked cards. A shrunk desktop table
      forces ~10 characters per line, which is not a comparison anyone reads. */
   .cmp__grid{grid-template-columns:1fr}
@@ -587,11 +652,14 @@ body.modal-open .dock{transform:translateY(110%)}
   .trust{gap:.5rem 1.2rem}
 }
 @media(max-width:360px){
+  .modal{padding:8px;padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .modal__panel{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}
+  .modal__body{padding-inline:1rem}
   .brandbar__name{display:none}
-  .brandbar__fit{max-width:74vw;font-size:.61rem;padding-inline:.55rem}
+  .brandbar__fit{max-width:74vw;font-size:.72rem;padding-inline:.65rem}
   .dock{padding-inline:8px}
-  .dock__x{width:48px;height:48px}       /* 48px tap floor — see ADSCADE_BRAND_GUIDELINES.md */
-  .dock .cta{font-size:.68rem;letter-spacing:.025em}
+  .dock__x{width:48px;height:48px}   /* 48px tap floor */
+  .dock .cta{font-size:.82rem;letter-spacing:.025em}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -611,9 +679,9 @@ body.modal-open .dock{transform:translateY(110%)}
 
 <header class="hero">
   <div class="wrap">
-    <p class="hero__kicker">For regional residential developers</p>
+    <p class="hero__kicker">For real estate brokerages and property sales teams in Dubai and across the Gulf</p>
     <h1 class="hero__title">Stop Losing Money on <span class="u">Scattered</span> Real Estate <em>Marketing</em></h1>
-    <p class="hero__sub">Adscade connects your ads, landing pages, qualification, follow-up and sales feedback into <b>one managed acquisition system</b> — so more of the enquiries you already pay for become qualified buyer conversations.</p>
+    <p class="hero__sub">Adscade manages your <b>paid buyer acquisition</b> — from strategy and performance creative through Meta campaigns, project-specific landing pages and buyer qualification — until qualified enquiries reach your sales team. Their feedback then helps us improve future acquisition.</p>
 
     <div class="hero__action">
       <button class="cta js-cta" type="button">Contact Us</button>
@@ -621,7 +689,7 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <div class="stage">
-
+      
       <figure class="hero-media">
         <picture>
           <source
@@ -642,32 +710,29 @@ body.modal-open .dock{transform:translateY(110%)}
       </figure>
 
       <aside class="card rail">
-        <p class="rail__k">See where your funnel is leaking</p>
+        <p class="rail__k">What Adscade manages</p>
         <ul class="rail__list">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Current ad and funnel structure</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Lead qualification and leakage</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Follow-up and tracking gaps</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Practical next steps</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Buyer strategy &amp; project positioning</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Performance creative &amp; Meta campaigns</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Project landing pages &amp; buyer qualification</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Qualified enquiry handoff &amp; sales-feedback optimisation</li>
         </ul>
         <button class="cta cta--wide js-cta" type="button">Contact Us</button>
         <p class="cta-note">Five details, then choose an available slot.</p>
-        <p class="cta-note qual-note">Most suited to developers with active inventory, a structured follow-up process and ₹1&nbsp;lakh+ monthly media capacity.</p>
-        <div class="rail__meta">
-          <span>30 minutes, direct with <b>Aasim Ahmed</b></span>
+                <div class="rail__meta">
+          <span>30-minute call directly with <b>the founder</b></span>
         </div>
       </aside>
     </div>
 
-    <div class="notice">
-      <b>Read this before you book:</b> this is for developers with unsold inventory in a <b>RERA-registered</b> project and a budget behind it. If the project isn't registered yet we legally cannot advertise it, and if there's nothing left to sell there's nothing to build a funnel for. We confirm both with you on the call — the form doesn't ask.
-    </div>
   </div>
 </header>
 
 <div class="wrap">
   <div class="trust">
-    <span>Funnel live in <b>one week</b></span>
-    <span>Weekly <b>pipeline</b> reporting</span>
+    <span>Built around <b>your project</b></span>
+    <span>Direct access to <b>the founder</b></span>
+    <span>Weekly <b>pipeline visibility</b></span>
   </div>
 </div>
 
@@ -676,8 +741,7 @@ body.modal-open .dock{transform:translateY(110%)}
     <figure class="figure">
       <img src="https://adscade.com/wp-content/uploads/2026/07/residential.webp" width="1200" height="675" loading="lazy" decoding="async"
            alt="Modern residential development with prospective buyers meeting a property representative.">
-      <figcaption>Illustrative imagery. Not an Adscade client project.</figcaption>
-    </figure>
+          </figure>
   </div>
 </section>
 
@@ -685,38 +749,38 @@ body.modal-open .dock{transform:translateY(110%)}
   <div class="wrap leak">
     <div>
       <p class="eyebrow">The leak</p>
-      <h2 class="h2">You are not short of enquiries.<br>You are <em>losing them in transit.</em></h2>
-      <p class="lead">Every stage is a place your money quietly goes missing — and none of it reaches your ad account, which only ever reports the click. We rebuild all four as one system and report on each of them weekly.</p>
+      <h2 class="h2">Getting more enquiries isn&#39;t enough if <em>the wrong ones reach sales.</em></h2>
+      <p class="lead">Weak ad-to-project alignment, loose qualification, slow response and disconnected sales feedback can turn paid enquiries into wasted media spend. Adscade manages the acquisition layer through qualified enquiry handoff, then uses your sales team&#39;s feedback to improve future campaigns.</p>
       <ul class="pains">
-        <li>An enquiry lands at <b>night</b>; nobody has <b>replied</b> before he has seen a <b>faster</b> project.</li>
-        <li><b>Channel partners</b> lead with whichever project pays best that month.</li>
-        <li>The <b>tail</b> — odd floors, odd facings — stops moving once the launch push ends.</li>
-        <li>Every <b>unsold</b> unit keeps accruing <b>interest</b> throughout.</li>
+        <li>An enquiry lands at <b>night</b>; by the time the sales team responds, the buyer may already be speaking to someone else.</li>
+        <li>A curiosity-led ad generates <b>interest</b>, but the prospect disappears once the actual project, price or payment plan is revealed.</li>
+        <li>Without stronger <b>qualification</b>, agents spend time on enquiries with the wrong budget, timeline or buying intent.</li>
+        <li>If sales outcomes never return to the campaign, Meta can treat a weak form submission and a genuine buyer <b>as equally valuable.</b></li>
       </ul>
     </div>
     <div class="leak__fig">
       <div class="leak__stage">
         <div class="leak__row"><span class="leak__name">Ad → click</span><span class="leak__val">100</span></div>
         <div class="leak__track"><i class="leak__bar" style="width:100%"></i></div>
-        <span class="leak__drip">₹ wrong audience</span>
+        <span class="leak__drip">Budget lost to wrong audience</span>
       </div>
       <div class="leak__stage">
         <div class="leak__row"><span class="leak__name">Landing page</span><span class="leak__val">60</span></div>
         <div class="leak__track"><i class="leak__bar" style="width:60%"></i></div>
-        <span class="leak__drip">₹ message mismatch</span>
+        <span class="leak__drip">Budget lost to message mismatch</span>
       </div>
       <div class="leak__stage">
         <div class="leak__row"><span class="leak__name">Follow-up</span><span class="leak__val">20</span></div>
         <div class="leak__track"><i class="leak__bar" style="width:20%"></i></div>
-        <span class="leak__drip">₹ slow response</span>
+        <span class="leak__drip">Budget lost to slow response</span>
       </div>
       <div class="leak__stage">
         <div class="leak__row"><span class="leak__name">Site visit</span><span class="leak__val">4</span></div>
         <div class="leak__track"><i class="leak__bar" style="width:4%"></i></div>
         <span class="leak__drip">96 of every 100 gone before anyone stood on site</span>
       </div>
-      <p class="leak__cap">Illustrative funnel</p>
-      <p class="leak__note">Example shown for illustration. Actual outcomes vary by project, price, market, media budget, follow-up and sales process.</p>
+      <p class="leak__cap">Example buyer journey</p>
+      <p class="leak__note">A simple example of where paid enquiries can be lost between the click and the site visit.</p>
     </div>
   </div>
 </section>
@@ -757,10 +821,9 @@ body.modal-open .dock{transform:translateY(110%)}
         <img src="https://adscade.com/wp-content/uploads/2026/07/before-after.webp" width="1200" height="675" loading="lazy" decoding="async"
              alt="Side-by-side diagram: fragmented marketing with disconnected ads, landing page, enquiries and reporting, versus one connected Adscade system with structured follow-up, qualified enquiries and sales feedback.">
       </picture>
-      <figcaption>Illustrative diagram of the two approaches.</figcaption>
     </figure>
 
-    <p class="lead" style="margin-top:2.2rem">Adscade builds and manages four things, as one system:</p>
+    <p class="lead" style="margin-top:1.35rem">Adscade builds and manages four things, as one system:</p>
     <ul class="deliv">
       <li><b>Offer and messaging</b> — positioning built around your project and price band, not swapped from another account.</li>
       <li><b>Campaign management</b> — built, launched and optimised against enquiry quality rather than volume.</li>
@@ -777,12 +840,12 @@ body.modal-open .dock{transform:translateY(110%)}
     </div>
 
     <div style="text-align:center;margin-top:2.2rem">
-      <a class="cta cta--ghost" href="#book">Contact Us</a>
+      <a class="cta js-cta" href="#book">Contact Us</a>
     </div>
   </div>
 </section>
 
-<section class="band band--light">
+<section class="band band--light band--reporting">
   <div class="wrap">
     <p class="eyebrow" style="text-align:center">Reporting</p>
     <h2 class="h2 h2--center" style="max-width:20ch">Every Monday, know where <em>every enquiry stands.</em></h2>
@@ -793,15 +856,15 @@ body.modal-open .dock{transform:translateY(110%)}
         <p class="report__k">Sample reporting view</p>
       </div>
       <div class="report__rows">
-        <div class="report__row"><span>Media spend</span><b>₹ 1,84,000</b></div>
+        <div class="report__row"><span>Media spend</span><b>AED 25,000</b></div>
         <div class="report__row"><span>Enquiries generated</span><b>112</b></div>
         <div class="report__row"><span>Qualified enquiries</span><b>38</b></div>
         <div class="report__row"><span>Calls booked</span><b>21</b></div>
         <div class="report__row"><span>Site visits</span><b>9</b></div>
-        <div class="report__row"><span>Cost per qualified enquiry</span><b>₹ 4,842</b></div>
+        <div class="report__row"><span>Cost per qualified enquiry</span><b>AED 658</b></div>
         <div class="report__row"><span>Follow-up status</span><b>17 awaiting</b></div>
       </div>
-      <p class="report__foot">Figures shown are illustrative. Available reporting depends on the sales stages and outcome data maintained by the client's team.</p>
+      <p class="report__foot">Sample reporting format — your view is built around the campaign and sales stages your team actually tracks.</p>
     </div>
 
     <figure class="figure figure--detail" style="margin-top:2.4rem">
@@ -815,12 +878,11 @@ body.modal-open .dock{transform:translateY(110%)}
         <img src="https://adscade.com/wp-content/uploads/2026/07/pipeline.webp" width="1200" height="675" loading="lazy" decoding="async"
              alt="Pipeline diagram: ads, landing page, enquiries, qualification, follow-up, site visits and sales conversations, with weekly reporting at each stage.">
       </picture>
-      <figcaption>Illustrative pipeline and reporting view. Figures are examples, not client results.</figcaption>
     </figure>
   </div>
 </section>
 
-<section class="band">
+<section class="band band--founder">
   <div class="wrap">
     <figure class="founder-poster">
       <picture>
@@ -856,41 +918,39 @@ body.modal-open .dock{transform:translateY(110%)}
 <section class="band" id="book">
   <div class="wrap" style="text-align:center">
     <p class="eyebrow" style="text-align:center">Next step</p>
-    <h2 class="h2 h2--center" style="max-width:20ch">Tell us about your project.</h2>
-    <p class="lead lead--center">Five quick details — enough for us to look at your setup properly before we speak.</p>
+    <h2 class="h2 h2--center" style="max-width:20ch">Tell us about your acquisition setup.</h2>
+    <p class="lead lead--center">Five quick details so we can understand what you&#39;re currently marketing before we speak.</p>
     <div class="cta-wrap" style="margin-top:1.6rem">
       <button class="cta js-cta" type="button">Contact Us</button>
     </div>
-    <p class="cta-note">Prefer to message instead?
-      <a href="https://wa.me/917019698301">WhatsApp us on +91 70196 98301</a>.</p>
   </div>
 </section>
 
 <section class="band band--light">
   <div class="wrap" style="max-width:840px">
-    <p class="eyebrow">Common questions</p>
-    <h2 class="h2">Before you book.</h2>
+    <p class="eyebrow">FAQs</p>
+    <h2 class="h2">Frequently asked questions.</h2>
     <div class="faq" style="margin-top:2rem">
-      <button class="faq__q" aria-expanded="false" aria-controls="a1">Who is this system designed for?</button>
-      <div class="faq__a" id="a1" hidden><p>Regional residential developers with an actively marketed project, inventory to sell over the next six to twelve months, and a sales team or structured follow-up already in place. It also suits exclusive mandate holders and channel-partner firms with direct control over a project's marketing.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a1">Who is this for?</button>
+      <div class="faq__a" id="a1" hidden><p>We work primarily with real estate brokerages, property sales teams, exclusive-mandate businesses and channel-partner firms responsible for marketing residential property in Dubai and across the Gulf. Whether you currently rely on portals, broker networks or paid advertising, we can review how buyers are being acquired and where stronger qualification and sales feedback can improve the system.</p></div>
 
       <button class="faq__q" aria-expanded="false" aria-controls="a2">What does Adscade manage?</button>
-      <div class="faq__a" id="a2" hidden><p>Four things, run as one system: offer and messaging, campaign management, the landing page and qualification, and tracking, reporting and optimisation. Nothing is subcontracted to someone who has never seen the rest of your funnel. Running ads without the rest of it is pouring water into a leaking bucket.</p></div>
+      <div class="faq__a" id="a2" hidden><p>Adscade manages the paid-acquisition layer — buyer strategy, performance creative, Meta campaigns, project-specific landing pages, qualification, lead routing, tracking and campaign optimisation. Your sales team handles buyer conversations, viewings, negotiation and closing.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a3">Do we need an existing advertising account or landing page?</button>
-      <div class="faq__a" id="a3" hidden><p>No. Many developers come from portal enquiries or channel partners only. The landing page, video creative and follow-up sequence are built for your project rather than adapted from something you already have. If you do have an existing account, we work inside it so the history stays with you.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a3">Do we need an existing ad account or landing page?</button>
+      <div class="faq__a" id="a3" hidden><p>No. We can work with an existing setup or build the acquisition journey around your project from the ground up. If you already have an ad account, landing page or useful campaign history, we can work with what is worth keeping rather than starting over unnecessarily.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a4">What monthly advertising budget should we be prepared for?</button>
-      <div class="faq__a" id="a4" hidden><p>Media budget sits separately from our fee and is paid by you directly to the platform. The right level depends on your city, price point and how much inventory you are moving. Most projects of this type are working with a meaningful monthly commitment rather than a trial amount — we will be specific on the call.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a4">What advertising budget do you work with?</button>
+      <div class="faq__a" id="a4" hidden><p>The right media budget depends on your project, price point, inventory, current acquisition setup and target market. If you are already spending, we can review what you are doing now; if you are preparing to start, we can recommend a sensible level on the call. Media spend is paid directly to the advertising platform and remains under your control.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a5">How quickly can the system be launched?</button>
-      <div class="faq__a" id="a5" hidden><p>The build runs about a week once onboarding is complete — strategy agreed, campaigns built, landing page and qualification live, tracking connected. Delays in project details, account access or creative approvals extend it. After launch there is an optimisation period while the campaigns find the right audience.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a5">How quickly can we get started?</button>
+      <div class="faq__a" id="a5" hidden><p>Most builds can be ready in about a week once we have the project details, account access and approvals needed to start. That includes strategy, campaigns, landing page, qualification and tracking. From there, the campaigns are improved as real enquiry and sales feedback comes in.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a6">Who follows up with the enquiries?</button>
-      <div class="faq__a" id="a6" hidden><p>Your sales team does. Adscade builds the automated first response and the qualification that reaches them, so the enquiry arrives with budget, location and timeline already on record. We do not sell on your behalf or take over your buyer relationships.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a6">Who handles the enquiries?</button>
+      <div class="faq__a" id="a6" hidden><p>Your sales team handles buyer conversations, viewings and closing. Adscade manages paid acquisition through qualification and qualified enquiry handoff, then uses structured sales feedback to improve future campaign optimisation.</p></div>
 
-      <button class="faq__q" aria-expanded="false" aria-controls="a7">What happens after we complete the form?</button>
-      <div class="faq__a" id="a7" hidden><p>After you submit the five project details, you are taken directly to Calendly to choose an available time. Your name and email are carried forward, so you do not need to enter them again. Before the call, we review the information you submitted so the conversation can focus on your project and acquisition setup.</p></div>
+      <button class="faq__q" aria-expanded="false" aria-controls="a7">What happens after I contact you?</button>
+      <div class="faq__a" id="a7" hidden><p>You answer five quick questions and then choose an available 30-minute time. Your name and email carry forward, so you do not need to enter them again. We review the details before the call so the conversation can focus on your project and current acquisition setup.</p></div>
     </div>
 
     <div class="faq-cta" style="text-align:center;margin-top:2.4rem">
@@ -904,14 +964,13 @@ body.modal-open .dock{transform:translateY(110%)}
     <div class="foot__top">
       <div>
         <p class="foot__brand"><img class="foot__mark" src="https://adscade.com/wp-content/uploads/2026/07/logo.png" alt="" width="146" height="132" loading="lazy">Adscade</p>
-        <p class="dim" style="margin:0;max-width:36ch">Built and managed as one system — campaigns, landing pages, qualification, follow-up and reporting for residential developers across India.</p>
+        <p class="dim" style="margin:0;max-width:36ch">Paid buyer acquisition — strategy, campaigns, landing pages, qualification, lead routing and sales-feedback optimisation for real estate teams in Dubai and across the Gulf.</p>
       </div>
       <div>
         <p class="foot__k">Contact</p>
         <ul class="foot__list">
           <li><a href="mailto:admin@adscade.com">admin@adscade.com</a></li>
-          <li><a href="tel:+917019698301">+91 70196 98301</a></li>
-          <li>Bengaluru, Karnataka, India</li>
+          <li>Serving real estate teams across the Gulf</li>
         </ul>
       </div>
       <div>
@@ -934,12 +993,12 @@ body.modal-open .dock{transform:translateY(110%)}
   <div class="modal__panel card" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
     <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
     <div class="modal__head">
-      <p class="eyebrow">Tell us about your project</p>
+      <p class="eyebrow">Tell us about your acquisition setup</p>
       <h2 id="modal-title">Five details, then pick a time.</h2>
     </div>
     <div class="modal__body">
     <form id="lead-form" novalidate>
-
+      
       <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
         <input type="text" name="hp_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
       </div>
@@ -950,18 +1009,18 @@ body.modal-open .dock{transform:translateY(110%)}
         <span class="err" id="err-name" role="alert">Please enter your name.</span>
       </div>
       <div class="field" aria-live="polite">
-        <label for="email">Work email</label>
+        <label for="email">Email address</label>
         <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
         <span class="err" id="err-email" role="alert">Enter a valid email address.</span>
       </div>
       <div class="field" aria-live="polite">
         <label for="phone">WhatsApp or phone number</label>
-        <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile, or include country code" required>
-        <span class="err" id="err-phone" role="alert">Enter a valid mobile number — 10 digits for India, or include the country code.</span>
+        <input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="Include country code" required>
+        <span class="err" id="err-phone" role="alert">Enter a valid phone number including the country code.</span>
       </div>
 
       <fieldset class="qgroup">
-        <legend>How many residential units are you actively marketing over the next 6&ndash;12 months?</legend>
+        <legend>How many active residential listings or project units is your team currently marketing?</legend>
         <div class="opts">
           <label class="opt"><input type="radio" name="inventory" value="1_19" required>1&ndash;19</label>
           <label class="opt"><input type="radio" name="inventory" value="20_49">20&ndash;49</label>
@@ -973,11 +1032,12 @@ body.modal-open .dock{transform:translateY(110%)}
 
       <fieldset class="qgroup">
         <legend>What are you currently spending &mdash; or prepared to invest &mdash; on digital advertising each month?</legend>
+        
         <div class="opts">
-          <label class="opt"><input type="radio" name="media_budget" value="below_1l" required>Below &#8377;1 lakh</label>
-          <label class="opt"><input type="radio" name="media_budget" value="1_3l">&#8377;1&ndash;3 lakh</label>
-          <label class="opt"><input type="radio" name="media_budget" value="3_5l">&#8377;3&ndash;5 lakh</label>
-          <label class="opt"><input type="radio" name="media_budget" value="above_5l">Above &#8377;5 lakh</label>
+          <label class="opt"><input type="radio" name="media_budget" value="below_aed_5000" required>Below AED 5,000</label>
+          <label class="opt"><input type="radio" name="media_budget" value="aed_5000_15000">AED 5,000&ndash;15,000</label>
+          <label class="opt"><input type="radio" name="media_budget" value="aed_15000_30000">AED 15,000&ndash;30,000</label>
+          <label class="opt"><input type="radio" name="media_budget" value="above_aed_30000">Above AED 30,000</label>
         </div>
         <div class="errbox" data-radio-err aria-live="polite"><span class="err" id="err-media_budget" role="alert">Pick the closest range.</span></div>
       </fieldset>
@@ -989,9 +1049,9 @@ body.modal-open .dock{transform:translateY(110%)}
       <div class="errbox" id="consent-err" aria-live="polite"><span class="err" id="err-consent" role="alert">Please tick the consent box so we're allowed to contact you.</span></div>
 
       <button class="cta cta--wide" type="submit">Choose My Time</button>
-
+      
       <div class="errbox" id="submit-err" aria-live="assertive" aria-atomic="true">
-        <span class="err">We couldn't save your details. Check your connection and try again, or <a href="https://wa.me/917019698301" target="_blank" rel="noopener">contact us on WhatsApp</a>.</span>
+        <span class="err">We couldn't save your details. Check your connection and try again.</span>
       </div>
     </form>
     </div>
@@ -1211,12 +1271,10 @@ body.modal-open .dock{transform:translateY(110%)}
       var bad = !el.value.trim();
       if (el.type === 'tel'){
         var digits = el.value.replace(/[^\d]/g,'');
-        // A 10-digit Indian mobile, the same number with 91 or a leading 0, or any
-        // explicit international number. Requiring a "+" would reject the format most
-        // Indian visitors actually type.
-        bad = !(/^[6-9]\d{9}$/.test(digits) || /^91[6-9]\d{9}$/.test(digits)
-             || /^0[6-9]\d{9}$/.test(digits)
-             || (/^\+/.test(el.value.trim()) && digits.length >= 8 && digits.length <= 15));
+        // Dubai traffic is highly international. Accept UAE local formats (05x...) and
+        // normal international numbers without forcing one specific presentation style.
+        // E.164 permits up to 15 digits; eight is a practical minimum for international use.
+        bad = digits.length < 8 || digits.length > 15;
       }
       if (el.type === 'email') bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
       if (f) f.classList.toggle('invalid', bad);
@@ -1319,71 +1377,11 @@ body.modal-open .dock{transform:translateY(110%)}
     } finally { if (timer) clearTimeout(timer); }
   }
 
-  /* ── Google Sheets mirror ─────────────────────────────────────────
-     This is a non-blocking operational mirror of the same lead payload sent to
-     Convex. Convex remains the source of truth and the only storage result that
-     is allowed to unlock Calendly.
-
-     Google Apps Script web apps do not need to return a readable browser response
-     here. sendBeacon() is preferred so the request can survive the immediate
-     navigation to Calendly; fetch(...keepalive:true, mode:'no-cors') is the fallback.
+  /* ── Google Sheets reporting mirror ─────────────────────────
+     No browser webhook runs here. Convex is the source of truth and mirrors stored
+     leads + Calendly booking status to Google Sheets asynchronously on the backend.
+     The visitor therefore never waits for Google Sheets before reaching Calendly.
   ─────────────────────────────────────────────────────────────────── */
-  var SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyhDkwG9xEBRqpqoQUkbB913NwlP_t4j2hE2SPNy3bIcwQCqymPJ4HNPIPmsVJm0YWoMg/exec';
-
-  function mirrorLeadToSheets(lead, convexStatus){
-    if (!SHEETS_WEBHOOK || !lead) return;
-
-    var a = lead.attribution || {};
-    var body = new URLSearchParams();
-    body.set('submissionId', lead.submissionId || '');
-    body.set('timestamp', lead.timestamp || '');
-    body.set('name', lead.name || '');
-    body.set('email', lead.email || '');
-    body.set('phone', lead.phone || '');
-    body.set('activeInventory', lead.activeInventory || '');
-    body.set('monthlyMediaBudget', lead.monthlyMediaBudget || '');
-    body.set('consent', lead.consent ? 'true' : 'false');
-    body.set('hp_ref', lead.hp_ref || '');
-    body.set('landingPage', lead.landingPage || location.href);
-    body.set('referrer', lead.referrer || document.referrer || '');
-    body.set('device', lead.device || '');
-    body.set('utm_source', a.utm_source || '');
-    body.set('utm_medium', a.utm_medium || '');
-    body.set('utm_campaign', a.utm_campaign || '');
-    body.set('utm_content', a.utm_content || '');
-    body.set('utm_term', a.utm_term || '');
-    body.set('gclid', a.gclid || '');
-    body.set('gbraid', a.gbraid || '');
-    body.set('wbraid', a.wbraid || '');
-    body.set('convex_status', convexStatus || '');
-    body.set('convex_updated_at', new Date().toISOString());
-    body.set('source', 'vsl-4');
-
-    // Start with fetch so the request is actually initiated while this page is
-    // still alive. no-cors is intentional: Apps Script is cross-origin and we
-    // do not need to read its response. keepalive lets a small POST continue
-    // during the later Calendly navigation.
-    try {
-      fetch(SHEETS_WEBHOOK, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: body,
-        keepalive: true,
-        credentials: 'omit',
-        redirect: 'follow'
-      }).catch(function(){
-        // Best-effort fallback for browsers/network paths where fetch fails.
-        try {
-          if (navigator.sendBeacon) navigator.sendBeacon(SHEETS_WEBHOOK, body);
-        } catch (_) {}
-      });
-      return;
-    } catch (_) {}
-
-    try {
-      if (navigator.sendBeacon) navigator.sendBeacon(SHEETS_WEBHOOK, body);
-    } catch (_) {}
-  }
 
   /* ── Calendly hand-off ────────────────────────────────────────────
      The visitor leaves this page for Calendly once the lead is stored. There is
@@ -1446,16 +1444,10 @@ body.modal-open .dock{transform:translateY(110%)}
     btn.textContent = 'Sending…';
     track('lead_form_submit', null, true);
 
-    // Independent safety copy: start the Sheets POST BEFORE waiting on Convex.
-    // This gives the backup several seconds to complete while the Convex request
-    // is in flight. It is not awaited and can never block the conversion flow.
-    mirrorLeadToSheets(payload, 'pending');
-
     try {
       await submitLead(payload);
-      // Only reached when Convex confirmed stored:true. Every failure path throws.
-      // Mirror the complete lead to Sheets without making Sheets a gate for Calendly.
-      mirrorLeadToSheets(payload, 'stored');
+      // Only reached when Convex confirmed stored:true. The backend independently
+      // queues the Google Sheets mirror, so this page can proceed immediately.
       track('lead_form_stored', null, true);
 
       var target = calendlyRedirectUrl(payload);
@@ -1469,8 +1461,6 @@ body.modal-open .dock{transform:translateY(110%)}
       window.location.assign(target);
       return;
     } catch (err){
-      // Preserve the lead in Sheets even when Convex fails, so the failure is visible.
-      mirrorLeadToSheets(payload, 'failed');
       document.getElementById('submit-err').classList.add('invalid');
       // The visitor sees one calm, recoverable message whatever went wrong. The precise
       // reason goes to the console and to window.__adscadeLastError so a failure on a
@@ -1496,8 +1486,8 @@ body.modal-open .dock{transform:translateY(110%)}
   });
 
   // booked_call cannot fire here: the booking happens on calendly.com after the
-  // visitor has left. A Calendly webhook is the only honest source for it —
-  // see docs/CONVEX_SETUP.md.
+  // visitor has left. Convex's Calendly poll is the authoritative booking source and
+  // the backend mirrors that status to Google Sheets.
 
   // test hooks
   window.__adscadeState = function(){ return {redirecting: redirecting}; };

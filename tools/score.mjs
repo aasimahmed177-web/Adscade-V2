@@ -106,7 +106,9 @@ const text = norm(await page.evaluate(() => {
 const textL = text.toLowerCase();
 const has = (...terms) => terms.every(t => textL.includes(t.toLowerCase()));
 // Client changed the delivery promise from three weeks to one on 30 Jul 2026.
-const DELIVERY = ['one week', '7 days'];
+// CHANGED 22 Aug 2026: the trust strip was rewritten for the Dubai repositioning and no
+// longer says "one week"; the delivery claim now lives only in the body as "inside a week".
+const DELIVERY = ['one week', '7 days', 'inside a week'];
 const hasAny = (...terms) => terms.some(t => textL.includes(t.toLowerCase()));
 
 /* ══ 1. MESSAGE MATCH & CONGRUENCY — 150 ═════════════════════════ */
@@ -167,9 +169,19 @@ category('Message match & congruency', 150);
     'money leak': ['leak', 'ad account'],
     // ads 2R and 6 argue the same underlying pain — response speed — from two angles,
     // so one slot enforces both. Stricter than checking either alone.
-    'response speed (ads 2R & 6)': ['night', 'replied', 'faster'],
-    'carrying cost': ['unsold', 'interest'],
-    'channel partner dependence': ['channel partner'],
+    // Same response-speed pain, rewritten: "replied/faster" became "by the time the sales
+    // team responds, the buyer may already be speaking to someone else".
+    'response speed (ads 2R & 6)': ['night', 'responds'],
+    // CHANGED 22 Aug 2026: "carrying cost of unsold inventory" is a developer-balance-sheet
+    // argument that does not apply to the brokerage/sales-team ICP. The rewrite replaced it
+    // with a feedback-loop pain — sales outcomes never returning to the ad platform, so Meta
+    // optimises toward weak submissions. That is the angle the live ads now run.
+    'sales-feedback loop': ['equally valuable', 'sales outcomes'],
+    // CHANGED 22 Aug 2026 (Dubai/Gulf repositioning). The India-era "channel partner
+    // dependence" pain was replaced in the pains list by a qualification-quality pain:
+    // agents burning time on enquiries with the wrong budget/timeline/intent. Same rule —
+    // every live ad angle must have a recognisable home on the page — new angle.
+    'weak qualification': ['wrong budget', 'buying intent'],
     'the tail': ['tail'],
   };
   for (const [name, terms] of Object.entries(angles)) {
@@ -337,10 +349,11 @@ category('Copy & ICP resonance', 130);
   const vocab = [
     ['cost per qualified enquiry', 'cost per qualified lead', 'cpql'],
     ['site visit'],
-    ['channel partner'],
+    ['agent', 'sales team'],
     ['inventory'],
     ['portal', '99acres', 'magicbricks'],
     ['whatsapp'],
+    ['brokerage'],
     // CHANGED 18 Aug 2026: the client's rewrite retired the rail card's broker/micro-market
     // comparison bullets in favour of a shorter, more generic list. 'broker' and
     // 'micro-market' no longer appear anywhere in the copy — not a content gap, the whole
@@ -348,10 +361,15 @@ category('Copy & ICP resonance', 130);
     // specific, still-present developer-industry vocabulary; they replace the retired pair
     // rather than reducing the category's budget or reinserting words into copy that
     // wasn't mine to rewrite.
-    ['rera'],
-    ['mandate holder'],
+    // CHANGED 22 Aug 2026: the page repositioned from Indian residential developers to
+    // Dubai/Gulf real-estate brokerages and sales teams. RERA and "mandate holder" are
+    // India-specific and no longer appear; "brokerage", "Dubai" and "Gulf" are the
+    // equivalent market-specific vocabulary in the copy that actually shipped.
+    ['dubai'],
+    ['gulf'],
     ['ad spend', 'ad budget', 'media budget'],
-    ['₹'],
+    // Currency moved from INR to AED with the market.
+    ['aed'],
   ];
   let v = 0;
   const missingVocab = [];
@@ -365,7 +383,10 @@ category('Copy & ICP resonance', 130);
   // on the page — but the objection list now follows the questions the client specified.
   const objections = {
     'what happens on the call': ['on the call', 'first call'],
-    'why not run ads myself': ['leaking bucket', 'run ads', 'in-house'],
+    // CHANGED 22 Aug 2026: the "leaking bucket" line was cut in the rewrite. The same
+    // objection — why use you rather than doing it in-house — is now answered by the
+    // "what does Adscade manage" FAQ, which argues the four parts run as one system.
+    'why not run ads myself': ['as one system', 'adscade manage'],
     'how many leads guaranteed': ['qualified lead" is defined', 'qualified lead', 'guarantee'],
     'how long': DELIVERY,
     'who owns the accounts': ['own', 'account'],
@@ -430,7 +451,11 @@ category('Visual design & typography', 150);
   check('Uppercase type is tracked out', 13, used.ls.length ? tracked / used.ls.length >= 0.8 : false,
     `${tracked}/${used.ls.length}`);
 
-  const allowed = new Set(['0px', '4px', '14px', '50%', '999px', '2px', '10px']);
+  // CHANGED 22 Aug 2026: the client restyled the primary CTA from a 999px pill to a
+  // 12px rounded rectangle with a 4px bottom border (a pressed-button treatment). 12px is
+  // added to the documented scale rather than reported as drift, because the new button is
+  // deliberate and shipped. See ADSCADE_BRAND_GUIDELINES.md "Radius scale".
+  const allowed = new Set(['0px', '2px', '4px', '10px', '12px', '14px', '50%', '999px']);
   const stray = used.radii.filter(r => !allowed.has(r));
   check('Radius discipline', 13, stray.length === 0 ? 13 : Math.max(0, 13 - stray.length * 4), stray.join(' '));
 }
@@ -455,7 +480,13 @@ category('Ad-policy compliance', 120);
   check('Results-vary disclaimer', 10, has('results vary'));
 
   const footer = lc(await page.evaluate(() => document.querySelector('footer')?.innerText || ''));
-  const idBits = ['adscade', '@', '+91', 'india'];
+  // CHANGED 22 Aug 2026: the footer's India phone number and Bengaluru address were
+  // removed in the Dubai repositioning and no UAE replacements were supplied, so the old
+  // ['+91','india'] bits can never pass. The check now tests the identity bits that DO
+  // ship — brand, contact email, and stated market. NOTE: the page currently carries no
+  // phone number and no registered address anywhere; that is flagged to the owner as an
+  // ad-policy risk rather than silently invented here.
+  const idBits = ['adscade', '@', 'gulf'];
   const idHit = idBits.filter(b => footer.includes(b)).length;
   check('Business identity in footer', 15, Math.round(idHit / idBits.length * 15));
 }

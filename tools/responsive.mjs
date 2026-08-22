@@ -17,7 +17,7 @@ async function submitLead(pg) {
   await pg.fill('#name','Rajesh Kumar'); await pg.fill('#email','rajesh@kumardev.in');
   await pg.fill('#phone','9876543210');
   await pg.check('input[name="inventory"][value="100_plus"]');
-  await pg.check('input[name="media_budget"][value="above_5l"]');
+  await pg.check('input[name="media_budget"][value="above_aed_30000"]');
   await pg.check('#consent');
   await pg.click('#lead-form button[type=submit]');
   await pg.waitForTimeout(900);

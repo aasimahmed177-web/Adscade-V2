@@ -68,7 +68,7 @@ async function fill(p, over = {}) {
   await p.fill('#email', over.email ?? 'rajesh@kumardev.in');
   await p.fill('#phone', over.phone ?? '9876543210');
   await p.check(`input[name="inventory"][value="${over.inv ?? '100_plus'}"]`);
-  await p.check(`input[name="media_budget"][value="${over.bud ?? 'above_5l'}"]`);
+  await p.check(`input[name="media_budget"][value="${over.bud ?? 'above_aed_30000'}"]`);
   await p.check('#consent');
 }
 
@@ -265,11 +265,10 @@ console.log('\n— 16. double submission —');
   });
   await p.waitForTimeout(2500);
   t('16. exactly one POST', p.__posts === 1, String(p.__posts));
-  // The Sheets mirror fires 'pending' before the Convex await and 'stored' after it
-  // resolves — two calls per genuine submission, not per click. A triple-click must not
-  // triple that either.
-  t('16. Sheets mirror fires exactly twice (pending + stored), not per click',
-    p.__sheetsPosts === 2, String(p.__sheetsPosts));
+  // The browser-side Google Sheets webhook was REMOVED in production: mirroring is now
+  // server-side only (convex/sheets.ts), so the browser must make no Sheets call at all.
+  // Asserting zero is the regression guard against it ever being reintroduced.
+  t('16. browser makes no direct Google Sheets call', p.__sheetsPosts === 0, String(p.__sheetsPosts));
   t('16. exactly one redirect', navs.length === 1, `${navs.length}`);
   await p.close();
 }

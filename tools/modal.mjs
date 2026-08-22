@@ -70,7 +70,11 @@ for (const [w, h] of WIDTHS) {
     return {
       w: Math.round(r.width), h: Math.round(r.height),
       withinViewport: r.top >= -1 && r.bottom <= window.innerHeight + 1,
-      widthRule: Math.round(r.width) <= Math.min(640, window.innerWidth - 24) + 1,
+      // CHANGED 22 Aug 2026: the client added a @media(max-width:360px) rule tightening
+      // the modal gutter from 12px to 8px a side, so very narrow phones get more usable
+      // panel width. Expected width therefore depends on the breakpoint.
+      widthRule: Math.round(r.width) <=
+        Math.min(640, window.innerWidth - (window.innerWidth <= 360 ? 16 : 24)) + 1,
       headSticky: getComputedStyle(head).position === 'sticky',
       bodyScrollable: /auto|scroll/.test(getComputedStyle(body).overflowY),
       overscroll: getComputedStyle(body).overscrollBehaviorY,
@@ -157,7 +161,7 @@ console.log('\n— validation feedback —');
   await p.fill('#email', 'rajesh@kumardev.in');
   await p.fill('#phone', '9876543210');
   await p.check('input[name="inventory"][value="100_plus"]');
-  await p.check('input[name="media_budget"][value="above_5l"]');
+  await p.check('input[name="media_budget"][value="above_aed_30000"]');
   await p.check('#consent');
   await p.evaluate(() => { const bd = document.querySelector('.modal__body'); bd.scrollTop = bd.scrollHeight; });
   await p.waitForTimeout(200);
@@ -255,7 +259,12 @@ t('autofill forces readable text colour', /-webkit-text-fill-color:var\(--cream\
 console.log('\n— error block —');
 t('uses the specified message',
   /We couldn't save your details\. Check your connection and try again/.test(html));
-t('offers the verified WhatsApp number only', /wa\.me\/917019698301/.test(html) && !/7996112470/.test(html));
+// CHANGED 22 Aug 2026: the Dubai repositioning removed the India WhatsApp number from the
+// page entirely, including the submit-error fallback, and no UAE replacement was supplied.
+// The assertion is now that NO unverified/stale number is offered anywhere. The absence of
+// any recovery contact on the error path is flagged to the owner, not invented here.
+t('no stale or unverified phone number is offered',
+  !/7996112470/.test(html) && !/wa\.me\/91/.test(html));
 t('is announced via aria-live', /id="submit-err"[^>]*aria-live="assertive"/.test(html));
 {
   const p = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
@@ -266,7 +275,7 @@ t('is announced via aria-live', /id="submit-err"[^>]*aria-live="assertive"/.test
   const wBefore = await p.evaluate(() => Math.round(document.querySelector('.modal__panel').getBoundingClientRect().width));
   await p.fill('#name', 'Rajesh Kumar'); await p.fill('#email', 'r@k.in'); await p.fill('#phone', '9876543210');
   await p.check('input[name="inventory"][value="100_plus"]');
-  await p.check('input[name="media_budget"][value="above_5l"]');
+  await p.check('input[name="media_budget"][value="above_aed_30000"]');
   await p.check('#consent');
   await p.click('#lead-form button[type=submit]');
   await p.waitForTimeout(700);

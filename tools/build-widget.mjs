@@ -71,7 +71,10 @@ export function buildHead(src) {
 
 // pathToFileURL, not a template string: this repo path contains a space, which
 // import.meta.url percent-encodes and a raw argv path does not.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// process.argv[1] is undefined under `node -e`/`node --eval`, and pathToFileURL throws on
+// undefined — which made merely IMPORTING this module crash. Guard before converting so
+// other tooling can reuse the WP map without executing the build.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const src = readFileSync('site/index.html', 'utf8');
   mkdirSync('dist', { recursive: true });
   const w = buildWidget(src), h = buildHead(src);

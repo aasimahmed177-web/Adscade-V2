@@ -30,7 +30,7 @@ const fill = async p => {
   await p.fill('#email', 'rajesh@kumardev.in');
   await p.fill('#phone', '9876543210');
   await p.check('input[name="inventory"][value="100_plus"]');
-  await p.check('input[name="media_budget"][value="above_5l"]');
+  await p.check('input[name="media_budget"][value="above_aed_30000"]');
   await p.check('#consent');
 };
 

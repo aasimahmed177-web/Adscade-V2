@@ -3,6 +3,7 @@
    Usage: node tools/convex-api.mjs [siteUrl]
    Defaults to CONVEX_SITE_URL from .env.local (the local dev deployment). */
 import { readFileSync } from 'fs';
+import { execSync } from 'child_process';
 
 let base = process.argv[2];
 if (!base) {
@@ -26,7 +27,7 @@ const base_payload = (over = {}) => ({
   email: 'rajesh@kumardev.in',
   phone: '9876543210',
   activeInventory: '100_plus',
-  monthlyMediaBudget: 'above_5l',
+  monthlyMediaBudget: 'above_aed_30000',
   consent: true,
   website: '',
   landingPage: 'https://adscade.com/vsl-4/',
@@ -80,6 +81,37 @@ for (const [label, over, field] of [
   t(`rejects ${label}`, res.status === 422 && body.ok === false &&
     body.code === 'validation_error' && body.fields.includes(field),
     `${res.status} ${JSON.stringify(body)}`);
+}
+
+/* ── AED media budget + legacy-key migration ──────────────────────
+   Production deliberately still ACCEPTS the four India-era keys (a visitor on a cached
+   landing page must not fail at the last step) but must always STORE the canonical AED
+   key, so the database stays readable. Both halves are asserted here. */
+console.log('\n— AED budgets and legacy-key normalisation —');
+const storedBudgetFor = async (sent) => {
+  const id = uuid();
+  const res = await post(base_payload({ submissionId: id, monthlyMediaBudget: sent }));
+  const body = await res.json();
+  if (body.stored !== true) return { stored: false, value: null, body };
+  const row = JSON.parse(execSync(
+    `npx convex run --no-push internal.admin.listLeads '{"limit":50}'`,
+  ).toString()).find((l) => l.submissionId === id);
+  return { stored: true, value: row ? row.monthlyMediaBudget : null };
+};
+
+for (const aed of ['below_aed_5000', 'aed_5000_15000', 'aed_15000_30000', 'above_aed_30000']) {
+  const r = await storedBudgetFor(aed);
+  t(`AED key accepted and stored verbatim: ${aed}`, r.stored && r.value === aed, String(r.value));
+}
+for (const [legacy, canonical] of [
+  ['below_1l', 'below_aed_5000'],
+  ['1_3l', 'aed_5000_15000'],
+  ['3_5l', 'aed_15000_30000'],
+  ['above_5l', 'above_aed_30000'],
+]) {
+  const r = await storedBudgetFor(legacy);
+  t(`legacy ${legacy} accepted and normalised to ${canonical}`,
+    r.stored && r.value === canonical, String(r.value));
 }
 
 console.log('\n— phone formats accepted —');

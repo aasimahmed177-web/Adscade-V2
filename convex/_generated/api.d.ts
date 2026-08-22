@@ -16,6 +16,7 @@ import type * as crons from "../crons.js";
 import type * as debug from "../debug.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
+import type * as sheets from "../sheets.js";
 
 import type {
   ApiFromModules,
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   debug: typeof debug;
   http: typeof http;
   leads: typeof leads;
+  sheets: typeof sheets;
 }>;
 
 /**

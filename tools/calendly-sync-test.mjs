@@ -40,7 +40,7 @@ async function submitLead(over = {}) {
     email: over.email,
     phone: over.phone ?? '9876543210',
     activeInventory: '50_99',
-    monthlyMediaBudget: '1_3l',
+    monthlyMediaBudget: 'aed_5000_15000',
     consent: true,
     website: '',
     landingPage: 'https://adscade.com/vsl-4/',

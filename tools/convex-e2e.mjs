@@ -56,7 +56,7 @@ async function fill(p, over = {}) {
   await p.fill('#email', over.email ?? 'priya@nairbuilders.in');
   await p.fill('#phone', over.phone ?? '+91 98450 11223');
   await p.check(`input[name="inventory"][value="${over.inv ?? '50_99'}"]`);
-  await p.check(`input[name="media_budget"][value="${over.bud ?? '3_5l'}"]`);
+  await p.check(`input[name="media_budget"][value="${over.bud ?? 'aed_15000_30000'}"]`);
   await p.check('#consent');
 }
 
@@ -99,7 +99,7 @@ t('email stored and normalised', latest.email === 'priya@nairbuilders.in' &&
 t('phone kept as typed', latest.phone === '+91 98450 11223', latest.phone);
 t('phone normalised to E.164', latest.normalisedPhone === '+919845011223', latest.normalisedPhone);
 t('inventory stored', latest.activeInventory === '50_99', latest.activeInventory);
-t('budget stored', latest.monthlyMediaBudget === '3_5l', latest.monthlyMediaBudget);
+t('budget stored', latest.monthlyMediaBudget === 'aed_15000_30000', latest.monthlyMediaBudget);
 t('consent stored true', latest.consent === true);
 t('status is submitted', latest.status === 'submitted', latest.status);
 t('landingPage captured', typeof latest.landingPage === 'string' && latest.landingPage.length > 0);

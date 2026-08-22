@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { ACTIVE_INVENTORY, MEDIA_BUDGET } from "./schema";
+import { ACCEPTED_MEDIA_BUDGET, ACTIVE_INVENTORY } from "./schema";
 
 /**
  * Public intake endpoint for the /vsl-4/ landing page.
@@ -25,6 +25,37 @@ const PRODUCTION_ORIGINS = ["https://adscade.com", "https://www.adscade.com"];
 function allowedOrigins(): Set<string> {
   const extra = process.env.ADSCADE_DEV_ORIGIN;
   return new Set(extra ? [...PRODUCTION_ORIGINS, extra] : PRODUCTION_ORIGINS);
+}
+
+type CanonicalMediaBudget =
+  | "below_aed_5000"
+  | "aed_5000_15000"
+  | "aed_15000_30000"
+  | "above_aed_30000";
+
+/**
+ * Accept the four legacy India-era keys for stale/cached landing pages, but always write
+ * the Dubai/AED-native value to Convex. This makes the database readable without making
+ * an older visitor fail at checkout.
+ */
+function normaliseMediaBudget(value: unknown): CanonicalMediaBudget | null {
+  if (typeof value !== "string" ||
+      !(ACCEPTED_MEDIA_BUDGET as readonly string[]).includes(value)) {
+    return null;
+  }
+
+  const map: Record<string, CanonicalMediaBudget> = {
+    below_1l: "below_aed_5000",
+    "1_3l": "aed_5000_15000",
+    "3_5l": "aed_15000_30000",
+    above_5l: "above_aed_30000",
+    below_aed_5000: "below_aed_5000",
+    aed_5000_15000: "aed_5000_15000",
+    aed_15000_30000: "aed_15000_30000",
+    above_aed_30000: "above_aed_30000",
+  };
+
+  return map[value] ?? null;
 }
 
 const MAX_BODY_BYTES = 8 * 1024; // the whole payload is a few hundred bytes
@@ -220,11 +251,8 @@ const submitLead = httpAction(async (ctx, request) => {
     fields.push("activeInventory");
   }
 
-  const monthlyMediaBudget = body.monthlyMediaBudget;
-  if (typeof monthlyMediaBudget !== "string" ||
-      !(MEDIA_BUDGET as readonly string[]).includes(monthlyMediaBudget)) {
-    fields.push("monthlyMediaBudget");
-  }
+  const monthlyMediaBudget = normaliseMediaBudget(body.monthlyMediaBudget);
+  if (monthlyMediaBudget === null) fields.push("monthlyMediaBudget");
 
   // Consent must be exactly true. Truthy is not consent.
   if (body.consent !== true) fields.push("consent");
@@ -247,7 +275,7 @@ const submitLead = httpAction(async (ctx, request) => {
       phone: phoneRaw as string,
       normalisedPhone: normalisedPhone as string,
       activeInventory: activeInventory as "1_19" | "20_49" | "50_99" | "100_plus",
-      monthlyMediaBudget: monthlyMediaBudget as "below_1l" | "1_3l" | "3_5l" | "above_5l",
+      monthlyMediaBudget: monthlyMediaBudget as CanonicalMediaBudget,
       consent: true,
       suspect,
       landingPage: safeUrl(body.landingPage, MAX.url),

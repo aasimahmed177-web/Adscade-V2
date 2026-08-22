@@ -13,7 +13,20 @@ import { v } from "convex/values";
  */
 
 export const ACTIVE_INVENTORY = ["1_19", "20_49", "50_99", "100_plus"] as const;
-export const MEDIA_BUDGET = ["below_1l", "1_3l", "3_5l", "above_5l"] as const;
+
+// Canonical Dubai/AED values. New writes always use these four keys.
+export const MEDIA_BUDGET = [
+  "below_aed_5000",
+  "aed_5000_15000",
+  "aed_15000_30000",
+  "above_aed_30000",
+] as const;
+
+// Legacy India-era keys are accepted only so old cached landing pages and the existing
+// production rows remain valid during the migration. http.ts normalises every incoming
+// legacy value to the canonical AED key before insert, so no new legacy rows are created.
+export const LEGACY_MEDIA_BUDGET = ["below_1l", "1_3l", "3_5l", "above_5l"] as const;
+export const ACCEPTED_MEDIA_BUDGET = [...MEDIA_BUDGET, ...LEGACY_MEDIA_BUDGET] as const;
 
 export const activeInventoryValidator = v.union(
   v.literal("1_19"),
@@ -22,11 +35,25 @@ export const activeInventoryValidator = v.union(
   v.literal("100_plus"),
 );
 
+// Table validator remains backward-compatible until every historical row has been
+// migrated. Keeping the four legacy literals here is harmless because insertLead uses
+// canonicalMediaBudgetValidator below, so writes can only land with AED-native keys.
 export const mediaBudgetValidator = v.union(
+  v.literal("below_aed_5000"),
+  v.literal("aed_5000_15000"),
+  v.literal("aed_15000_30000"),
+  v.literal("above_aed_30000"),
   v.literal("below_1l"),
   v.literal("1_3l"),
   v.literal("3_5l"),
   v.literal("above_5l"),
+);
+
+export const canonicalMediaBudgetValidator = v.union(
+  v.literal("below_aed_5000"),
+  v.literal("aed_5000_15000"),
+  v.literal("aed_15000_30000"),
+  v.literal("above_aed_30000"),
 );
 
 /**
@@ -42,6 +69,12 @@ export const calendlyStatusValidator = v.union(
   v.literal("booked"),
   v.literal("canceled"),
   v.literal("rescheduled"),
+);
+
+export const googleSheetsSyncStatusValidator = v.union(
+  v.literal("pending"),
+  v.literal("synced"),
+  v.literal("failed"),
 );
 
 /** One row of Calendly's invitee-side custom Q&A, stored verbatim. */
@@ -96,6 +129,13 @@ export default defineSchema({
     calendlyRescheduled: v.optional(v.boolean()),
     calendlyQuestionsAndAnswers: v.optional(v.array(calendlyQAValidator)),
     calendlyLastSyncedAt: v.optional(v.number()),
+
+    // Google Sheets reporting mirror. Convex remains authoritative; these fields exist
+    // only so operators can see whether the asynchronous mirror is healthy.
+    googleSheetsSyncStatus: v.optional(googleSheetsSyncStatusValidator),
+    googleSheetsSyncAttempts: v.optional(v.number()),
+    googleSheetsLastSyncedAt: v.optional(v.number()),
+    googleSheetsLastError: v.optional(v.string()),
   })
     .index("by_submissionId", ["submissionId"])
     .index("by_createdAt", ["createdAt"])
