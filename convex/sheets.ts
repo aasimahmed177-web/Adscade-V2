@@ -1,6 +1,7 @@
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { offerOf } from "./schema";
 
 /**
  * Google Sheets is a reporting mirror, never the source of truth.
@@ -33,7 +34,13 @@ function errText(error: unknown): string {
   return raw.slice(0, 500);
 }
 
-function inventoryLabel(value: string): string {
+/**
+ * Label helpers take `string | undefined` because a brokerage_content_engine row has no
+ * inventory or budget answer, and an acquisition row has no team-size answer. An absent
+ * answer becomes an empty cell, never the string "undefined".
+ */
+function inventoryLabel(value?: string): string {
+  if (!value) return "";
   return ({
     "1_19": "1–19",
     "20_49": "20–49",
@@ -42,7 +49,18 @@ function inventoryLabel(value: string): string {
   } as Record<string, string>)[value] ?? value;
 }
 
-function mediaBudgetLabel(value: string): string {
+function teamSizeLabel(value?: string): string {
+  if (!value) return "";
+  return ({
+    "1_4": "1–4 people",
+    "5_9": "5–9 people",
+    "10_19": "10–19 people",
+    "20_plus": "20+ people",
+  } as Record<string, string>)[value] ?? value;
+}
+
+function mediaBudgetLabel(value?: string): string {
+  if (!value) return "";
   return ({
     "below_aed_5000": "Below AED 5,000",
     "aed_5000_15000": "AED 5,000–15,000",
@@ -149,13 +167,27 @@ export const syncLead = internalAction({
       convex_id: String(lead._id),
       submission_id: lead.submissionId,
       lead_timestamp: iso(lead.createdAt),
+      // One sheet, one row per submissionId, every offer. `offer` is the column that
+      // separates them — filter or pivot on it rather than routing to another tab, so
+      // the booking-status mirror below stays a single code path for all offers.
+      offer: offerOf(lead),
       name: lead.name,
       email: lead.email,
       phone: lead.phone,
-      active_inventory: lead.activeInventory,
-      monthly_media_budget: lead.monthlyMediaBudget,
+      // Acquisition answers. Empty on a content row.
+      active_inventory: lead.activeInventory ?? "",
+      monthly_media_budget: lead.monthlyMediaBudget ?? "",
       active_inventory_label: inventoryLabel(lead.activeInventory),
       monthly_media_budget_label: mediaBudgetLabel(lead.monthlyMediaBudget),
+      // Content answers. Empty on an acquisition row.
+      company_name: lead.companyName ?? "",
+      team_size: lead.teamSize ?? "",
+      team_size_label: teamSizeLabel(lead.teamSize),
+      monthly_shoot: lead.monthlyShoot ?? "",
+      // The server's verdict, mirrored so the Sheet shows what the visitor was actually
+      // shown. Empty (not "false") on offers that have no qualification gate at all.
+      content_qualified:
+        typeof lead.contentQualified === "boolean" ? lead.contentQualified : "",
       device: lead.deviceCategory ?? "",
       landing_page: lead.landingPage ?? "",
       referrer: lead.referrer ?? "",

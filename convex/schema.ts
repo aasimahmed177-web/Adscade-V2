@@ -4,15 +4,62 @@ import { v } from "convex/values";
 /**
  * Adscade lead capture.
  *
- * One table. Every field here is present in the live five-field modal — nothing is
- * collected that the visitor was not shown, and nothing derived is stored.
+ * One table, many offers. Every field is present in one of the live modals — nothing is
+ * collected that the visitor was not shown. The `offer` discriminator says which funnel
+ * a row came from; offer-specific answers are optional at this layer and made mandatory
+ * by the HTTP endpoint that owns each offer (see http.ts).
  *
- * Deliberately ABSENT, and must stay absent: score, outcome, qualification verdict,
- * disqualification reason, manual-review status. The funnel has no scoring model; every
- * valid submission is stored and every stored lead is offered the calendar.
+ * On qualification verdicts. real_estate_acquisition has NO scoring model: every valid
+ * submission is stored and every stored lead is offered the calendar. That has not
+ * changed. brokerage_content_engine does gate the calendar, so it stores exactly one
+ * derived boolean, `contentQualified`, computed SERVER-SIDE from teamSize and
+ * monthlyShoot. It is never accepted from the browser — http.ts rejects a payload that
+ * even contains the key. Still deliberately absent everywhere: score, outcome,
+ * disqualification reason, manual-review status.
  */
 
+/**
+ * The offer discriminator. One `leads` table serves every Adscade offer; this field is
+ * the routing key that tells acquisition rows from content rows.
+ *
+ * OPTIONAL on the table, and deliberately so: every row written before this field existed
+ * has no `offer` at all. Absent MUST be read as "real_estate_acquisition" — see
+ * offerOf() in sheets.ts and admin.ts. Nothing backfills historical rows.
+ */
+export const OFFERS = ["real_estate_acquisition", "brokerage_content_engine"] as const;
+
+export const offerValidator = v.union(
+  v.literal("real_estate_acquisition"),
+  v.literal("brokerage_content_engine"),
+);
+
+/**
+ * Read a row's offer. ALWAYS use this instead of touching `.offer` directly — it is the
+ * single place that knows an absent value means the acquisition funnel, which is true of
+ * every lead and every telemetry row written before VSL-5 shipped.
+ */
+export function offerOf(row: { offer?: string }): (typeof OFFERS)[number] {
+  return row.offer === "brokerage_content_engine"
+    ? "brokerage_content_engine"
+    : "real_estate_acquisition";
+}
+
 export const ACTIVE_INVENTORY = ["1_19", "20_49", "50_99", "100_plus"] as const;
+
+/* ── brokerage_content_engine (VSL-5) answers ──────────────────────── */
+
+export const TEAM_SIZE = ["1_4", "5_9", "10_19", "20_plus"] as const;
+
+export const teamSizeValidator = v.union(
+  v.literal("1_4"),
+  v.literal("5_9"),
+  v.literal("10_19"),
+  v.literal("20_plus"),
+);
+
+export const MONTHLY_SHOOT = ["yes", "no"] as const;
+
+export const monthlyShootValidator = v.union(v.literal("yes"), v.literal("no"));
 
 // Canonical Dubai/AED values. New writes always use these four keys.
 export const MEDIA_BUDGET = [
@@ -80,6 +127,23 @@ export const calendlyStatusValidator = v.union(
  * answer, consent value or Calendly answer. http.ts rejects those keys outright rather
  * than silently dropping them, so a frontend mistake fails loudly instead of leaking.
  */
+/**
+ * Stage names are OFFER-NEUTRAL and shared by every funnel. A second offer does NOT get
+ * its own parallel vocabulary — it is distinguished by the `offer` field below.
+ *
+ * Duplicating names per offer would mean duplicating the stage-to-stage rate arithmetic
+ * in admin.funnelSummary for every offer added. Keeping one ladder plus a discriminator
+ * means funnelSummary({ offer }) filters, and comparing two funnels is subtraction.
+ *
+ * `lead_qualified` is the one genuinely new stage: it fires between stored and redirect
+ * for offers that gate the calendar on a server-side verdict. real_estate_acquisition
+ * has no gate and never emits it, which is why the ladder in admin.ts skips it for that
+ * offer rather than reporting a 0% step.
+ *
+ * The browser's own dataLayer/GTM vocabulary is separate and unchanged — the VSL-5 page
+ * still pushes content_cta_click and friends. The page maps those onto these canonical
+ * stages when it posts to /track-event.
+ */
 export const FUNNEL_EVENT_NAMES = [
   "landing_page_view",
   "initial_cta_click",
@@ -87,6 +151,7 @@ export const FUNNEL_EVENT_NAMES = [
   "lead_form_start",
   "lead_form_submit",
   "lead_form_stored",
+  "lead_qualified",
   "calendly_redirect",
 ] as const;
 
@@ -97,6 +162,7 @@ export const funnelEventNameValidator = v.union(
   v.literal("lead_form_start"),
   v.literal("lead_form_submit"),
   v.literal("lead_form_stored"),
+  v.literal("lead_qualified"),
   v.literal("calendly_redirect"),
 );
 
@@ -119,15 +185,36 @@ export default defineSchema({
     submissionId: v.string(), // client-generated UUID; the idempotency key
     createdAt: v.number(), // server clock, ms epoch — never the client's
 
-    // the five answers + consent
+    // Which funnel produced this row. Absent on every pre-VSL-5 row; read it through
+    // offerOf(lead), never directly, so historical rows resolve to acquisition.
+    offer: v.optional(offerValidator),
+
+    // identity + consent — common to every offer
     name: v.string(),
     email: v.string(),
     normalisedEmail: v.string(), // trimmed + lowercased; what we match on
     phone: v.string(), // exactly as the visitor typed it
     normalisedPhone: v.string(), // E.164 where derivable, else digits
-    activeInventory: activeInventoryValidator,
-    monthlyMediaBudget: mediaBudgetValidator,
     consent: v.boolean(), // always true; false never reaches the insert
+
+    // ── real_estate_acquisition (VSL-4) answers ──────────────────────
+    // OPTIONAL here only so brokerage_content_engine rows can exist in the same table.
+    // This is NOT a relaxation of the acquisition contract: leads.insertLead still
+    // requires both, so /submit-lead cannot write a row that is missing them. Every
+    // historical acquisition row has both and stays valid.
+    activeInventory: v.optional(activeInventoryValidator),
+    monthlyMediaBudget: v.optional(mediaBudgetValidator),
+
+    // ── brokerage_content_engine (VSL-5) answers ─────────────────────
+    // Optional for the mirror-image reason: acquisition rows never have them.
+    // leads.insertContentLead requires all three.
+    companyName: v.optional(v.string()),
+    teamSize: v.optional(teamSizeValidator),
+    monthlyShoot: v.optional(monthlyShootValidator),
+    // Server-computed verdict, never client-supplied. Decides whether the visitor was
+    // shown the calendar. Stored so the Sheet and the funnel report agree with what the
+    // visitor actually experienced, rather than recomputing it later from the answers.
+    contentQualified: v.optional(v.boolean()),
 
     // attribution
     landingPage: v.optional(v.string()),
@@ -179,7 +266,9 @@ export default defineSchema({
     // The cancellation/reschedule recheck pass rotates through open bookings oldest-
     // synced-first, so every booking eventually gets rechecked even if the per-run cap
     // is smaller than the number of upcoming meetings.
-    .index("by_calendlyStatus", ["calendlyStatus", "calendlyLastSyncedAt"]),
+    .index("by_calendlyStatus", ["calendlyStatus", "calendlyLastSyncedAt"])
+    // "show me one offer's leads, newest first" — the operational listing.
+    .index("by_offer_createdAt", ["offer", "createdAt"]),
 
   /**
    * A Calendly invitee that could not be matched to any lead — wrong/mistyped email, a
@@ -238,6 +327,9 @@ export default defineSchema({
     eventId: v.string(),      // client-generated UUID; the idempotency key
     sessionId: v.string(),    // random per browser session; never a fingerprint
     eventName: funnelEventNameValidator,
+    // Which funnel this stage belongs to. Optional so telemetry written before VSL-5
+    // existed stays valid; absent means real_estate_acquisition, same rule as on leads.
+    offer: v.optional(offerValidator),
     createdAt: v.number(),    // authoritative server clock
     clientTimestamp: v.optional(v.number()),
     submissionId: v.optional(v.string()), // only exists once the modal has opened
@@ -259,13 +351,28 @@ export default defineSchema({
     .index("by_createdAt", ["createdAt"])                    // lookback windows
     .index("by_session_createdAt", ["sessionId", "createdAt"]) // one visitor's journey
     .index("by_eventName_createdAt", ["eventName", "createdAt"])
-    .index("by_submissionId", ["submissionId"]),
+    .index("by_submissionId", ["submissionId"])
+    // funnelSummary({ offer }) walks one offer's ladder without scanning the other's.
+    .index("by_offer_eventName_createdAt", ["offer", "eventName", "createdAt"]),
 
   calendlySyncState: defineTable({
     calendlyUserUri: v.optional(v.string()),
     calendlyOrganizationUri: v.optional(v.string()),
+    // The acquisition event type. Kept as-is so existing docs and dashboards still read.
     calendlyEventTypeUri: v.optional(v.string()),
     calendlyEventTypeName: v.optional(v.string()),
+    // Every event type this sync is watching, one entry per configured offer. Optional
+    // because a run from before multi-offer support wrote no such field.
+    calendlyTargets: v.optional(
+      v.array(
+        v.object({
+          offer: offerValidator,
+          uri: v.string(),
+          name: v.optional(v.string()),
+          source: v.string(), // "env" | "name_lookup"
+        }),
+      ),
+    ),
     lastRunAt: v.optional(v.number()),
     lastRunOk: v.optional(v.boolean()),
     lastRunSummary: v.optional(v.string()),

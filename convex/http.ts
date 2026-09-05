@@ -1,7 +1,14 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { ACCEPTED_MEDIA_BUDGET, ACTIVE_INVENTORY, FUNNEL_EVENT_NAMES } from "./schema";
+import {
+  ACCEPTED_MEDIA_BUDGET,
+  ACTIVE_INVENTORY,
+  FUNNEL_EVENT_NAMES,
+  MONTHLY_SHOOT,
+  OFFERS,
+  TEAM_SIZE,
+} from "./schema";
 
 /**
  * Public intake endpoint for the /vsl-4/ landing page.
@@ -61,6 +68,7 @@ function normaliseMediaBudget(value: unknown): CanonicalMediaBudget | null {
 const MAX_BODY_BYTES = 8 * 1024; // the whole payload is a few hundred bytes
 const MAX = {
   name: 200,
+  companyName: 200,
   email: 254,
   phone: 32,
   submissionId: 64,
@@ -161,6 +169,62 @@ function normalisePhone(raw: string): string | null {
   return null;
 }
 
+/**
+ * International-first normalisation, used by offers that are not India-specific.
+ *
+ * normalisePhone() above maps a bare ten-digit number to +91 because /submit-lead was
+ * built for Indian developers, and its historical rows depend on that. Reusing it here
+ * would stamp +91 onto a Gulf brokerage's 05x number. A WRONG country code is worse than
+ * none: it corrupts normalisedPhone matching and makes every outbound WhatsApp attempt
+ * fail while looking perfectly valid in the Sheet.
+ *
+ * So the rule is: honour a country code when the visitor gives one, never invent one
+ * when they don't.
+ *
+ * A bare national number is kept as digits rather than rejected. The field does ask for
+ * a country code, but losing a genuine brokerage over a formatting habit costs more than
+ * storing an unprefixed number that a human can still read and dial.
+ */
+function normalisePhoneInternational(raw: string): string | null {
+  const trimmed = raw.trim();
+  const digits = trimmed.replace(/\D/g, "");
+
+  // "+971 50 123 4567" — explicit. Trust the country code given.
+  if (trimmed.startsWith("+")) {
+    return digits.length >= 8 && digits.length <= 15 ? "+" + digits : null;
+  }
+  // "00971501234567" — the ITU international prefix means exactly what "+" means.
+  if (digits.startsWith("00")) {
+    const rest = digits.slice(2);
+    return rest.length >= 8 && rest.length <= 15 ? "+" + rest : null;
+  }
+  // No country code offered. Keep the digits; do NOT guess a country.
+  return digits.length >= 8 && digits.length <= 15 ? digits : null;
+}
+
+/**
+ * Server-side qualification for brokerage_content_engine.
+ *
+ * This is the ONLY place the verdict is computed. The browser sends facts — the two
+ * answers — and is told the outcome; it never asserts one. See the verdict-key rejection
+ * in both handlers.
+ */
+const QUALIFYING_TEAM_SIZES: readonly string[] = ["5_9", "10_19", "20_plus"];
+
+function isContentQualified(teamSize: string, monthlyShoot: string): boolean {
+  return QUALIFYING_TEAM_SIZES.includes(teamSize) && monthlyShoot === "yes";
+}
+
+/**
+ * A client-supplied verdict means the payload was tampered with or a stale build is
+ * deployed. Both intake endpoints fail loudly rather than dropping the field quietly.
+ */
+const CLIENT_VERDICT_KEYS = ["score", "outcome", "qualified", "status"] as const;
+
+function carriesClientVerdict(body: Record<string, unknown>): boolean {
+  return CLIENT_VERDICT_KEYS.some((k) => k in body);
+}
+
 const submitLead = httpAction(async (ctx, request) => {
   const origin = request.headers.get("Origin");
 
@@ -222,9 +286,7 @@ const submitLead = httpAction(async (ctx, request) => {
     (typeof body.website === "string" ? body.website.trim() : "");
   const suspect = honeypot.length > 0;
 
-  // A client-supplied verdict is a sign the payload was tampered with or that a stale
-  // build is deployed. Fail loudly rather than silently dropping the field.
-  if ("score" in body || "outcome" in body || "qualified" in body || "status" in body) {
+  if (carriesClientVerdict(body)) {
     return json(400, { ok: false, code: "malformed_body" }, origin);
   }
 
@@ -310,6 +372,173 @@ const submitLead = httpAction(async (ctx, request) => {
 });
 
 /* ══════════════════════════════════════════════════════════════════
+   POST /submit-content-lead — brokerage_content_engine (VSL-5) intake
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * A separate handler, not a branch inside submitLead.
+ *
+ * The two offers ask different questions, so a single handler would have to make every
+ * answer optional and then re-tighten per offer — which is exactly the shape of bug this
+ * split exists to prevent. /submit-lead's contract is byte-for-byte what it was; this
+ * endpoint cannot loosen it, because it cannot reach it.
+ *
+ * Every safeguard from /submit-lead is reproduced here deliberately: origin allow-list,
+ * JSON-only, body cap, bounded strings, honeypot-as-flag, formula neutralisation, safe
+ * URLs, idempotency by submissionId, and no stack traces in responses.
+ */
+const submitContentLead = httpAction(async (ctx, request) => {
+  const origin = request.headers.get("Origin");
+
+  if (request.method !== "POST") {
+    return json(405, { ok: false, code: "method_not_allowed" }, origin);
+  }
+
+  // Same reasoning as /submit-lead: without this, text/plain makes the endpoint a CORS
+  // simple request and any third-party page could write rows from a visitor's browser.
+  const contentType = request.headers.get("Content-Type") ?? "";
+  if (!contentType.toLowerCase().split(";")[0].trim().startsWith("application/json")) {
+    return json(415, { ok: false, code: "unsupported_media_type" }, origin);
+  }
+
+  if (origin !== null && !allowedOrigins().has(origin)) {
+    return json(403, { ok: false, code: "forbidden_origin" }, origin);
+  }
+
+  const declared = request.headers.get("Content-Length");
+  if (declared !== null && Number(declared) > MAX_BODY_BYTES) {
+    return json(413, { ok: false, code: "payload_too_large" }, origin);
+  }
+
+  const raw = await request.text();
+  if (raw.length > MAX_BODY_BYTES) {
+    return json(413, { ok: false, code: "payload_too_large" }, origin);
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return json(400, { ok: false, code: "malformed_body" }, origin);
+    }
+    body = parsed as Record<string, unknown>;
+  } catch {
+    return json(400, { ok: false, code: "malformed_body" }, origin);
+  }
+
+  // The visitor does not decide whether they qualify. A payload asserting a verdict is
+  // rejected outright — including the `qualified` boolean the pre-integration page sent.
+  if (carriesClientVerdict(body)) {
+    return json(400, { ok: false, code: "malformed_body" }, origin);
+  }
+
+  // Honeypot: flag, never discard. Same reasoning as /submit-lead — autofill fills
+  // hidden fields, and silently binning real applications is the costlier failure.
+  const honeypot =
+    (typeof body.hp_ref === "string" ? body.hp_ref.trim() : "") ||
+    (typeof body.website === "string" ? body.website.trim() : "");
+  const suspect = honeypot.length > 0;
+
+  const fields: string[] = [];
+
+  const submissionId = str(body.submissionId, MAX.submissionId);
+  if (submissionId === null || !/^[A-Za-z0-9-]{8,64}$/.test(submissionId)) {
+    fields.push("submissionId");
+  }
+
+  const name = str(body.name, MAX.name);
+  if (name === null) fields.push("name");
+
+  const email = str(body.email, MAX.email);
+  if (email === null || !EMAIL_RE.test(email)) fields.push("email");
+
+  const companyName = str(body.companyName, MAX.companyName);
+  if (companyName === null) fields.push("companyName");
+
+  const phoneRaw = str(body.phone, MAX.phone);
+  const normalisedPhone = phoneRaw === null ? null : normalisePhoneInternational(phoneRaw);
+  if (normalisedPhone === null) fields.push("phone");
+
+  const teamSize = body.teamSize;
+  if (typeof teamSize !== "string" || !(TEAM_SIZE as readonly string[]).includes(teamSize)) {
+    fields.push("teamSize");
+  }
+
+  const monthlyShoot = body.monthlyShoot;
+  if (typeof monthlyShoot !== "string" ||
+      !(MONTHLY_SHOOT as readonly string[]).includes(monthlyShoot)) {
+    fields.push("monthlyShoot");
+  }
+
+  if (body.consent !== true) fields.push("consent");
+
+  if (fields.length > 0) {
+    return json(422, { ok: false, code: "validation_error", fields }, origin);
+  }
+
+  // Computed here, from validated answers only. `body.offer` is ignored entirely — the
+  // endpoint defines the offer, the browser does not get a say.
+  const contentQualified = isContentQualified(teamSize as string, monthlyShoot as string);
+
+  const attribution = (typeof body.attribution === "object" && body.attribution !== null)
+    ? (body.attribution as Record<string, unknown>)
+    : {};
+
+  let result: { submissionId: string; duplicate: boolean; contentQualified: boolean };
+  try {
+    result = await ctx.runMutation(internal.leads.insertContentLead, {
+      submissionId: submissionId as string,
+      name: deformula(name as string),
+      email: email as string,
+      normalisedEmail: (email as string).toLowerCase(),
+      phone: phoneRaw as string,
+      normalisedPhone: normalisedPhone as string,
+      companyName: deformula(companyName as string),
+      teamSize: teamSize as "1_4" | "5_9" | "10_19" | "20_plus",
+      monthlyShoot: monthlyShoot as "yes" | "no",
+      contentQualified,
+      consent: true,
+      suspect,
+      landingPage: safeUrl(body.landingPage, MAX.url),
+      referrer: safeUrl(body.referrer, MAX.url),
+      utmSource: deformulaOpt(optional(attribution.utm_source, MAX.utm)),
+      utmMedium: deformulaOpt(optional(attribution.utm_medium, MAX.utm)),
+      utmCampaign: deformulaOpt(optional(attribution.utm_campaign, MAX.utm)),
+      utmContent: deformulaOpt(optional(attribution.utm_content, MAX.utm)),
+      utmTerm: deformulaOpt(optional(attribution.utm_term, MAX.utm)),
+      gclid: deformulaOpt(optional(attribution.gclid, MAX.utm)),
+      gbraid: deformulaOpt(optional(attribution.gbraid, MAX.utm)),
+      wbraid: deformulaOpt(optional(attribution.wbraid, MAX.utm)),
+      deviceCategory: optional(body.device, 16),
+      userAgent: optional(request.headers.get("User-Agent"), MAX.userAgent),
+    });
+  } catch {
+    return json(500, { ok: false, code: "server_error" }, origin);
+  }
+
+  // `qualified` here is the SERVER's verdict being reported back, which is the opposite
+  // direction of the rejected input key. The page uses it to choose the next screen.
+  return json(
+    200,
+    result.duplicate
+      ? {
+          ok: true,
+          submissionId: result.submissionId,
+          stored: true,
+          duplicate: true,
+          qualified: result.contentQualified,
+        }
+      : {
+          ok: true,
+          submissionId: result.submissionId,
+          stored: true,
+          qualified: result.contentQualified,
+        },
+    origin,
+  );
+});
+
+/* ══════════════════════════════════════════════════════════════════
    POST /track-event — anonymous first-party funnel telemetry
    ══════════════════════════════════════════════════════════════════ */
 
@@ -328,6 +557,12 @@ const FORBIDDEN_TELEMETRY_KEYS = [
   "consent",
   "questionsandanswers", "questions_and_answers", "calendlyanswers",
   "firstname", "lastname", "fullname",
+  // brokerage_content_engine answers. companyName identifies the business as surely as a
+  // personal name identifies a person, and the two qualification answers are lead data
+  // that belongs on the lead row — the funnel report reads them from there.
+  "companyname", "company_name", "company",
+  "teamsize", "team_size",
+  "monthlyshoot", "monthly_shoot",
 ];
 
 const trackEvent = httpAction(async (ctx, request) => {
@@ -395,6 +630,19 @@ const trackEvent = httpAction(async (ctx, request) => {
     return json(422, { ok: false, code: "validation_error", fields: ["sessionId"] }, origin);
   }
 
+  // Which funnel this stage belongs to. Optional: a page that sends nothing is recorded
+  // with no offer and reads back as real_estate_acquisition, which is what every event
+  // written before VSL-5 existed actually was. A PRESENT but unrecognised value is
+  // rejected rather than dropped — silently filing VSL-6's traffic under "acquisition"
+  // would corrupt the comparison the offer field exists to make.
+  let offer: (typeof OFFERS)[number] | undefined;
+  if (body.offer !== undefined && body.offer !== null && body.offer !== "") {
+    if (typeof body.offer !== "string" || !(OFFERS as readonly string[]).includes(body.offer)) {
+      return json(422, { ok: false, code: "unknown_offer", fields: ["offer"] }, origin);
+    }
+    offer = body.offer as (typeof OFFERS)[number];
+  }
+
   const clientTs = typeof body.clientTimestamp === "number" &&
     Number.isFinite(body.clientTimestamp) ? body.clientTimestamp : undefined;
 
@@ -408,6 +656,7 @@ const trackEvent = httpAction(async (ctx, request) => {
       eventId,
       sessionId,
       eventName: eventName as (typeof FUNNEL_EVENT_NAMES)[number],
+      offer,
       clientTimestamp: clientTs,
       submissionId: optional(body.submissionId, MAX.submissionId),
       ctaText: optional(body.ctaText, 120),
@@ -439,6 +688,8 @@ const preflight = httpAction(async (_ctx, request) => {
 const http = httpRouter();
 http.route({ path: "/submit-lead", method: "POST", handler: submitLead });
 http.route({ path: "/submit-lead", method: "OPTIONS", handler: preflight });
+http.route({ path: "/submit-content-lead", method: "POST", handler: submitContentLead });
+http.route({ path: "/submit-content-lead", method: "OPTIONS", handler: preflight });
 http.route({ path: "/track-event", method: "POST", handler: trackEvent });
 http.route({ path: "/track-event", method: "OPTIONS", handler: preflight });
 

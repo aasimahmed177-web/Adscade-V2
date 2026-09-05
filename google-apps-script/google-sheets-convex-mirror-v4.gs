@@ -29,11 +29,23 @@ const HEADERS = [
   'submission_id',
   'lead_timestamp',
   'sheet_received_at',
+  // Which funnel produced this row: real_estate_acquisition | brokerage_content_engine.
+  // One sheet holds every offer — filter or pivot on this column. Rows mirrored before
+  // this column existed arrive with it blank, which means real_estate_acquisition.
+  'offer',
   'name',
   'email',
   'phone',
+  // Acquisition (VSL-4) answers — blank on a content row.
   'active_inventory',
   'monthly_media_budget',
+  // Brokerage Content Engine (VSL-5) answers — blank on an acquisition row.
+  'company_name',
+  'team_size',
+  'monthly_shoot',
+  // Convex's server-side qualification verdict for offers that gate the calendar.
+  // Blank on offers that have no gate; TRUE/FALSE on content rows.
+  'content_qualified',
   'device',
   'landing_page',
   'referrer',
@@ -67,7 +79,8 @@ const HEADERS = [
   'convex_id',
   'mirror_last_updated_at',
   'active_inventory_label',
-  'monthly_media_budget_label'
+  'monthly_media_budget_label',
+  'team_size_label'
 ];
 
 function setupAdscade() {

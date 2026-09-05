@@ -11,10 +11,20 @@ export const countLeads = internalQuery({
 });
 
 export const listLeads = internalQuery({
-  args: { limit: v.optional(v.number()) },
+  args: { limit: v.optional(v.number()), offer: v.optional(offerValidator) },
   returns: v.array(v.any()),
-  handler: async (ctx, { limit }) =>
-    await ctx.db.query("leads").withIndex("by_createdAt").order("desc").take(limit ?? 20),
+  handler: async (ctx, { limit, offer }) => {
+    const rows = await ctx.db
+      .query("leads")
+      .withIndex("by_createdAt")
+      .order("desc")
+      .take(offer === undefined ? (limit ?? 20) : (limit ?? 20) * 5);
+    // Filtered in JS rather than through by_offer_createdAt because rows written before
+    // the offer field existed have no value to index on, and those ARE acquisition rows.
+    return offer === undefined
+      ? rows
+      : rows.filter((l) => offerOf(l) === offer).slice(0, limit ?? 20);
+  },
 });
 
 /**
@@ -74,6 +84,8 @@ export const migrateMediaBudgetsToAed = internalMutation({
 
     let updated = 0;
     for (const lead of all) {
+      // Rows from offers that ask no budget question have no value to migrate.
+      if (lead.monthlyMediaBudget === undefined) continue;
       const replacement = map[lead.monthlyMediaBudget];
       if (!replacement) continue;
       await ctx.db.patch(lead._id, { monthlyMediaBudget: replacement });
@@ -92,6 +104,7 @@ export const mediaBudgetMigrationStatus = internalQuery({
     legacy: v.number(),
     canonical: v.number(),
     unexpected: v.number(),
+    notApplicable: v.number(),
   }),
   handler: async (ctx) => {
     const all = await ctx.db.query("leads").collect();
@@ -106,8 +119,13 @@ export const mediaBudgetMigrationStatus = internalQuery({
     let legacyCount = 0;
     let canonicalCount = 0;
     let unexpected = 0;
+    let notApplicable = 0;
     for (const lead of all) {
-      if (legacy.has(lead.monthlyMediaBudget)) legacyCount += 1;
+      // Offers that ask no budget question are counted separately. Without this they
+      // fall through to `unexpected` and make a healthy migration look broken — every
+      // brokerage_content_engine row would be reported as an unrecognised budget key.
+      if (lead.monthlyMediaBudget === undefined) notApplicable += 1;
+      else if (legacy.has(lead.monthlyMediaBudget)) legacyCount += 1;
       else if (canonical.has(lead.monthlyMediaBudget)) canonicalCount += 1;
       else unexpected += 1;
     }
@@ -117,6 +135,7 @@ export const mediaBudgetMigrationStatus = internalQuery({
       legacy: legacyCount,
       canonical: canonicalCount,
       unexpected,
+      notApplicable,
     };
   },
 });
@@ -176,7 +195,7 @@ export const googleSheetsMirrorStatus = internalQuery({
    Funnel telemetry diagnostics (anonymous — see convex/funnel.ts)
    ══════════════════════════════════════════════════════════════════ */
 
-import { FUNNEL_EVENT_NAMES } from "./schema";
+import { FUNNEL_EVENT_NAMES, offerOf, offerValidator } from "./schema";
 
 /**
  * Stage-to-stage funnel over a lookback window.
@@ -195,9 +214,11 @@ export const funnelSummary = internalQuery({
     hours: v.optional(v.number()),
     utmCampaign: v.optional(v.string()),
     utmContent: v.optional(v.string()),
+    // Omit to see every funnel at once; pass one to read a single offer's ladder.
+    offer: v.optional(offerValidator),
   },
   returns: v.any(),
-  handler: async (ctx, { hours, utmCampaign, utmContent }) => {
+  handler: async (ctx, { hours, utmCampaign, utmContent, offer }) => {
     const windowHours = hours ?? 24;
     const since = Date.now() - windowHours * 60 * 60 * 1000;
 
@@ -208,6 +229,9 @@ export const funnelSummary = internalQuery({
 
     if (utmCampaign !== undefined) rows = rows.filter((r) => r.utmCampaign === utmCampaign);
     if (utmContent !== undefined) rows = rows.filter((r) => r.utmContent === utmContent);
+    // offerOf() maps an absent offer to real_estate_acquisition, so filtering by that
+    // offer correctly includes every event recorded before VSL-5 existed.
+    if (offer !== undefined) rows = rows.filter((r) => offerOf(r) === offer);
 
     const rawCounts: Record<string, number> = {};
     const sessionSets: Record<string, Set<string>> = {};
@@ -231,22 +255,40 @@ export const funnelSummary = internalQuery({
       return Math.round((uniqueSessions[to] / a) * 1000) / 10;
     };
 
+    const conversion: Record<string, number | null> = {
+      "landing -> CTA": pct("landing_page_view", "initial_cta_click"),
+      "CTA -> modal": pct("initial_cta_click", "lead_modal_open"),
+      "modal -> form start": pct("lead_modal_open", "lead_form_start"),
+      "form start -> submit": pct("lead_form_start", "lead_form_submit"),
+      "submit -> stored": pct("lead_form_submit", "lead_form_stored"),
+    };
+
+    // The qualification step only exists for offers that gate the calendar. Showing
+    // "stored -> qualified: 0%" for real_estate_acquisition would describe a gate that
+    // does not exist, so the step is inserted only when the data actually contains it.
+    const hasQualificationStage = uniqueSessions.lead_qualified > 0;
+    if (hasQualificationStage) {
+      conversion["stored -> qualified"] = pct("lead_form_stored", "lead_qualified");
+      conversion["qualified -> Calendly redirect"] = pct("lead_qualified", "calendly_redirect");
+    }
+    conversion["stored -> Calendly redirect"] = pct("lead_form_stored", "calendly_redirect");
+    conversion["landing -> stored lead"] = pct("landing_page_view", "lead_form_stored");
+
     return {
       windowHours,
-      filters: { utmCampaign: utmCampaign ?? null, utmContent: utmContent ?? null },
+      filters: {
+        utmCampaign: utmCampaign ?? null,
+        utmContent: utmContent ?? null,
+        offer: offer ?? null,
+      },
       totalEvents: rows.length,
       totalSessions: new Set(rows.map((r) => r.sessionId)).size,
+      // Which offers actually appear in this window — a quick check that a newly
+      // deployed page is really reporting before you go looking for its numbers.
+      offersSeen: [...new Set(rows.map((r) => offerOf(r)))].sort(),
       rawCounts,
       uniqueSessions,
-      conversion: {
-        "landing -> CTA": pct("landing_page_view", "initial_cta_click"),
-        "CTA -> modal": pct("initial_cta_click", "lead_modal_open"),
-        "modal -> form start": pct("lead_modal_open", "lead_form_start"),
-        "form start -> submit": pct("lead_form_start", "lead_form_submit"),
-        "submit -> stored": pct("lead_form_submit", "lead_form_stored"),
-        "stored -> Calendly redirect": pct("lead_form_stored", "calendly_redirect"),
-        "landing -> stored lead": pct("landing_page_view", "lead_form_stored"),
-      },
+      conversion,
     };
   },
 });
@@ -264,24 +306,29 @@ export const funnelBreakdown = internalQuery({
       v.literal("utmCampaign"),
       v.literal("utmContent"),
       v.literal("device"),
+      v.literal("offer"),
     )),
+    offer: v.optional(offerValidator),
   },
   returns: v.any(),
-  handler: async (ctx, { hours, groupBy }) => {
+  handler: async (ctx, { hours, groupBy, offer }) => {
     const windowHours = hours ?? 24;
     const key = groupBy ?? "utmCampaign";
     const since = Date.now() - windowHours * 60 * 60 * 1000;
 
-    const rows = await ctx.db
+    let rows = await ctx.db
       .query("funnelEvents")
       .withIndex("by_createdAt", (q) => q.gte("createdAt", since))
       .collect();
+
+    if (offer !== undefined) rows = rows.filter((r) => offerOf(r) === offer);
 
     const groups = new Map<string, Record<string, Set<string>>>();
     for (const row of rows) {
       const g =
         key === "utmCampaign" ? (row.utmCampaign ?? "(none)")
         : key === "utmContent" ? (row.utmContent ?? "(none)")
+        : key === "offer" ? offerOf(row)
         : (row.deviceCategory ?? "(none)");
 
       let bucket = groups.get(g);
@@ -308,6 +355,6 @@ export const funnelBreakdown = internalQuery({
       // Busiest first: the campaign with the most landing views is the one worth reading.
       .sort((a, b) => b.uniqueSessions.landing_page_view - a.uniqueSessions.landing_page_view);
 
-    return { windowHours, groupBy: key, groups: out };
+    return { windowHours, groupBy: key, filters: { offer: offer ?? null }, groups: out };
   },
 });

@@ -1,6 +1,6 @@
 import { internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { funnelEventNameValidator } from "./schema";
+import { funnelEventNameValidator, offerValidator } from "./schema";
 
 /**
  * Anonymous first-party funnel telemetry.
@@ -19,6 +19,7 @@ export const recordEvent = internalMutation({
     eventId: v.string(),
     sessionId: v.string(),
     eventName: funnelEventNameValidator,
+    offer: v.optional(offerValidator),
     clientTimestamp: v.optional(v.number()),
     submissionId: v.optional(v.string()),
     ctaText: v.optional(v.string()),

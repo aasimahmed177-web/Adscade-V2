@@ -1,7 +1,7 @@
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { calendlyQAValidator, calendlyStatusValidator } from "./schema";
+import { calendlyQAValidator, calendlyStatusValidator, offerValidator } from "./schema";
 import {
   getCurrentUser,
   listEventTypes,
@@ -26,6 +26,53 @@ import { sha256Hex } from "./calendlyHash";
  */
 
 export const TARGET_EVENT_TYPE_NAME = "Real Estate Acquisition System Call";
+
+/**
+ * Which Calendly event types this sync watches, one entry per offer.
+ *
+ * The sync used to resolve exactly ONE event type. That was fine with one funnel; with
+ * two it would mean bookings from the second offer are never discovered at all — the
+ * API call filters server-side by event_type, so they would not even appear as unmatched.
+ *
+ * Each offer resolves in this order:
+ *   1. its `uriEnv` environment variable, if set — pins the event type, immune to renames
+ *   2. its `nameEnv` variable, or `defaultName`, looked up by exact name (case-insensitive)
+ *   3. otherwise: not configured
+ *
+ * A `required: false` offer that resolves to nothing is skipped quietly rather than
+ * failing the run. That is the state before the owner creates the VSL-5 event: VSL-4
+ * bookings must keep syncing normally in the meantime.
+ *
+ * Note that the target's `offer` is DIAGNOSTIC ONLY. Bookings are matched to leads by
+ * email, and the lead row already knows which offer it came from, so a booking is
+ * attributed correctly even while both funnels point at one shared event type — which is
+ * exactly the situation today.
+ */
+const EVENT_TYPE_CONFIG = [
+  {
+    offer: "real_estate_acquisition",
+    uriEnv: "CALENDLY_EVENT_TYPE_URI",
+    nameEnv: "CALENDLY_EVENT_TYPE_NAME",
+    defaultName: TARGET_EVENT_TYPE_NAME as string | null,
+    required: true,
+  },
+  {
+    offer: "brokerage_content_engine",
+    uriEnv: "CALENDLY_CONTENT_EVENT_TYPE_URI",
+    nameEnv: "CALENDLY_CONTENT_EVENT_TYPE_NAME",
+    // No default name on purpose: inventing one would make the run log a scary "not
+    // found" error for an event type the owner has not created yet.
+    defaultName: null as string | null,
+    required: false,
+  },
+] as const;
+
+type SyncTarget = {
+  offer: "real_estate_acquisition" | "brokerage_content_engine";
+  uri: string;
+  name?: string;
+  source: string;
+};
 
 const DISCOVERY_WINDOW_PAST_MS = 24 * 60 * 60 * 1000; // 1 day back — catch same-day bookings
 const DISCOVERY_WINDOW_FUTURE_MS = 90 * 24 * 60 * 60 * 1000; // 90 days ahead
@@ -308,6 +355,16 @@ export const setSyncState = internalMutation({
     calendlyOrganizationUri: v.optional(v.string()),
     calendlyEventTypeUri: v.optional(v.string()),
     calendlyEventTypeName: v.optional(v.string()),
+    calendlyTargets: v.optional(
+      v.array(
+        v.object({
+          offer: offerValidator,
+          uri: v.string(),
+          name: v.optional(v.string()),
+          source: v.string(),
+        }),
+      ),
+    ),
     lastRunOk: v.boolean(),
     lastRunSummary: v.optional(v.string()),
     lastError: v.optional(v.string()),
@@ -341,37 +398,90 @@ export const sync = internalAction({
     try {
       const me = await getCurrentUser();
 
-      const pinnedEventTypeUri = process.env.CALENDLY_EVENT_TYPE_URI;
-      let eventType: { uri: string; name: string };
-      if (pinnedEventTypeUri) {
-        eventType = { uri: pinnedEventTypeUri, name: TARGET_EVENT_TYPE_NAME };
-      } else {
-        const types = await listEventTypes(me.uri);
-        const match = types.find(
-          (t) => t.name.trim().toLowerCase() === TARGET_EVENT_TYPE_NAME.toLowerCase(),
-        );
-        if (!match) {
-          const msg = `No Calendly event type named "${TARGET_EVENT_TYPE_NAME}" was found for ${me.email}. Set CALENDLY_EVENT_TYPE_URI to pin it explicitly.`;
-          console.error("[calendly] " + msg);
-          await ctx.runMutation(internal.calendly.setSyncState, {
-            calendlyUserUri: me.uri,
-            calendlyOrganizationUri: me.organization,
-            lastRunOk: false,
-            lastError: msg,
-          });
-          return null;
+      /* ── Resolve every configured event type ────────────────────── */
+      const targets: SyncTarget[] = [];
+      const seenUris = new Set<string>();
+      // Only fetched if some offer actually needs a name lookup — a pinned URI for every
+      // offer means this API call never happens.
+      let eventTypes: { uri: string; name: string }[] | null = null;
+
+      for (const config of EVENT_TYPE_CONFIG) {
+        const pinnedUri = process.env[config.uriEnv]?.trim();
+        let resolved: SyncTarget | null = null;
+
+        if (pinnedUri) {
+          resolved = { offer: config.offer, uri: pinnedUri, source: "env" };
+        } else {
+          const wantedName = process.env[config.nameEnv]?.trim() || config.defaultName;
+          if (wantedName) {
+            if (eventTypes === null) eventTypes = await listEventTypes(me.uri);
+            const match = eventTypes.find(
+              (t) => t.name.trim().toLowerCase() === wantedName.toLowerCase(),
+            );
+            if (match) {
+              resolved = {
+                offer: config.offer,
+                uri: match.uri,
+                name: match.name,
+                source: "name_lookup",
+              };
+            } else if (config.required) {
+              const msg = `No Calendly event type named "${wantedName}" was found for ${me.email}. Set ${config.uriEnv} to pin it explicitly.`;
+              console.error("[calendly] " + msg);
+              await ctx.runMutation(internal.calendly.setSyncState, {
+                calendlyUserUri: me.uri,
+                calendlyOrganizationUri: me.organization,
+                lastRunOk: false,
+                lastError: msg,
+              });
+              return null;
+            } else {
+              console.warn(
+                `[calendly] optional event type "${wantedName}" for ${config.offer} was not found — skipping that offer this run.`,
+              );
+            }
+          }
+          // No URI and no name configured: this offer simply has no calendar yet.
         }
-        eventType = match;
+
+        if (!resolved) continue;
+        // Both funnels currently point at ONE shared Calendly event. Listing it twice
+        // would double every API call in Pass A for no benefit, so dedupe by URI and
+        // keep the first offer that claimed it.
+        if (seenUris.has(resolved.uri)) {
+          console.warn(
+            `[calendly] ${config.offer} resolves to the same event type as an earlier offer (${resolved.uri}); listing it once.`,
+          );
+          continue;
+        }
+        seenUris.add(resolved.uri);
+        targets.push(resolved);
       }
 
-      /* ── Pass A: discover new bookings ──────────────────────────── */
+      if (targets.length === 0) {
+        const msg = "No Calendly event types are configured for any offer.";
+        console.error("[calendly] " + msg);
+        await ctx.runMutation(internal.calendly.setSyncState, {
+          calendlyUserUri: me.uri,
+          calendlyOrganizationUri: me.organization,
+          lastRunOk: false,
+          lastError: msg,
+        });
+        return null;
+      }
+
+      /* ── Pass A: discover new bookings, across every target ──────── */
       const now = Date.now();
-      const events = await listActiveEvents(
-        me.uri,
-        eventType.uri,
-        new Date(now - DISCOVERY_WINDOW_PAST_MS),
-        new Date(now + DISCOVERY_WINDOW_FUTURE_MS),
-      );
+      const events: { uri: string; start_time: string; end_time: string; eventTypeUri: string }[] = [];
+      for (const target of targets) {
+        const found = await listActiveEvents(
+          me.uri,
+          target.uri,
+          new Date(now - DISCOVERY_WINDOW_PAST_MS),
+          new Date(now + DISCOVERY_WINDOW_FUTURE_MS),
+        );
+        for (const e of found) events.push({ ...e, eventTypeUri: target.uri });
+      }
 
       let discovered = 0,
         booked = 0,
@@ -407,7 +517,7 @@ export const sync = internalAction({
                 leadId: lead._id,
                 inviteeUri: invitee.uri,
                 eventUri: event.uri,
-                eventTypeUri: eventType.uri,
+                eventTypeUri: event.eventTypeUri,
                 bookedAtMs: Date.parse(invitee.created_at),
                 startTimeMs: Date.parse(event.start_time),
                 endTimeMs: Date.parse(event.end_time),
@@ -422,7 +532,7 @@ export const sync = internalAction({
               await ctx.runMutation(internal.calendly.recordUnmatched, {
                 inviteeUri: invitee.uri,
                 eventUri: event.uri,
-                eventTypeUri: eventType.uri,
+                eventTypeUri: event.eventTypeUri,
                 inviteeEmail: normalisedEmail,
                 inviteeName: invitee.name,
                 startTimeMs: Date.parse(event.start_time),
@@ -488,16 +598,20 @@ export const sync = internalAction({
         }
       }
 
+      const acquisitionTarget = targets.find((t) => t.offer === "real_estate_acquisition");
       const summary =
-        `events=${events.length} discovered=${discovered} booked=${booked} ` +
+        `targets=${targets.length} events=${events.length} discovered=${discovered} booked=${booked} ` +
         `unmatched=${unmatched} rechecked=${rechecked} canceled=${canceled} ` +
         `rescheduled=${rescheduled} errors=${errors}`;
       console.log("[calendly] " + summary);
       await ctx.runMutation(internal.calendly.setSyncState, {
         calendlyUserUri: me.uri,
         calendlyOrganizationUri: me.organization,
-        calendlyEventTypeUri: eventType.uri,
-        calendlyEventTypeName: eventType.name,
+        // The acquisition target keeps the two original singular fields so existing
+        // docs, dashboards and `getSyncState` readers keep working unchanged.
+        calendlyEventTypeUri: acquisitionTarget?.uri,
+        calendlyEventTypeName: acquisitionTarget?.name,
+        calendlyTargets: targets,
         lastRunOk: true,
         lastRunSummary: summary,
       });
