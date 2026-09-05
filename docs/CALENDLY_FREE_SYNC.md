@@ -69,6 +69,13 @@ a few minutes after deploying). `calendlySyncState.lastRunAt` should be recent.
 
 ## How the target event type is found
 
+> **Multi-offer update.** The sync now resolves a LIST of event types, one per offer,
+> not just the single acquisition event described below. The acquisition rules in this
+> section are unchanged; the second offer is configured with
+> `CALENDLY_CONTENT_EVENT_TYPE_URI` (or `CALENDLY_CONTENT_EVENT_TYPE_NAME`) and is
+> skipped quietly when unset, so VSL-4 sync is unaffected until you create that event.
+> See docs/VSL5_CONTENT_FUNNEL.md → "Calendly — more than one event type".
+
 The code looks for an event type named exactly **"Real Estate Acquisition System Call"**
 (`TARGET_EVENT_TYPE_NAME` in `convex/calendly.ts`), matched case-insensitively, via
 `GET /event_types?user=<uri>`. Every sync run resolves the user URI from `GET /users/me`

@@ -9,3 +9,7 @@ run.log
 .env.*
 !.env.example
 .convex/
+
+# Generated at test time by tools/content-browser.mjs (the WordPress shell the
+# Elementor fragment normally sits inside). Never edited by hand.
+site/.vsl-5-shell.html

@@ -881,6 +881,11 @@ body.modal-open{overflow:hidden}
      TRACKING
      Pushes non-PII events to dataLayer only when GTM already exists.
   ───────────────────────────────────────────────────────────────── */
+  /* The internal offer identifier. Must match convex/schema.ts OFFERS exactly — the
+     /track-event endpoint rejects an unrecognised value rather than filing it under the
+     wrong funnel. Deliberately not geography-specific. */
+  var OFFER = 'brokerage_content_engine';
+
   var fired = {};
   var qs = new URLSearchParams(location.search);
   var attribution = {
@@ -894,17 +899,120 @@ body.modal-open{overflow:hidden}
     wbraid: qs.get('wbraid') || null,
     landing_path: location.pathname,
     referrer: document.referrer || null,
-    offer: 'dubai_brokerage_content_engine'
+    offer: OFFER
   };
+
+  /* ── first-party funnel telemetry ─────────────────────────────────
+     ADDITIVE. Every dataLayer/GTM push on this page keeps its own name and payload;
+     this simply ALSO records the same stages in Convex, so we can see where visitors
+     abandon — which GTM cannot tell us about anyone who never converts.
+
+     The two vocabularies are deliberately separate. GTM keeps the page's content_*
+     names; Convex gets offer-neutral stage names shared with VSL-4, plus `offer`, so
+     the two funnels can be compared with subtraction instead of a bespoke report.
+
+     Anonymous by construction: random per-session and per-event ids, no name, email,
+     phone, company, answers or consent, no fingerprinting, no scroll/mouse tracking.
+     The server rejects those keys outright rather than dropping them quietly.
+
+     Never blocks: fire-and-forget, every failure swallowed. If Convex is unreachable
+     the CTA, modal, application and Calendly redirect all behave exactly as normal.
+  ─────────────────────────────────────────────────────────────────── */
+  var CANONICAL_STAGE = {
+    content_landing_view:          'landing_page_view',
+    content_cta_click:             'initial_cta_click',
+    content_form_open:             'lead_modal_open',
+    content_form_start:            'lead_form_start',
+    content_application_submit:    'lead_form_submit',
+    content_qualified_application: 'lead_qualified',
+    content_calendly_redirect:     'calendly_redirect'
+    // content_unqualified_application has no canonical stage on purpose: "stored but
+    // not qualified" is already expressed as lead_form_stored without lead_qualified.
+  };
+
+  function randomId(){
+    try {
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    } catch (e) {}
+    return 'a-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+  }
+
+  // One id per browser session (per tab). sessionStorage, not a cookie or a
+  // fingerprint — it identifies a visit, never a person, and dies with the tab.
+  var sessionId = (function(){
+    try {
+      var k = 'adscade_sid', v = sessionStorage.getItem(k);
+      if (!v) { v = randomId(); sessionStorage.setItem(k, v); }
+      return v;
+    } catch (e) { return randomId(); }   // private mode / storage disabled
+  })();
+
+  // Derived from the one configured endpoint, so there is no second value to set in
+  // WordPress and the two can never drift apart.
+  function trackEndpoint(){
+    if (window.ADSCADE_TRACK_ENDPOINT) return window.ADSCADE_TRACK_ENDPOINT;
+    var lead = window.ADSCADE_CONTENT_LEAD_ENDPOINT || '';
+    // Derive ONLY when the endpoint genuinely ends in /submit-content-lead. A blind
+    // .replace() is a no-op when it does not match, which would silently POST funnel
+    // events at the LEAD endpoint. Telemetry is never worth risking the lead path for,
+    // so anything unrecognised disables telemetry instead.
+    return /\/submit-content-lead\/?$/.test(lead)
+      ? lead.replace(/\/submit-content-lead\/?$/, '/track-event')
+      : '';
+  }
+
+  function sendTelemetry(stage, data){
+    var url = trackEndpoint();
+    if (!url || !stage) return;
+    try {
+      var payload = {
+        eventId:   randomId(),
+        sessionId: sessionId,
+        eventName: stage,
+        offer:     OFFER,
+        clientTimestamp: Date.now(),
+        device:    window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
+        landingPage: location.href,
+        referrer:  document.referrer || null,
+        attribution: attribution
+      };
+      if (currentSubmissionId) payload.submissionId = currentSubmissionId;
+      if (data && data.cta_text) payload.ctaText = data.cta_text;
+      // NOTE: team_size / monthly_shoot / company are never copied here. They are lead
+      // answers, they live on the lead row, and the endpoint rejects them.
+
+      var body = JSON.stringify(payload);
+      // keepalive lets this small POST survive the Calendly navigation.
+      if (window.fetch) {
+        fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: body,
+          keepalive: true,
+          credentials: 'omit'
+        }).catch(function(){
+          try { if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([body], {type: 'text/plain'})); } catch (e) {}
+        });
+      } else if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, new Blob([body], {type: 'text/plain'}));
+      }
+    } catch (e) { /* telemetry must never break the funnel */ }
+  }
 
   function track(event, data, once){
     if (once){
       if (fired[event]) return;
       fired[event] = true;
     }
+    // Before the dataLayer guard on purpose: the funnel must be recorded even when no
+    // tag manager is installed. The `once` semantics above are shared, so a once-only
+    // stage cannot be double-counted.
+    sendTelemetry(CANONICAL_STAGE[event], data);
     if (!window.dataLayer) return;
     window.dataLayer.push(Object.assign({event:event}, attribution, data || {}));
   }
+  window.adscadeContentTrack = track;
+  window.__adscadeTrackEndpoint = trackEndpoint;   // test hook
 
   track('content_landing_view', null, true);
 
@@ -1027,13 +1135,18 @@ body.modal-open{overflow:hidden}
 
   /* ────────────────────────────────────────────────────────────────
      BACKEND
-     Create a NEW Convex endpoint for this offer and expose it as:
+     The endpoint now exists (convex/http.ts, POST /submit-content-lead) and accepts
+     companyName, teamSize and monthlyShoot. It must be configured in the WordPress
+     header snippet — this page collects nothing at all until it is:
 
        window.ADSCADE_CONTENT_LEAD_ENDPOINT =
          'https://<your-production>.convex.site/submit-content-lead';
 
-     Do NOT reuse the VSL-4 endpoint until the backend is updated for:
-       companyName, teamSize, monthlyShoot, offer
+     Telemetry needs no second variable; it is derived from this one.
+
+     Do NOT point this at /submit-lead. That endpoint validates the acquisition
+     contract (activeInventory, monthlyMediaBudget) and will reject every application
+     from this page with a 422.
   ───────────────────────────────────────────────────────────────── */
   function leadEndpoint(){
     return window.ADSCADE_CONTENT_LEAD_ENDPOINT || '';
@@ -1065,11 +1178,25 @@ body.modal-open{overflow:hidden}
     }
   }
 
-  var CALENDLY_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
+  /* ── Calendly ─────────────────────────────────────────────────────
+     This offer should get its OWN Calendly event type rather than sharing the
+     acquisition funnel's. Set that here once it exists, in the same WordPress header
+     snippet as the endpoint:
+
+       window.ADSCADE_CONTENT_CALENDLY_URL = 'https://calendly.com/<you>/<content-event>';
+
+     Until it is set, the page falls back to the event this page already pointed at, so
+     shipping the backend does not take the calendar away from a qualified brokerage.
+     The fallback is the URL that was already hardcoded here — nothing new was invented.
+  ─────────────────────────────────────────────────────────────────── */
+  var CALENDLY_FALLBACK_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
   var FORWARDED_PARAMS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
 
   function calendlyUrl(payload){
-    var url = new URL(CALENDLY_URL);
+    var url = new URL(window.ADSCADE_CONTENT_CALENDLY_URL || CALENDLY_FALLBACK_URL);
+    // Name and email only. The phone number is deliberately NOT forwarded: a URL is
+    // logged by proxies, analytics and the browser's own history, and Calendly asks for
+    // whatever contact detail it needs itself.
     if (payload.name) url.searchParams.set('name',payload.name);
     if (payload.email) url.searchParams.set('email',payload.email);
 
@@ -1093,16 +1220,17 @@ body.modal-open{overflow:hidden}
     var payload = {
       submissionId: currentSubmissionId,
       timestamp: new Date().toISOString(),
-      offer: 'dubai_brokerage_content_engine',
+      // Sent for readability in a network trace only. The SERVER decides the offer from
+      // the endpoint that was called and ignores this field entirely.
+      offer: OFFER,
       name: (d.get('name') || '').trim(),
       email: (d.get('email') || '').trim(),
       companyName: (d.get('company') || '').trim(),
       phone: (d.get('phone') || '').trim(),
       teamSize: d.get('team_size'),
       monthlyShoot: d.get('monthly_shoot'),
-      qualified:
-        ['5_9','10_19','20_plus'].indexOf(d.get('team_size')) > -1 &&
-        d.get('monthly_shoot') === 'yes',
+      // NO `qualified` key. The browser submits facts; Convex returns the verdict.
+      // Sending one now is rejected with a 400 rather than trusted.
       consent: true,
       hp_ref: d.get('hp_ref') || '',
       landingPage: location.href,
@@ -1120,16 +1248,23 @@ body.modal-open{overflow:hidden}
     btn.textContent = 'Sending…';
 
     track('content_application_submit',{
-      qualified: payload.qualified,
       team_size: payload.teamSize,
       monthly_shoot: payload.monthlyShoot
     },true);
 
     try{
-      await submitLead(payload);
+      var data = await submitLead(payload);
+
+      // Reached only when the server confirmed ok:true AND stored:true — submitLead
+      // throws otherwise, so nothing below can run on an unsaved application.
+      sendTelemetry('lead_form_stored');
+
+      // The SERVER's verdict. Never recomputed here: the page must show the outcome
+      // Convex actually recorded, or the Sheet and the visitor would disagree.
+      var qualified = data.qualified === true;
 
       track(
-        payload.qualified ? 'content_qualified_application' : 'content_unqualified_application',
+        qualified ? 'content_qualified_application' : 'content_unqualified_application',
         {
           team_size:payload.teamSize,
           monthly_shoot:payload.monthlyShoot
@@ -1137,7 +1272,7 @@ body.modal-open{overflow:hidden}
         true
       );
 
-      if (payload.qualified){
+      if (qualified){
         track('content_calendly_redirect', null, true);
         window.location.assign(calendlyUrl(payload));
         return;

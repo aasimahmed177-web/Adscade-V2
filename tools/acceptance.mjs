@@ -35,12 +35,20 @@ const fill = async p => {
 };
 
 console.log('\n── documentation & slug ──');
-// exclude this file: it contains the retired slug as a literal in the assertion below,
-// and a check that fails on its own source is a check nobody will trust
+// exclude this file: it contains the slugs as literals in the assertions below, and a
+// check that fails on its own source is a check nobody will trust
 const docs = execSync(
   'grep -rn "vsl-[0-9]" docs/ site/ tools/ 2>/dev/null | grep -v "tools/acceptance.mjs" || true'
 ).toString();
-t('no documentation refers to /vsl-5/', !docs.includes('vsl-5'), docs.match(/vsl-5/g)?.join(',') || '');
+// CHANGED: this used to assert that NOTHING in the repo mentioned vsl-5, because vsl-5
+// was a retired slug for this same page and any mention of it was a leak. That is no
+// longer true — /vsl-5-2/ is a real, separate funnel (the Brokerage Content Engine) with
+// its own page, endpoint and tests.
+//
+// The intent worth keeping is narrower and still enforceable: the two funnels must not
+// contaminate each other. THIS page is VSL-4 and must never reference the other one.
+t('the VSL-4 page does not reference the VSL-5 funnel',
+  !/vsl-5/.test(html), (html.match(/vsl-5[^"'\s]*/g) || []).join(','));
 t('documentation refers to /vsl-4/', docs.includes('vsl-4'));
 t('canonical points at /vsl-4/', /rel="canonical" href="https:\/\/adscade\.com\/vsl-4\/"/.test(html));
 t('og:url points at /vsl-4/', /og:url" content="https:\/\/adscade\.com\/vsl-4\/"/.test(html));
@@ -139,9 +147,15 @@ const media = await p.$$eval('video, iframe[src*="youtube"], iframe[src*="vimeo"
   e => e.map(x => x.tagName + '.' + (x.className || '')));
 t('no video element anywhere on the page', media.length === 0, media.join(','));
 t('exactly one hero visual region', (await p.$$('.hero-media')).length === 1);
-t('no second landing page in site/',
+// CHANGED: this used to assert there was exactly ONE landing page, because a second
+// .html file could only have been an accidental duplicate of this one. site/vsl-5.html
+// is now a deliberate second funnel, so the rule becomes an explicit allow-list: the
+// point was never "one page", it was "no page appears here without someone deciding to
+// add it". A stray duplicate still fails this.
+t('site/ contains only the expected, deliberately added pages',
   execSync('ls site/*.html').toString().trim().split('\n').sort().join(',') ===
-  'site/brand-guidelines.html,site/index.html,site/privacy.html,site/terms.html');
+  'site/brand-guidelines.html,site/index.html,site/privacy.html,site/terms.html,site/vsl-5.html',
+  execSync('ls site/*.html').toString().trim().split('\n').sort().join(','));
 t('no inline Calendly mount remains', (await p.$$('#calendly-mount, .cal, #schedule')).length === 0);
 
 console.log('\n── images placed as directed ──');

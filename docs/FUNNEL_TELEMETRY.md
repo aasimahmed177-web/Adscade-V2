@@ -1,5 +1,14 @@
 # Anonymous first-party funnel telemetry
 
+> **Multi-offer update.** Events now carry an optional `offer` field
+> (`real_estate_acquisition` | `brokerage_content_engine`). Stage names stayed
+> offer-neutral and shared rather than being duplicated per funnel, so
+> `admin:funnelSummary` takes an `offer` filter instead of needing a second report.
+> One new stage, `lead_qualified`, fires only for offers that gate the calendar.
+> An ABSENT offer means `real_estate_acquisition` — every row written before VSL-5
+> existed. Read it through `offerOf()`, never off `.offer` directly.
+> See docs/VSL5_CONTENT_FUNNEL.md → "Telemetry".
+
 Google Demand Gen tells us clicks, and Convex tells us stored leads. Neither tells us
 **where the people in between dropped out**. This adds one compact anonymous row per
 funnel stage so that gap is measurable.
