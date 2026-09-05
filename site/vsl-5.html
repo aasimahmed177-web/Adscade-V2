@@ -1,0 +1,1203 @@
+<!-- ADSCADE — BROKERAGE CONTENT ENGINE
+Elementor: paste this entire file into ONE HTML widget on a blank/full-width page.
+
+IMPORTANT:
+1) This keeps the VSL-4 visual language: forest/cream/gold palette, CTA treatment,
+   alternating light/dark bands, hero image + offer rail, sticky mobile CTA and modal.
+2) Existing GTM / GA / Meta code is NOT removed or replaced.
+3) This content offer uses a SEPARATE backend variable:
+      window.ADSCADE_CONTENT_LEAD_ENDPOINT
+   Do not point it at the old VSL-4 endpoint until Convex accepts the new fields.
+-->
+
+<style>
+:root{
+  --adscade-bg:#03140D;
+  --adscade-bg-elevated:#0A1D14;
+  --adscade-panel-green:#163A28;
+  --adscade-panel-dark:#171209;
+  --adscade-gold:#E2B95B;
+  --adscade-gold-hover:#F0C96B;
+  --adscade-cream:#F3E8D2;
+  --adscade-text:#EEE5D5;
+  --adscade-muted:#B5AA96;
+  --adscade-border:rgba(226,185,91,.22);
+  --adscade-border-strong:rgba(226,185,91,.42);
+
+  --ink:var(--adscade-bg);
+  --ink-warm:var(--adscade-panel-dark);
+  --forest:var(--adscade-panel-green);
+  --elev:var(--adscade-bg-elevated);
+  --cream:var(--adscade-cream);
+  --text:var(--adscade-text);
+  --cream-dim:var(--adscade-muted);
+  --gold:var(--adscade-gold);
+  --gold-deep:var(--adscade-gold-hover);
+  --hair:1px solid var(--adscade-border);
+
+  --adscade-light:#F4EEDF;
+  --adscade-light-elevated:#FFF9ED;
+  --adscade-light-text:#14241A;
+  --adscade-light-muted:#5E675F;
+  --adscade-light-border:rgba(20,36,26,.16);
+  --adscade-light-gold:#7A5A12;
+
+  --error:#D25242;
+  --error-text:#E8A395;
+
+  --t-micro:.75rem;
+  --t-label:.75rem;
+  --t-small:1rem;
+  --t-body:1.0625rem;
+  --t-lead:1.1875rem;
+  --t-h5:1.25rem;
+  --t-h4:1.375rem;
+  --t-h3:1.625rem;
+  --t-h2:clamp(2.125rem,4vw,3.375rem);
+  --t-h1:clamp(3.25rem,5vw,4.75rem);
+
+  --col:min(1120px,92vw);
+  --pad:clamp(3.5rem,7vw,7rem);
+  --serif:"Instrument Serif",Georgia,serif;
+  --sans:"Inter Tight",system-ui,-apple-system,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ink)!important;color:var(--cream)!important;
+  font-family:var(--sans);font-size:var(--t-body);line-height:1.6;overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:var(--gold);text-underline-offset:3px}
+h1,h2,h3,h4,h5,h6,label{color:inherit!important}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:2px}
+#ast-scroll-top{display:none!important}
+
+.wrap{width:var(--col);margin-inline:auto}
+.band{padding-block:var(--pad);position:relative}
+.band--warm{background:var(--ink-warm)}
+.band--light{
+  background:var(--adscade-light);
+  --text:var(--adscade-light-text);
+  --cream:var(--adscade-light-text);
+  --cream-dim:var(--adscade-light-muted);
+  --forest:var(--adscade-light-elevated);
+  --elev:var(--adscade-light-elevated);
+  --ink-warm:var(--adscade-light-elevated);
+  --hair:1px solid var(--adscade-light-border);
+  --adscade-border:rgba(20,36,26,.16);
+  --adscade-border-strong:rgba(20,36,26,.34);
+  --gold:var(--adscade-light-gold);
+  --gold-deep:#5C4310;
+  color:var(--adscade-light-text);
+}
+.band--light .lead,
+.band--light .copy,
+.band--light .rail__list li,
+.band--light .faq__a,
+.band--light .consent,
+.band--light .fit-list li{color:var(--adscade-light-muted)}
+.band--light .h2 em{color:#8A6B1F}
+.band--light .cta{
+  background:#E5B640;color:#071B12;border-color:#173D29;border-bottom-color:#173D29;
+  box-shadow:0 12px 28px rgba(20,36,26,.18),0 3px 9px rgba(20,36,26,.16);
+}
+.band--light .cta:not(.cta--ghost)::after{background:#0B281B;color:#FFF3D8}
+.band--light .cta:hover{background:#F0C453;border-color:#173D29}
+.band--light .card{background:var(--adscade-light-elevated);border-color:var(--adscade-light-border)}
+
+.eyebrow{
+  font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin:0 0 1.1rem;
+}
+.h2{
+  font-family:var(--serif);font-weight:400;font-size:var(--t-h2);
+  line-height:1.08;letter-spacing:-.01em;margin:0 0 1.2rem;
+}
+.h2 em{font-style:italic;color:var(--gold)}
+.h2--center{text-align:center;margin-inline:auto}
+.h3{font-family:var(--serif);font-weight:400;font-size:var(--t-h3);line-height:1.2;margin:0 0 .6rem}
+.lead{font-size:var(--t-lead);line-height:1.55;color:rgba(234,224,200,.86);max-width:62ch;margin:0 0 1.4rem}
+.lead--center{text-align:center;margin-inline:auto}
+.copy{font-size:var(--t-small);line-height:1.6;color:rgba(234,224,200,.78)}
+.dim{color:var(--cream-dim)}
+.card{background:var(--forest);border:var(--hair);border-radius:14px}
+.figure{margin:0}
+.figure img{width:100%;height:auto;display:block;border-radius:14px;border:var(--hair)}
+.band--visual{padding-top:clamp(2rem,4vw,3rem);padding-bottom:0}
+
+/* CTA — same visual language as VSL-4 */
+.cta{
+  display:inline-flex;align-items:center;justify-content:center;gap:.8rem;
+  font-family:var(--sans);font-size:1rem;font-weight:800;
+  letter-spacing:.075em;text-transform:uppercase;
+  background:#F0C453;color:#071B12;
+  border:1px solid #FFD978;border-bottom:4px solid #9A721C;
+  padding:1.02rem 1.35rem 1rem 1.65rem;
+  border-radius:12px;cursor:pointer;text-decoration:none;
+  box-shadow:0 14px 34px rgba(226,185,91,.24),0 3px 10px rgba(0,0,0,.30),0 1px 0 rgba(255,255,255,.55) inset;
+  transition:transform .16s ease,background .16s ease,box-shadow .16s ease,border-color .16s ease;
+  min-height:60px;
+}
+.cta:not(.cta--ghost)::after{
+  content:"→";display:inline-grid;place-items:center;flex:none;
+  width:32px;height:32px;border-radius:8px;background:#0B281B;color:#FFF3D8;
+  font-size:1.15rem;line-height:1;font-weight:800;
+}
+.cta:hover{
+  background:#F8D16D;border-color:#FFE69D;transform:translateY(-2px);
+  box-shadow:0 17px 38px rgba(226,185,91,.30),0 4px 12px rgba(0,0,0,.32),0 1px 0 rgba(255,255,255,.62) inset;
+}
+.cta:active{transform:translateY(2px);border-bottom-width:2px}
+.cta--wide{width:100%}
+.cta-note{font-size:var(--t-small);color:var(--cream-dim);margin:.75rem 0 0}
+.cta,.brandbar__fit,.opt,.faq__q,.modal__x,.dock__x{touch-action:manipulation;-webkit-tap-highlight-color:rgba(226,185,91,.16)}
+
+/* brand bar */
+.brandbar{
+  border-bottom:var(--hair);padding-block:.75rem;
+  display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:nowrap;
+}
+.brandbar__id{display:flex;align-items:center;gap:.5rem;color:var(--cream);min-width:0;flex:1 1 auto}
+.brandbar__mark{width:34px!important;height:34px!important;max-width:34px!important;object-fit:contain;flex:0 0 34px}
+.brandbar__name{font-family:var(--serif);font-size:1.15rem;letter-spacing:.02em;margin:0;white-space:nowrap}
+.brandbar__fit{
+  font-size:var(--t-label);font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:#071B12;text-decoration:none;border:1px solid #FFD978;border-bottom:3px solid #9A721C;
+  border-radius:10px;padding:.68rem .82rem .62rem 1rem;min-height:48px;
+  display:inline-flex;align-items:center;justify-content:center;gap:.55rem;background:#F0C453;
+  font-family:var(--sans);cursor:pointer;white-space:nowrap;flex:0 0 auto;
+  box-shadow:0 8px 22px rgba(226,185,91,.20),0 2px 7px rgba(0,0,0,.25);
+}
+.brandbar__fit::after{
+  content:"→";display:inline-grid;place-items:center;width:24px;height:24px;
+  border-radius:6px;background:#0B281B;color:#FFF3D8;font-size:.92rem;line-height:1;
+}
+
+/* hero */
+.hero{padding-block:clamp(2rem,5vw,4rem) var(--pad);text-align:center;position:relative}
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(transparent 97%,rgba(201,160,74,.05) 97%) 0 0/100% 46px,
+    linear-gradient(90deg,transparent 97%,rgba(201,160,74,.05) 97%) 0 0/46px 100%,
+    radial-gradient(ellipse 70% 55% at 50% 0%,rgba(26,51,34,.9),transparent 70%);
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 20%,#000,transparent);
+}
+.hero>*{position:relative;z-index:1}
+.hero__kicker{
+  font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cream-dim);margin:0 0 1.1rem;
+}
+.hero__kicker b{color:var(--gold)}
+.hero__title{
+  font-family:var(--serif);font-weight:400;font-size:var(--t-h1);
+  line-height:1.02;letter-spacing:-.02em;margin:0 auto 1.1rem;max-width:16ch;
+}
+.hero__title em{font-style:italic;color:var(--gold)}
+.hero__title .u{
+  background:linear-gradient(transparent 74%,var(--adscade-border-strong) 74%,var(--adscade-border-strong) 86%,transparent 86%);
+}
+.hero__sub{
+  font-size:var(--t-lead);line-height:1.5;color:rgba(234,224,200,.86);
+  max-width:64ch;margin:0 auto 1.55rem;
+}
+.hero__sub b{color:var(--cream);font-weight:600}
+.hero__action{display:flex;flex-direction:column;align-items:center;gap:.15rem;margin:0 auto 1.6rem}
+.hero__action .cta{width:min(390px,100%);min-height:64px}
+.notice{
+  border:1px solid var(--adscade-border);background:rgba(226,185,91,.05);
+  border-radius:10px;padding:1rem 1.3rem;max-width:64ch;margin:0 auto 1.8rem;
+  font-size:var(--t-small);line-height:1.55;color:var(--text);text-align:left;
+}
+.notice b{color:var(--gold)}
+
+.stage{
+  display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:1.4rem;
+  align-items:start;margin-bottom:1.5rem;text-align:left;
+}
+.stage>*{min-width:0}
+.hero-media{margin:0;overflow:hidden;position:relative;background:var(--elev);border:var(--hair);border-radius:14px}
+.hero-media__img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+.rail{padding:clamp(1.25rem,3vw,2rem)}
+.rail__k{font-size:var(--t-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 1rem}
+.rail__list{list-style:none;margin:0 0 1.4rem;padding:0;display:grid;gap:.85rem}
+.rail__list li{display:flex;gap:.7rem;font-size:var(--t-small);line-height:1.45;color:rgba(234,224,200,.9)}
+.rail__list svg{width:15px;height:15px;flex:none;margin-top:.25rem;color:var(--gold)}
+.rail__meta{
+  border-top:var(--hair);padding-top:1.1rem;margin-top:1.3rem;
+  display:grid;gap:.55rem;font-size:var(--t-micro);letter-spacing:.1em;
+  text-transform:uppercase;font-weight:700;color:var(--cream-dim);
+}
+.rail__meta b{color:var(--cream)}
+.trust{
+  display:flex;flex-wrap:wrap;gap:.7rem 2rem;justify-content:center;
+  border-top:var(--hair);border-bottom:var(--hair);padding-block:1.1rem;
+}
+.trust span{font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-dim)}
+.trust b{color:var(--cream);white-space:nowrap}
+
+/* problem */
+.problem-grid{display:grid;grid-template-columns:.84fr 1.16fr;gap:clamp(2rem,6vw,5rem);align-items:start}
+.problem-list{display:grid;gap:0;border-top:var(--hair)}
+.problem-row{
+  display:grid;grid-template-columns:42px 1fr;gap:1rem;padding:1.25rem 0;border-bottom:var(--hair)
+}
+.problem-row__n{font-size:var(--t-micro);font-weight:800;color:var(--gold);letter-spacing:.08em}
+.problem-row h3{font-family:var(--serif);font-size:1.6rem;font-weight:400;line-height:1.15;margin:0 0 .35rem}
+.problem-row p{font-size:var(--t-small);line-height:1.55;color:var(--cream-dim);margin:0}
+.band--light .problem-row p{color:var(--adscade-light-muted)}
+
+/* visual split */
+.visual-split{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(2rem,5vw,4rem);align-items:center}
+.visual-split--reverse{grid-template-columns:.9fr 1.1fr}
+.visual-card{overflow:hidden;border-radius:14px;border:var(--hair);background:var(--elev)}
+.visual-card img{width:100%;aspect-ratio:4/5;object-fit:cover}
+.kicker-list{list-style:none;margin:1.3rem 0 0;padding:0;display:grid;gap:.75rem}
+.kicker-list li{position:relative;padding-left:1.2rem;font-size:var(--t-small);line-height:1.5;color:var(--cream-dim)}
+.kicker-list li::before{content:"";position:absolute;left:0;top:.52em;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.kicker-list b{color:var(--cream);font-weight:700}
+.band--light .kicker-list li{color:var(--adscade-light-muted)}
+.band--light .kicker-list b{color:var(--adscade-light-text)}
+
+/* process */
+.process{display:grid;grid-template-columns:repeat(4,1fr);border:var(--hair);border-radius:14px;overflow:hidden;margin-top:2rem}
+.process__step{padding:1.45rem 1.25rem;min-height:295px;border-right:var(--hair);display:flex;flex-direction:column}
+.process__step:last-child{border-right:none}
+.process__n{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:auto}
+.process__step h3{font-family:var(--serif);font-weight:400;font-size:2rem;line-height:1;margin:3.2rem 0 .75rem}
+.process__step p{font-size:var(--t-small);line-height:1.55;color:var(--cream-dim);margin:0}
+
+/* pillars */
+.pillars{display:grid;grid-template-columns:repeat(5,1fr);border:var(--hair);border-radius:14px;overflow:hidden;margin-top:2rem}
+.pillar{padding:1.3rem 1rem;min-height:230px;border-right:var(--hair);display:flex;flex-direction:column;justify-content:space-between}
+.pillar:last-child{border-right:none}
+.pillar__n{font-family:var(--serif);font-size:2.6rem;color:var(--gold)}
+.pillar h3{font-size:1rem;line-height:1.35;margin:0 0 .4rem}
+.pillar p{font-size:.9rem;line-height:1.5;color:var(--cream-dim);margin:0}
+
+/* deliverables */
+.package{padding:clamp(1.4rem,3vw,2.3rem)}
+.package__head{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;border-bottom:var(--hair);padding-bottom:1rem;margin-bottom:.6rem}
+.package__head h3{font-family:var(--serif);font-size:2.2rem;font-weight:400;line-height:1;margin:0}
+.package__tag{font-size:var(--t-micro);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.package__row{display:flex;justify-content:space-between;gap:1rem;padding:.95rem .2rem;border-bottom:var(--hair);font-size:var(--t-small)}
+.package__row span{color:var(--cream-dim);text-align:right}
+.package__note{margin:1.2rem 0 0;border-left:2px solid var(--gold);padding:.75rem 1rem;background:rgba(226,185,91,.07);font-size:.95rem;line-height:1.5;color:var(--cream-dim)}
+
+/* later paid layer */
+.later-box{display:grid;grid-template-columns:1fr 1fr;border:var(--hair);border-radius:14px;overflow:hidden}
+.later-box__copy{padding:clamp(1.4rem,4vw,2.5rem)}
+.later-box__flow{padding:clamp(1.4rem,4vw,2.5rem);background:var(--forest)}
+.later-row{display:flex;gap:1rem;padding:1rem 0;border-bottom:var(--hair);font-size:var(--t-small);line-height:1.45}
+.later-row:last-child{border-bottom:0}
+.later-row b{color:var(--gold);width:26px;flex:none}
+
+/* fit */
+.fit-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:2rem}
+.fit-card{padding:1.6rem}
+.fit-card h3{font-family:var(--serif);font-size:2rem;font-weight:400;margin:0 0 1rem}
+.fit-list{list-style:none;margin:0;padding:0;border-top:var(--hair)}
+.fit-list li{display:grid;grid-template-columns:24px 1fr;gap:.6rem;padding:.85rem 0;border-bottom:var(--hair);font-size:var(--t-small);line-height:1.45;color:var(--cream-dim)}
+.fit-list li span{color:var(--gold);font-weight:800}
+.band--light .fit-card{background:var(--adscade-light-elevated)}
+.fit-card--muted{opacity:.88}
+
+/* price */
+.offer{
+  border:1px solid var(--adscade-border-strong);border-radius:14px;
+  background:rgba(226,185,91,.05);padding:clamp(1.5rem,4vw,2.5rem);
+  display:grid;grid-template-columns:1.15fr .85fr;gap:2rem;align-items:end;
+}
+.offer__price{border-left:var(--hair);padding-left:2rem}
+.offer__label{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 .6rem}
+.offer__amt{font-family:var(--serif);font-size:clamp(3.3rem,7vw,5rem);line-height:.9;margin:0}
+.offer__amt small{font-family:var(--sans);font-size:.9rem;color:var(--cream-dim)}
+.offer__fine{font-size:.95rem;line-height:1.5;color:var(--cream-dim);margin:1rem 0 1.2rem}
+
+/* faq */
+.faq{border-top:var(--hair)}
+.faq__q{
+  width:100%;background:none;border:none;border-bottom:var(--hair);
+  color:var(--cream);font-family:var(--serif);font-size:var(--t-h5);text-align:left;
+  padding:1.35rem 2.5rem 1.35rem 0;cursor:pointer;position:relative;line-height:1.3;
+}
+.faq__q::after{content:"+";position:absolute;right:.4rem;top:1.25rem;color:var(--gold);font-family:var(--sans);font-size:1.3rem;transition:transform .2s ease}
+.faq__q[aria-expanded="true"]::after{transform:rotate(45deg)}
+.faq__a{padding:0 0 1.5rem;font-size:var(--t-small);line-height:1.65;color:rgba(234,224,200,.86);max-width:72ch;border-bottom:var(--hair)}
+.faq__a[hidden]{display:none}
+.faq__a p{margin:0}
+
+/* footer */
+.foot{background:var(--ink-warm);border-top:var(--hair);padding-block:3.5rem 2.5rem;font-size:var(--t-small)}
+.foot__top{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:2rem;padding-bottom:2rem;border-bottom:var(--hair)}
+.foot__brand{font-family:var(--serif);font-size:var(--t-h3);color:var(--cream);margin:0 0 .7rem;display:flex;align-items:center;gap:.6rem}
+.foot__mark{width:auto;height:40px}
+.foot__k{font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 .8rem}
+.foot__list{list-style:none;margin:0;padding:0;display:grid;gap:.2rem;color:var(--cream-dim)}
+.foot__list a{color:var(--cream-dim);display:inline-block;padding-block:.7rem}
+.foot__legal{padding-top:1.6rem;color:var(--cream-dim);font-size:var(--t-micro);line-height:1.7;max-width:90ch}
+
+/* modal */
+.modal{
+  position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:12px;
+  padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom));
+}
+.modal[hidden]{display:none}
+.modal__backdrop{position:absolute;inset:0;background:rgba(3,20,13,.82);backdrop-filter:blur(3px)}
+.modal__panel{
+  position:relative;display:flex;flex-direction:column;
+  width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 24px);
+  padding:0;overflow:hidden;
+}
+@supports not (height:100dvh){.modal__panel{max-height:calc(100vh - 24px)}}
+.modal__head{
+  position:sticky;top:0;z-index:1;flex:none;
+  padding:1.25rem clamp(1.1rem,4vw,2rem) .9rem;padding-right:calc(48px + 1.4rem);
+  background:var(--forest);border-bottom:var(--hair);
+}
+.modal__head .eyebrow{margin:0 0 .3rem}
+.modal__head h2{margin:0;font-size:clamp(1.25rem,5vw,1.6rem);line-height:1.2}
+.modal__body{
+  flex:1 1 auto;min-height:0;overflow-y:auto;
+  padding:1.1rem clamp(1.1rem,4vw,2rem) clamp(1.2rem,4vw,1.8rem);
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+}
+.modal__x{
+  position:absolute;top:.65rem;right:.65rem;z-index:2;width:48px;height:48px;
+  border-radius:999px;background:none;border:1px solid var(--adscade-border);
+  color:var(--cream-dim);font-size:1.4rem;line-height:1;cursor:pointer;
+}
+body.modal-open{overflow:hidden}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:var(--t-micro);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-dim);margin-bottom:.5rem}
+.field input{
+  width:100%;padding:.95rem 1rem;background:rgba(5,16,10,.7);
+  border:1px solid rgba(201,160,74,.28);border-radius:4px;color:var(--cream);
+  font-family:var(--sans);font-size:var(--t-body);min-height:52px;
+}
+.field input:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(224,184,101,.16)}
+.qgroup{border:none;padding:0;margin:0 0 1.2rem}
+.qgroup legend{padding:0;margin-bottom:.7rem;font-size:var(--t-small);line-height:1.45;color:var(--text)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:1.1rem}
+.opt{
+  display:flex;align-items:center;gap:.6rem;padding:.8rem .85rem;border:1px solid rgba(201,160,74,.25);
+  border-radius:4px;cursor:pointer;font-size:var(--t-small);line-height:1.35;min-height:54px;
+}
+.opt:hover{border-color:var(--gold-deep);background:rgba(224,184,101,.06)}
+.opt input{accent-color:var(--gold);width:18px;height:18px;flex:none;margin:0}
+.opt:has(input:checked){border-color:var(--gold);background:rgba(224,184,101,.12)}
+.consent{display:flex;gap:.75rem;align-items:flex-start;font-size:var(--t-small);line-height:1.5;color:rgba(234,224,200,.86);margin:1.2rem 0}
+.consent input{accent-color:var(--gold);width:20px;height:20px;flex:none;margin-top:.15rem}
+.err{display:none;color:var(--error-text);font-size:var(--t-small);margin-top:.4rem}
+.invalid .err{display:block}
+.field.invalid input{border-color:var(--error)}
+#submit-err{display:none;padding:.7rem .85rem;border:1px solid rgba(210,82,66,.45);border-radius:4px;background:rgba(210,82,66,.10);line-height:1.45;margin-top:.7rem;color:var(--error-text)}
+#submit-err.on{display:block}
+
+/* sticky dock */
+.dock{
+  display:none;align-items:center;gap:.55rem;position:fixed;left:0;right:0;bottom:0;z-index:40;
+  padding:.65rem max(12px,3vw) calc(.65rem + env(safe-area-inset-bottom));
+  background:rgba(5,16,10,.96);border-top:var(--hair);backdrop-filter:blur(8px);
+  transition:transform .25s ease;
+}
+.dock .cta{width:auto;flex:1 1 auto;min-width:0;white-space:nowrap;min-height:58px;padding:.72rem .72rem .68rem 1rem;font-size:.86rem}
+.dock__x{background:none;border:1px solid var(--adscade-border);color:var(--cream-dim);width:48px;height:48px;flex:none;border-radius:999px;cursor:pointer;font-size:1.1rem}
+.dock.hide,body.modal-open .dock{transform:translateY(110%)}
+
+@media(max-width:900px){
+  :root{--t-h1:clamp(2.4375rem,11vw,3.25rem);--t-body:1rem;--t-lead:1.0625rem;--t-small:1rem}
+  .stage,.problem-grid,.visual-split,.visual-split--reverse,.offer,.foot__top{grid-template-columns:1fr}
+  .offer__price{border-left:none;border-top:var(--hair);padding:1.5rem 0 0}
+  .process{grid-template-columns:1fr 1fr}
+  .pillars{grid-template-columns:repeat(3,1fr)}
+  .visual-card img{aspect-ratio:4/5}
+}
+@media(max-width:560px){
+  :root{--pad:3.5rem}
+  .dock{display:flex}
+  body{padding-bottom:calc(5rem + env(safe-area-inset-bottom))}
+  .hero{padding-top:1.25rem}
+  .brandbar{padding-block:.55rem}
+  .brandbar__mark{width:30px!important;height:30px!important;max-width:30px!important;flex-basis:30px}
+  .brandbar__name{font-size:1rem}
+  .brandbar__fit{max-width:58vw;min-height:46px;padding:.55rem .72rem;font-size:.72rem;letter-spacing:.04em}
+  .hero__action .cta{width:100%;max-width:390px;min-height:64px;font-size:1rem}
+  .hero-media__img{aspect-ratio:4/3}
+  .rail{padding:1.15rem}
+  .process,.pillars,.fit-grid,.later-box{grid-template-columns:1fr}
+  .process__step,.pillar{border-right:none;border-bottom:var(--hair);min-height:auto}
+  .process__step:last-child,.pillar:last-child{border-bottom:none}
+  .process__step h3{margin-top:2rem}
+  .pillar{min-height:185px}
+  .opts{grid-template-columns:1fr 1fr}
+  .dock .cta{font-size:.84rem;letter-spacing:.04em}
+}
+@media(max-width:360px){
+  .brandbar__name{display:none}
+  .brandbar__fit{max-width:74vw}
+  .opts{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+</style>
+
+<div class="wrap">
+  <div class="brandbar">
+    <span class="brandbar__id">
+      <img class="brandbar__mark" src="https://adscade.com/wp-content/uploads/2026/07/logo.png" alt="Adscade" width="146" height="132" loading="eager" decoding="async" data-no-lazy="1">
+      <span class="brandbar__name">Adscade</span>
+    </span>
+    <button class="brandbar__fit js-content-cta" type="button">See If We’re a Fit</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="hero__kicker">For <b>established real estate brokerages</b></p>
+
+    <h1 class="hero__title">
+      One Shoot a Month.<br>
+      <span class="u">20 Real Estate Videos.</span><br>
+      <em>Your Team Just Shows Up.</em>
+    </h1>
+
+    <p class="hero__sub">
+      We research the topics, write the scripts, plan and guide the shoot, edit, caption and publish useful short-form content around your <b>founder and selected agents.</b>
+    </p>
+
+    <div class="hero__action">
+      <button class="cta js-content-cta" type="button">See If Your Brokerage Is a Fit</button>
+      <p class="cta-note">A few quick details, then choose a time.</p>
+    </div>
+
+    <div class="notice"><b>Built for brokerages with an active sales team.</b> Your team provides the knowledge. We handle the content work.</div>
+
+    <div class="stage">
+      <figure class="hero-media">
+        <img
+          class="hero-media__img"
+          src="https://adscade.com/wp-content/uploads/2026/09/ChatGPT-Image-Sep-5-2026-08_24_58-AM-1.png"
+          width="1448"
+          height="1086"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          data-no-lazy="1"
+          alt="A real estate brokerage team during a professionally planned monthly content shoot.">
+      </figure>
+
+      <aside class="card rail">
+        <p class="rail__k">What Adscade handles</p>
+        <ul class="rail__list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Monthly topic research &amp; content planning</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Scripts and shoot-ready talking points</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>One planned shoot each month</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>20 edited, captioned, ready-to-publish videos</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Publishing workflow handled for your team</li>
+        </ul>
+
+        <button class="cta cta--wide js-content-cta" type="button">See If We’re a Fit</button>
+
+        <div class="rail__meta">
+          <span>Your team provides <b>the knowledge</b></span>
+          <span>Adscade handles <b>the content work</b></span>
+        </div>
+      </aside>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="trust">
+    <span><b>20 videos</b> every month</span>
+    <span><b>One planned shoot</b></span>
+    <span>Founder + <b>selected agents</b></span>
+    <span>Built for <b>brokerages</b></span>
+  </div>
+</div>
+
+<section class="band band--light">
+  <div class="wrap problem-grid">
+    <div>
+      <p class="eyebrow">Why content keeps stopping</p>
+      <h2 class="h2">Most brokerages do not have a knowledge problem. <em>They have an execution problem.</em></h2>
+      <p class="lead">
+        Your team already knows the market. The hard part is turning that knowledge into useful content every single week.
+      </p>
+    </div>
+
+    <div class="problem-list">
+      <div class="problem-row">
+        <div class="problem-row__n">01</div>
+        <div><h3>Someone has to keep finding ideas.</h3><p>Market changes, payment plans, buyer objections, areas and common questions do not turn themselves into a content calendar.</p></div>
+      </div>
+      <div class="problem-row">
+        <div class="problem-row__n">02</div>
+        <div><h3>Someone has to get the team in front of a camera.</h3><p>Agents are busy selling. Without a planned system, content quickly becomes “we’ll do it next week.”</p></div>
+      </div>
+      <div class="problem-row">
+        <div class="problem-row__n">03</div>
+        <div><h3>Someone still has to edit, caption and publish it.</h3><p>When the process depends on several freelancers or internal follow-ups, output becomes unpredictable.</p></div>
+      </div>
+      <div class="problem-row">
+        <div class="problem-row__n">04</div>
+        <div><h3>Property-only content makes everyone look similar.</h3><p>Buyers also need to hear the people behind the company — what they know, how they think and why they are worth speaking to.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band band--warm">
+  <div class="wrap visual-split">
+    <figure class="visual-card">
+      <img
+        src="https://adscade.com/wp-content/uploads/2026/09/ChatGPT-Image-Sep-5-2026-08_24_59-AM-2.png"
+        width="1122"
+        height="1402"
+        loading="lazy"
+        decoding="async"
+        alt="A brokerage founder and team reviewing scripts, talking points and a monthly content plan.">
+    </figure>
+
+    <div>
+      <p class="eyebrow">The work before the camera turns on</p>
+      <h2 class="h2">Your agents should not have to wonder <em>what to say.</em></h2>
+      <p class="lead">
+        Before the shoot, we build the month around what your brokerage actually knows — not generic social-media prompts.
+      </p>
+      <ul class="kicker-list">
+        <li><b>Market POV:</b> what your team is seeing and what buyers should understand.</li>
+        <li><b>Buyer questions:</b> the questions your agents already answer every week.</li>
+        <li><b>Area expertise:</b> who an area suits, trade-offs and what buyers often misunderstand.</li>
+        <li><b>Project breakdowns:</b> payment plans, positioning and context — not brochure narration.</li>
+        <li><b>Agent expertise:</b> let selected agents become known for the markets they understand best.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">One simple monthly system</p>
+    <h2 class="h2" style="max-width:22ch">Your team only needs to show up and <em>share what they know.</em></h2>
+    <p class="lead">We turn the content burden into one planned production cycle every month.</p>
+
+    <div class="process">
+      <article class="process__step">
+        <div class="process__n">01 · Research</div>
+        <h3>Find the right topics.</h3>
+        <p>We study your projects, market, audience and the expertise inside your team.</p>
+      </article>
+      <article class="process__step">
+        <div class="process__n">02 · Script</div>
+        <h3>Prepare what to say.</h3>
+        <p>We turn the month’s ideas into concise scripts and natural talking points.</p>
+      </article>
+      <article class="process__step">
+        <div class="process__n">03 · Shoot</div>
+        <h3>One planned session.</h3>
+        <p>Your founder, manager or selected agents come prepared. We guide the shoot.</p>
+      </article>
+      <article class="process__step">
+        <div class="process__n">04 · Publish</div>
+        <h3>20 finished videos.</h3>
+        <p>We edit, caption, package and handle the monthly publishing workflow.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band band--light">
+  <div class="wrap visual-split visual-split--reverse">
+    <div>
+      <p class="eyebrow">The monthly shoot</p>
+      <h2 class="h2">You do not need to turn your agents into <em>content creators.</em></h2>
+      <p class="lead">
+        They only need to explain the market the same way they would explain it to a buyer.
+      </p>
+      <ul class="kicker-list">
+        <li>Scripts and talking points are ready before the shoot.</li>
+        <li>We direct the session so people do not need camera experience.</li>
+        <li>We can feature the founder plus a small number of selected agents.</li>
+        <li>The aim is useful, credible content — not influencer behaviour.</li>
+      </ul>
+    </div>
+
+    <figure class="visual-card">
+      <img
+        src="https://adscade.com/wp-content/uploads/2026/09/ChatGPT-Image-Sep-5-2026-08_24_59-AM-3.png"
+        width="1122"
+        height="1402"
+        loading="lazy"
+        decoding="async"
+        alt="A real estate founder recording an educational short-form video during a professionally guided monthly shoot.">
+    </figure>
+  </div>
+</section>
+
+
+
+<section class="band band--light">
+  <div class="wrap visual-split">
+    <div>
+      <p class="eyebrow">What is included</p>
+      <h2 class="h2">A content department without building one <em>internally.</em></h2>
+      <p class="lead">
+        One repeatable system, one monthly shoot rhythm and a clear output your team can actually sustain.
+      </p>
+    </div>
+
+    <div class="card package">
+      <div class="package__head">
+        <h3>Brokerage Content Engine</h3>
+        <span class="package__tag">Monthly</span>
+      </div>
+      <div class="package__row"><b>Topic research</b><span>Included</span></div>
+      <div class="package__row"><b>Scriptwriting &amp; talking points</b><span>Included</span></div>
+      <div class="package__row"><b>Monthly content plan</b><span>Included</span></div>
+      <div class="package__row"><b>One planned shoot</b><span>Included</span></div>
+      <div class="package__row"><b>Founder / agent direction</b><span>Included</span></div>
+      <div class="package__row"><b>Edited short-form videos</b><span>20 / month</span></div>
+      <div class="package__row"><b>Captions &amp; publishing workflow</b><span>Included</span></div>
+      <div class="package__row"><b>Monthly content review</b><span>Included</span></div>
+      <p class="package__note">
+        Your team provides the expertise and scheduled availability. Adscade handles the operating work around it.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap later-box">
+    <div class="later-box__copy">
+      <p class="eyebrow">What can happen later</p>
+      <h2 class="h2">The best content can become <em>paid creative.</em></h2>
+      <p class="copy">
+        Once enough content is running, the strongest topics, faces and hooks can later be tested as paid acquisition creative. Paid acquisition is a separate next layer.
+      </p>
+    </div>
+    <div class="later-box__flow">
+      <div class="later-row"><b>01</b><span>Publish useful brokerage content</span></div>
+      <div class="later-row"><b>02</b><span>See which ideas and faces earn attention</span></div>
+      <div class="later-row"><b>03</b><span>Turn selected winners into paid tests</span></div>
+      <div class="later-row"><b>04</b><span>Build a qualified buyer acquisition layer around the winners</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band band--light">
+  <div class="wrap">
+    <p class="eyebrow">Who this is for</p>
+    <h2 class="h2">We are deliberately not trying to work with <em>every real estate agent.</em></h2>
+
+    <div class="fit-grid">
+      <article class="card fit-card">
+        <h3>Strong fit</h3>
+        <ul class="fit-list">
+          <li><span>✓</span><div>Established brokerage with an active sales team</div></li>
+          <li><span>✓</span><div>Founder, manager or senior agent willing to appear on camera</div></li>
+          <li><span>✓</span><div>Selected agents with real market knowledge</div></li>
+          <li><span>✓</span><div>You want consistent visibility, not one viral video</div></li>
+          <li><span>✓</span><div>You can commit to one planned shoot each month</div></li>
+        </ul>
+      </article>
+
+      <article class="card fit-card fit-card--muted">
+        <h3>Probably not a fit</h3>
+        <ul class="fit-list">
+          <li><span>×</span><div>Solo agent looking for cheap leads immediately</div></li>
+          <li><span>×</span><div>No one is willing to appear on camera</div></li>
+          <li><span>×</span><div>You only want project flyers or listing walkthroughs</div></li>
+          <li><span>×</span><div>You expect one month of content to create instant sales</div></li>
+          <li><span>×</span><div>Your team cannot commit to a monthly shoot rhythm</div></li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+
+
+<section class="band band--light">
+  <div class="wrap" style="max-width:840px">
+    <p class="eyebrow">FAQs</p>
+    <h2 class="h2">Frequently asked questions.</h2>
+
+    <div class="faq" style="margin-top:2rem">
+      <button class="faq__q" aria-expanded="false" aria-controls="ca1">Do our agents need to come up with topics or write scripts?</button>
+      <div class="faq__a" id="ca1" hidden><p>No. We research the month’s topics, prepare scripts or talking points and plan the shoot. Your team reviews the direction and shows up prepared.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="ca2">Who should appear in the videos?</button>
+      <div class="faq__a" id="ca2" hidden><p>Usually the founder or manager plus a small number of selected agents with useful expertise to share. You do not need every agent in the brokerage to participate.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="ca3">Is this just property walkthrough content?</button>
+      <div class="faq__a" id="ca3" hidden><p>No. Property content can be part of the mix, but the programme is designed around the people and knowledge inside your brokerage — market updates, buyer questions, area insights, project breakdowns and agent expertise.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="ca4">Do you also run ads?</button>
+      <div class="faq__a" id="ca4" hidden><p>Paid acquisition is not included in this starter content engagement. Once enough content is running, selected strong ideas can later be tested as advertising creative through a separate acquisition engagement.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="ca5">Is this for solo real estate agents?</button>
+      <div class="faq__a" id="ca5" hidden><p>The current programme is designed for established brokerages and teams, not individual agents looking for a low-cost lead-generation service.</p></div>
+
+      <button class="faq__q" aria-expanded="false" aria-controls="ca6">Do you guarantee views or sales?</button>
+      <div class="faq__a" id="ca6" hidden><p>No blanket view, lead or sales guarantee is attached to this brokerage content programme. The commitment is the monthly operating system and agreed content output.</p></div>
+    </div>
+
+    <div style="text-align:center;margin-top:2.4rem">
+      <button class="cta js-content-cta" type="button">See If Your Brokerage Is a Fit</button>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__top">
+      <div>
+        <p class="foot__brand">
+          <img class="foot__mark" src="https://adscade.com/wp-content/uploads/2026/07/logo.png" alt="" width="146" height="132" loading="lazy">
+          Adscade
+        </p>
+        <p class="dim" style="margin:0;max-width:38ch">
+          Managed content systems for established service businesses — research, scripting, shoots, editing and publishing, with paid acquisition available as a separate next layer.
+        </p>
+      </div>
+      <div>
+        <p class="foot__k">Contact</p>
+        <ul class="foot__list">
+          <li><a href="mailto:admin@adscade.com">admin@adscade.com</a></li>
+          <li>Brokerage content programme</li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot__k">Legal</p>
+        <ul class="foot__list">
+          <li><a href="/privacy/">Privacy Policy</a></li>
+          <li><a href="/terms/">Terms of Use</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot__legal">
+      Content performance and business outcomes vary based on the people featured, subject matter, publishing consistency, market conditions, distribution and sales process. Adscade does not guarantee a specific number of views, leads or sales under this brokerage content programme.
+      <br><br>© <span id="content-year">2026</span> Adscade. All rights reserved.
+    </p>
+  </div>
+</footer>
+
+<!-- APPLICATION MODAL -->
+<div class="modal" id="content-modal" hidden>
+  <div class="modal__backdrop" data-content-close></div>
+
+  <div class="modal__panel card" role="dialog" aria-modal="true" aria-labelledby="content-modal-title" tabindex="-1">
+    <button class="modal__x" type="button" data-content-close aria-label="Close">&times;</button>
+
+    <div class="modal__head">
+      <p class="eyebrow">Brokerage Content Engine</p>
+      <h2 id="content-modal-title">A few details, then choose a time.</h2>
+    </div>
+
+    <div class="modal__body">
+      <form id="content-lead-form" novalidate>
+
+        <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden">
+          <input type="text" name="hp_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
+        </div>
+
+        <div class="field">
+          <label for="content-name">Full name</label>
+          <input type="text" id="content-name" name="name" autocomplete="name" required>
+          <span class="err">Please enter your name.</span>
+        </div>
+
+        <div class="field">
+          <label for="content-email">Work email</label>
+          <input type="email" id="content-email" name="email" autocomplete="email" inputmode="email" required>
+          <span class="err">Enter a valid email address.</span>
+        </div>
+
+        <div class="field">
+          <label for="content-company">Brokerage / company name</label>
+          <input type="text" id="content-company" name="company" autocomplete="organization" required>
+          <span class="err">Please enter the brokerage or company name.</span>
+        </div>
+
+
+        <div class="field">
+          <label for="content-phone">WhatsApp or phone number</label>
+          <input type="tel" id="content-phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="Include country code" required>
+          <span class="err">Enter a valid phone number including the country code.</span>
+        </div>
+
+        <fieldset class="qgroup">
+          <legend>How large is the active sales team?</legend>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="team_size" value="1_4" required>1–4 people</label>
+            <label class="opt"><input type="radio" name="team_size" value="5_9">5–9 people</label>
+            <label class="opt"><input type="radio" name="team_size" value="10_19">10–19 people</label>
+            <label class="opt"><input type="radio" name="team_size" value="20_plus">20+ people</label>
+          </div>
+          <div class="invalid-radio" data-radio-error="team_size"><span class="err">Pick the closest range.</span></div>
+        </fieldset>
+
+        <fieldset class="qgroup">
+          <legend>Can a founder, manager or selected agents attend one planned shoot each month?</legend>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="monthly_shoot" value="yes" required>Yes</label>
+            <label class="opt"><input type="radio" name="monthly_shoot" value="no">No</label>
+          </div>
+          <div class="invalid-radio" data-radio-error="monthly_shoot"><span class="err">Please choose one.</span></div>
+        </fieldset>
+
+        <label class="consent">
+          <input type="checkbox" id="content-consent" name="consent" required>
+          <span>I agree to be contacted by Adscade regarding this enquiry and have read the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+        </label>
+
+        <button class="cta cta--wide" type="submit">Choose My Time</button>
+
+        <div id="submit-err">
+          We could not save your details. Please try again.
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="dock" id="content-dock">
+  <button class="cta cta--wide js-content-cta" type="button">See If We’re a Fit</button>
+  <button class="dock__x" id="content-dock-x" type="button" aria-label="Hide this bar">&times;</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var year = document.getElementById('content-year');
+  if (year) year.textContent = new Date().getFullYear();
+
+  /* ────────────────────────────────────────────────────────────────
+     TRACKING
+     Pushes non-PII events to dataLayer only when GTM already exists.
+  ───────────────────────────────────────────────────────────────── */
+  var fired = {};
+  var qs = new URLSearchParams(location.search);
+  var attribution = {
+    utm_source: qs.get('utm_source') || null,
+    utm_medium: qs.get('utm_medium') || null,
+    utm_campaign: qs.get('utm_campaign') || null,
+    utm_content: qs.get('utm_content') || null,
+    utm_term: qs.get('utm_term') || null,
+    gclid: qs.get('gclid') || null,
+    gbraid: qs.get('gbraid') || null,
+    wbraid: qs.get('wbraid') || null,
+    landing_path: location.pathname,
+    referrer: document.referrer || null,
+    offer: 'dubai_brokerage_content_engine'
+  };
+
+  function track(event, data, once){
+    if (once){
+      if (fired[event]) return;
+      fired[event] = true;
+    }
+    if (!window.dataLayer) return;
+    window.dataLayer.push(Object.assign({event:event}, attribution, data || {}));
+  }
+
+  track('content_landing_view', null, true);
+
+  /* FAQ */
+  document.querySelectorAll('.faq__q').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      document.getElementById(btn.getAttribute('aria-controls')).hidden = open;
+    });
+  });
+
+  /* modal */
+  var modal = document.getElementById('content-modal');
+  var panel = modal.querySelector('.modal__panel');
+  var form = document.getElementById('content-lead-form');
+  var opener = null;
+  var currentSubmissionId = null;
+
+  function uuid(){
+    return (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : 'content-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  }
+
+  function focusables(){
+    return Array.prototype.slice.call(panel.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])'
+    )).filter(function(el){ return el.offsetParent !== null; });
+  }
+
+  function openModal(from){
+    opener = from || null;
+    modal.hidden = false;
+    document.body.classList.add('modal-open');
+    currentSubmissionId = uuid();
+    track('content_form_open', null, true);
+    var first = document.getElementById('content-name');
+    if (first) first.focus({preventScroll:true});
+  }
+
+  function closeModal(){
+    modal.hidden = true;
+    document.body.classList.remove('modal-open');
+    if (opener && document.contains(opener)) opener.focus({preventScroll:true});
+    opener = null;
+  }
+
+  document.querySelectorAll('.js-content-cta').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.preventDefault();
+      track('content_cta_click', {cta_text:el.textContent.trim()});
+      openModal(el);
+    });
+  });
+
+  modal.querySelectorAll('[data-content-close]').forEach(function(el){
+    el.addEventListener('click', closeModal);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (modal.hidden) return;
+    if (e.key === 'Escape'){ e.preventDefault(); closeModal(); return; }
+    if (e.key !== 'Tab') return;
+    var f = focusables();
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+
+  /* validation */
+  function setFieldInvalid(el, bad){
+    var field = el.closest('.field');
+    if (field) field.classList.toggle('invalid', bad);
+    if (bad) el.setAttribute('aria-invalid','true');
+    else el.removeAttribute('aria-invalid');
+  }
+
+  function validate(){
+    var ok = true;
+
+    ['content-name','content-email','content-company','content-phone'].forEach(function(id){
+      var el = document.getElementById(id);
+      var bad = !el.value.trim();
+
+      if (el.type === 'email'){
+        bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
+      }
+      if (el.type === 'tel'){
+        var digits = el.value.replace(/[^\d]/g,'');
+        bad = digits.length < 8 || digits.length > 15;
+      }
+
+      setFieldInvalid(el,bad);
+      if (bad) ok = false;
+    });
+
+    ['team_size','monthly_shoot'].forEach(function(name){
+      var picked = !!form.querySelector('input[name="'+name+'"]:checked');
+      var box = form.querySelector('[data-radio-error="'+name+'"]');
+      if (box) box.classList.toggle('invalid', !picked);
+      if (!picked) ok = false;
+    });
+
+    var consent = document.getElementById('content-consent');
+    if (!consent.checked) ok = false;
+
+    return ok;
+  }
+
+  form.addEventListener('input', function(e){
+    if (e.target.closest('.field')) e.target.closest('.field').classList.remove('invalid');
+    if (e.target.type === 'radio'){
+      var box = form.querySelector('[data-radio-error="'+e.target.name+'"]');
+      if (box) box.classList.remove('invalid');
+    }
+    track('content_form_start', null, true);
+  });
+
+  /* ────────────────────────────────────────────────────────────────
+     BACKEND
+     Create a NEW Convex endpoint for this offer and expose it as:
+
+       window.ADSCADE_CONTENT_LEAD_ENDPOINT =
+         'https://<your-production>.convex.site/submit-content-lead';
+
+     Do NOT reuse the VSL-4 endpoint until the backend is updated for:
+       companyName, teamSize, monthlyShoot, offer
+  ───────────────────────────────────────────────────────────────── */
+  function leadEndpoint(){
+    return window.ADSCADE_CONTENT_LEAD_ENDPOINT || '';
+  }
+
+  async function submitLead(payload){
+    var endpoint = leadEndpoint();
+    if (!endpoint) throw new Error('No content lead endpoint configured.');
+
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = ctrl && setTimeout(function(){ ctrl.abort(); }, 12000);
+
+    try{
+      var res = await fetch(endpoint,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload),
+        signal:ctrl ? ctrl.signal : undefined
+      });
+
+      var data = null;
+      try{ data = await res.json(); }catch(_){}
+
+      if (!res.ok) throw new Error('Submission failed: '+res.status);
+      if (!data || data.ok !== true || data.stored !== true) throw new Error('Lead was not stored.');
+      return data;
+    }finally{
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  var CALENDLY_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
+  var FORWARDED_PARAMS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
+
+  function calendlyUrl(payload){
+    var url = new URL(CALENDLY_URL);
+    if (payload.name) url.searchParams.set('name',payload.name);
+    if (payload.email) url.searchParams.set('email',payload.email);
+
+    var here = new URLSearchParams(location.search);
+    FORWARDED_PARAMS.forEach(function(k){
+      var v = here.get(k);
+      if (v) url.searchParams.set(k,v);
+    });
+
+    return url.toString();
+  }
+
+  var submitting = false;
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (submitting) return;
+    if (!validate()) return;
+
+    var d = new FormData(form);
+    var payload = {
+      submissionId: currentSubmissionId,
+      timestamp: new Date().toISOString(),
+      offer: 'dubai_brokerage_content_engine',
+      name: (d.get('name') || '').trim(),
+      email: (d.get('email') || '').trim(),
+      companyName: (d.get('company') || '').trim(),
+      phone: (d.get('phone') || '').trim(),
+      teamSize: d.get('team_size'),
+      monthlyShoot: d.get('monthly_shoot'),
+      qualified:
+        ['5_9','10_19','20_plus'].indexOf(d.get('team_size')) > -1 &&
+        d.get('monthly_shoot') === 'yes',
+      consent: true,
+      hp_ref: d.get('hp_ref') || '',
+      landingPage: location.href,
+      referrer: document.referrer || null,
+      device: window.innerWidth < 760 ? 'mobile' : window.innerWidth < 1200 ? 'tablet' : 'desktop',
+      attribution: attribution
+    };
+
+    var btn = form.querySelector('button[type=submit]');
+    var err = document.getElementById('submit-err');
+    err.classList.remove('on');
+
+    submitting = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    track('content_application_submit',{
+      qualified: payload.qualified,
+      team_size: payload.teamSize,
+      monthly_shoot: payload.monthlyShoot
+    },true);
+
+    try{
+      await submitLead(payload);
+
+      track(
+        payload.qualified ? 'content_qualified_application' : 'content_unqualified_application',
+        {
+          team_size:payload.teamSize,
+          monthly_shoot:payload.monthlyShoot
+        },
+        true
+      );
+
+      if (payload.qualified){
+        track('content_calendly_redirect', null, true);
+        window.location.assign(calendlyUrl(payload));
+        return;
+      }
+
+      /* unqualified: stored, but do not push straight to the calendar */
+      btn.textContent = 'Application received';
+      btn.disabled = true;
+
+      var note = document.createElement('div');
+      note.style.marginTop = '1rem';
+      note.style.padding = '1rem';
+      note.style.border = '1px solid rgba(226,185,91,.22)';
+      note.style.borderRadius = '8px';
+      note.style.color = 'var(--cream-dim)';
+      note.style.fontSize = '1rem';
+      note.style.lineHeight = '1.5';
+      note.textContent = 'Thanks — we have your details. This programme is currently built around established brokerages with an active sales team that can commit to a monthly shoot.';
+      form.appendChild(note);
+
+    }catch(errObj){
+      err.classList.add('on');
+      btn.disabled = false;
+      btn.textContent = 'Choose My Time';
+      submitting = false;
+
+      if (window.console && console.error){
+        console.error('[Adscade content] lead not stored:', String(errObj && errObj.message || errObj));
+      }
+    }
+  });
+
+  /* sticky dock hides when a real CTA is already on screen */
+  var dock = document.getElementById('content-dock');
+  var dockClosed = false;
+
+  if ('IntersectionObserver' in window){
+    var live = new Set();
+    var io = new IntersectionObserver(function(entries){
+      if (dockClosed) return;
+      entries.forEach(function(e){
+        if (e.isIntersecting) live.add(e.target);
+        else live.delete(e.target);
+      });
+      dock.classList.toggle('hide',live.size>0);
+    },{rootMargin:'0px 0px -12% 0px'});
+
+    document.querySelectorAll('.cta').forEach(function(el){
+      if (!el.closest('.dock') && !el.closest('#content-modal') && !el.classList.contains('brandbar__fit')){
+        io.observe(el);
+      }
+    });
+  }
+
+  var dockX = document.getElementById('content-dock-x');
+  if (dockX){
+    dockX.addEventListener('click',function(){
+      dock.classList.add('hide');
+      dockClosed = true;
+    });
+  }
+})();
+</script>
