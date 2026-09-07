@@ -189,9 +189,9 @@ Sheets.
 
 ## Calendly — more than one event type
 
-`convex/calendly.ts` used to resolve exactly **one** event type. With two offers that
-would mean the second offer's bookings are never discovered at all — the API filters
-server-side by `event_type`, so they would not even show up as unmatched.
+`convex/calendly.ts` resolves each offer's event type. The client checks each returned
+scheduled event's `event_type` locally before assigning it to that offer. It does not
+trust a server-side query filter to prevent cross-offer matches.
 
 `resolveSyncTargets()` now resolves a list, one entry per offer. It is a **pure exported
 function**, so `tools/calendly-targets-test.mjs` can exercise every branch outside Convex
@@ -443,7 +443,7 @@ right Calendly invitee.
 | Step | How |
 |---|---|
 | Stop VSL-5 capture instantly | remove the `ADSCADE_CONTENT_LEAD_ENDPOINT` line from WordPress. The page reverts to its previous (broken) behaviour; VSL-4 is untouched. |
-| Roll back Convex | redeploy the previous commit. The schema is additive, so old code ignores the new fields — but any VSL-5 rows already stored will fail the older schema's *required* `activeInventory`. Delete them first, or roll forward instead. |
+| Roll back Convex | redeploy the previous commit. The schema is additive, so old code ignores the new fields — but any VSL-5 rows already stored will fail the older schema's *required* `activeInventory`. Preserve those leads and roll forward with a compatible schema. Never delete leads to force a rollback. |
 | Roll back the Sheet | nothing to undo — the added columns are inert to the old script. |
 
 **Preferred rollback is step 1 alone.** It is instant, needs no deploy, and cannot affect
@@ -456,7 +456,7 @@ VSL-4.
 Requires your deploy key; none of this could be verified from the development machine.
 
 ```bash
-npx convex env list --prod
+node tools/production-preflight.mjs
 ```
 
 - `GOOGLE_SHEETS_WEBHOOK_URL` and `GOOGLE_SHEETS_SYNC_SECRET` **are** set

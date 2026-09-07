@@ -1048,7 +1048,7 @@ body.modal-open{overflow:hidden}
     opener = from || null;
     modal.hidden = false;
     document.body.classList.add('modal-open');
-    currentSubmissionId = uuid();
+    if (!currentSubmissionId) currentSubmissionId = uuid();
     track('content_form_open', null, true);
     var first = document.getElementById('content-name');
     if (first) first.focus({preventScroll:true});

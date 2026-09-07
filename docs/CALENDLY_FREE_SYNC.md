@@ -47,7 +47,7 @@ anything from `convex/calendly.ts` or `convex/calendlyClient.ts`.
 Confirm it's set without ever printing the value:
 
 ```bash
-npx convex env list --prod   # shows the NAME "CALENDLY_PAT", never the value
+node tools/production-preflight.mjs   # prints presence booleans, never secret values
 ```
 
 ### 3. Deploy
@@ -102,8 +102,8 @@ Find that URI once, from the same `getSyncState` output after a successful run (
 entirely — useful if the owner ever renames the event type on Calendly without wanting to
 touch code.
 
-Only events of this one type are ever fetched — the API call filters server-side with
-`event_type=<uri>`, so a booking on a *different* Calendly event type never reaches this
+Events are filtered by their returned `event_type` in the client before matching,
+so a booking on a *different* Calendly event type never reaches this
 pipeline at all, not even as an "unmatched" entry.
 
 ---
@@ -285,7 +285,7 @@ against production, described next.
 
 1. Confirm the token and cron are live:
    ```bash
-   npx convex env list --prod              # confirms CALENDLY_PAT is set, never its value
+   node tools/production-preflight.mjs    # confirms required settings without printing values
    npx convex run internal.calendly.getSyncState --prod
    ```
 2. Submit a real lead through `/vsl-4/` (or `POST /submit-lead` directly) with an email you

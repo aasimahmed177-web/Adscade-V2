@@ -12,7 +12,9 @@ import { networkInterfaces } from 'os';
    to the LAN interface and addressing the mock by that IP instead sidesteps whatever
    network boundary the backend runs behind. */
 function hostLanAddress() {
-  for (const ifaces of Object.values(networkInterfaces())) {
+  let interfaces;
+  try { interfaces = networkInterfaces(); } catch { return '127.0.0.1'; }
+  for (const ifaces of Object.values(interfaces)) {
     for (const iface of ifaces || []) {
       if (iface.family === 'IPv4' && !iface.internal) return iface.address;
     }
@@ -26,7 +28,7 @@ export function startMockCalendly() {
     enforceAuth: true,
     forceRateLimitOnce: false,
     pageSize: 100, // set to 1 to exercise pagination
-    user: { uri: '', name: 'Aasim Ahmed', email: 'aasim@adscade.com', organization: '' },
+    user: { uri: '', name: 'Aasim Ahmed', email: 'aasim@adscade.com', current_organization: '' },
     eventTypes: [], // [{uri, name, active}]
     events: new Map(), // uri -> {uri, name, status, start_time, end_time, event_type, created_at, updated_at}
     invitees: new Map(), // uri -> {uri, email, name, status, event, created_at, updated_at, questions_and_answers, rescheduled, old_invitee, new_invitee, cancellation}
@@ -65,12 +67,11 @@ export function startMockCalendly() {
     if (url.pathname === '/event_types') return send(paginated(state.eventTypes));
 
     if (url.pathname === '/scheduled_events') {
-      const eventType = url.searchParams.get('event_type');
+      // Deliberately ignore event_type: the client must verify each returned type.
       const status = url.searchParams.get('status');
       const minStart = url.searchParams.get('min_start_time');
       const maxStart = url.searchParams.get('max_start_time');
       let all = [...state.events.values()];
-      if (eventType) all = all.filter((e) => e.event_type === eventType);
       if (status) all = all.filter((e) => e.status === status);
       if (minStart) all = all.filter((e) => e.start_time >= minStart);
       if (maxStart) all = all.filter((e) => e.start_time <= maxStart);
@@ -108,7 +109,7 @@ export function startMockCalendly() {
       const base = `http://${hostLanAddress()}:${port}`;
       state.base = base;
       state.user.uri = `${base}/users/me/self`;
-      state.user.organization = `${base}/organizations/org-1`;
+      state.user.current_organization = `${base}/organizations/org-1`;
       resolve({
         base,
         state,

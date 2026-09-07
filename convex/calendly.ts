@@ -410,6 +410,10 @@ export const markBooked = internalMutation({
       createdAt: Date.now(),
     });
 
+    const unmatched = await ctx.db.query("calendlyUnmatched")
+      .withIndex("by_inviteeUri", (q) => q.eq("inviteeUri", args.inviteeUri)).first();
+    if (unmatched) await ctx.db.patch(unmatched._id, { resolved: true });
+
     // Booking status is part of the reporting mirror. This queues an async upsert but
     // does not slow the Calendly poll or affect the booking record if Google is down.
     await ctx.scheduler.runAfter(0, internal.sheets.syncLead, { leadId: args.leadId });
@@ -589,12 +593,18 @@ export const sync = internalAction({
       // which meant a pre-existing VSL-4 misconfiguration silently prevented a perfectly
       // healthy VSL-5 target from syncing and stopped the Pass B lifecycle rechecks along
       // with it. One broken calendar must not take down the others.
-      const eventTypes = needsEventTypeLookup(process.env)
-        ? await listEventTypes(me.uri)
-        : [];
+      let eventTypes: Awaited<ReturnType<typeof listEventTypes>> = [];
+      const lookupErrors: string[] = [];
+      if (needsEventTypeLookup(process.env)) {
+        try { eventTypes = await listEventTypes(me.uri); }
+        catch (error) {
+          // A list lookup outage must not stop pinned targets or known-booking rechecks.
+          lookupErrors.push(`Event-type lookup failed: ${String(error)}`);
+        }
+      }
       const { targets, errors: resolveErrors } =
         resolveSyncTargets(process.env, eventTypes, me.email);
-      const targetErrors: string[] = [...resolveErrors];
+      const targetErrors: string[] = [...lookupErrors, ...resolveErrors];
       for (const e of resolveErrors) console.error("[calendly] " + e);
       for (const t of targets) {
         if (t.offers.length > 1) {
@@ -659,10 +669,25 @@ export const sync = internalAction({
               inviteeUri: invitee.uri,
             });
             if (alreadyBooked) continue;
-            const alreadyLogged = await ctx.runQuery(internal.calendly.findUnmatchedByInviteeUri, {
-              inviteeUri: invitee.uri,
-            });
-            if (alreadyLogged) continue;
+            // A rescheduled invitee belongs to the original lead. Defer to Pass B,
+            // even if the person has since submitted another application with this email.
+            let ancestorUri = invitee.old_invitee;
+            let belongsToExistingLead = false;
+            const ancestors = new Set<string>();
+            while (ancestorUri) {
+              if (ancestors.has(ancestorUri) || ancestors.size >= 10) {
+                throw new Error("Invalid or excessive Calendly reschedule chain");
+              }
+              ancestors.add(ancestorUri);
+              const originalLead = await ctx.runQuery(internal.calendly.findLeadByInviteeUri, {
+                inviteeUri: ancestorUri,
+              });
+              if (originalLead) { belongsToExistingLead = true; break; }
+              ancestorUri = (await getInvitee(ancestorUri)).old_invitee;
+            }
+            if (belongsToExistingLead) continue;
+            // Retry previously unmatched invitees: a lead or corrected email can arrive
+            // after the first poll. recordUnmatched already upserts without duplicates.
 
             discovered++;
             const normalisedEmail = invitee.email.trim().toLowerCase();
@@ -733,7 +758,15 @@ export const sync = internalAction({
               continue;
             }
             if (invitee.rescheduled && invitee.new_invitee) {
-              const newInvitee = await getInvitee(invitee.new_invitee);
+              let newInvitee = await getInvitee(invitee.new_invitee);
+              const seen = new Set<string>([invitee.uri]);
+              while (newInvitee.status === "canceled" && newInvitee.rescheduled && newInvitee.new_invitee) {
+                if (seen.has(newInvitee.uri) || seen.size >= 10) {
+                  throw new Error("Invalid or excessive Calendly reschedule chain");
+                }
+                seen.add(newInvitee.uri);
+                newInvitee = await getInvitee(newInvitee.new_invitee);
+              }
               const newEvent = await getEvent(newInvitee.event);
               await ctx.runMutation(internal.calendly.markRescheduled, {
                 leadId: lead._id,
@@ -744,6 +777,14 @@ export const sync = internalAction({
                 newQuestionsAndAnswers: newInvitee.questions_and_answers ?? [],
               });
               rescheduled++;
+              if (newInvitee.status === "canceled") {
+                await ctx.runMutation(internal.calendly.markCanceled, {
+                  leadId: lead._id,
+                  canceledAtMs: newInvitee.cancellation?.canceled_at
+                    ? Date.parse(newInvitee.cancellation.canceled_at) : Date.now(),
+                });
+                canceled++;
+              }
             } else {
               await ctx.runMutation(internal.calendly.markCanceled, {
                 leadId: lead._id,
@@ -769,7 +810,7 @@ export const sync = internalAction({
       console.log("[calendly] " + summary);
       await ctx.runMutation(internal.calendly.setSyncState, {
         calendlyUserUri: me.uri,
-        calendlyOrganizationUri: me.organization,
+        calendlyOrganizationUri: me.current_organization,
         // The acquisition target keeps the two original singular fields so existing
         // docs, dashboards and `getSyncState` readers keep working unchanged.
         calendlyEventTypeUri: acquisitionTarget?.uri,
@@ -778,9 +819,10 @@ export const sync = internalAction({
         // A resolution failure on ONE offer is reported without claiming the whole run
         // failed — the healthy targets really did sync, and saying otherwise would hide
         // that fact behind an unrelated misconfiguration.
-        lastRunOk: targetErrors.length === 0,
+        lastRunOk: targetErrors.length === 0 && errors === 0,
         lastRunSummary: summary,
-        lastError: targetErrors.length ? targetErrors.join(" | ").slice(0, 1000) : undefined,
+        lastError: [...targetErrors, ...(errors ? [`${errors} booking processing/recheck errors; inspect sync logs.`] : [])]
+          .join(" | ").slice(0, 1000) || undefined,
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);

@@ -37,7 +37,7 @@ const invB = fx.invitee(evTarget.uri, { email: 'b@example.com', name: 'B' });
 console.log('\n— identity —');
 const me = await getCurrentUser();
 t('getCurrentUser returns the mock user', me.email === 'aasim@adscade.com');
-t('organization URI is present', typeof me.organization === 'string' && me.organization.length > 0);
+t('organization URI is present', typeof me.current_organization === 'string' && me.current_organization.length > 0);
 
 console.log('\n— event types —');
 const types = await listEventTypes(me.uri);
@@ -45,7 +45,7 @@ t('both event types returned', types.length === 2);
 t('target event type findable by exact name match',
   types.some((et) => et.name === 'Real Estate Acquisition System Call'));
 
-console.log('\n— active events, filtered server-side by event_type —');
+console.log('\n— active events, filtered locally by returned event_type —');
 const events = await listActiveEvents(me.uri, targetType.uri, new Date(Date.now() - 86400000), new Date(Date.now() + 90 * 86400000));
 t('only the target-type event comes back', events.length === 1 && events[0].uri === evTarget.uri,
   `${events.length} events`);
@@ -66,6 +66,10 @@ console.log('\n— pagination —');
 state.pageSize = 1; // force listInvitees to need two pages for these two invitees
 const paginated = await listInvitees(evTarget.uri);
 t('pagination follows next_page_token to completion', paginated.length === 2, paginated.length);
+const paginatedTypes = await listEventTypes(me.uri);
+t('event type lookup follows every page', paginatedTypes.length === 2);
+const paginatedEvents = await listActiveEvents(me.uri, targetType.uri, new Date(Date.now() - 86400000), new Date(Date.now() + 90 * 86400000));
+t('mixed-offer pagination still returns only the target', paginatedEvents.length === 1 && paginatedEvents[0].event_type === targetType.uri);
 state.pageSize = 100;
 
 console.log('\n— error classification —');
