@@ -65,6 +65,9 @@ const run = (fn, args) => {
 };
 
 const PREFIX = 'content-browser-';
+// Rows created from this run onwards. The leak check at the end is scoped to this so it
+// reports what THIS run failed to clean up, rather than failing on unrelated leftovers.
+const RUN_STARTED_AT = Date.now();
 const leadByEmail = (email) =>
   run('admin.listLeads', { limit: 200 }).filter((l) => l.normalisedEmail === email);
 
@@ -97,9 +100,19 @@ async function openPage({ mobile = false, query = '', breakBackend = false } = {
   // after the run would return [] for any journey that ends at Calendly: the redirect
   // replaces the document, taking the array with it. That would silently turn every
   // GTM assertion into a no-op rather than a failure.
-  await context.addInitScript(([endpoint, calendly]) => {
+  await context.addInitScript(([endpoint, calendly, prefix]) => {
     window.ADSCADE_CONTENT_LEAD_ENDPOINT = endpoint;
     window.ADSCADE_CONTENT_CALENDLY_URL = calendly;
+
+    // Stamp every generated id with a known prefix so cleanup can find these rows
+    // exactly. admin.purgeTestLeads matches on user-agent, which cannot see the mobile
+    // context: it sends a real iPhone UA, so those rows would survive every run and
+    // accumulate in the dev database looking like genuine leads.
+    if (window.crypto && crypto.randomUUID) {
+      const real = crypto.randomUUID.bind(crypto);
+      crypto.randomUUID = () => prefix + real().slice(0, 32);
+    }
+
     window.dataLayer = [];
     const push = window.dataLayer.push.bind(window.dataLayer);
     window.dataLayer.push = function (...args) {
@@ -108,7 +121,7 @@ async function openPage({ mobile = false, query = '', breakBackend = false } = {
       }
       return push(...args);
     };
-  }, [LEAD_ENDPOINT, CALENDLY]);
+  }, [LEAD_ENDPOINT, CALENDLY, PREFIX]);
 
   const page = await context.newPage();
   await page.exposeFunction('__adscadeDlSink', (json) => {
@@ -505,9 +518,14 @@ console.log('\n— cleanup —');
 {
   rmSync(SHELL_PATH, { force: true });
   t('generated test shell removed', true);
-  const purged = run('admin.purgeTestLeads');
+  run('admin.purgeTestLeads');           // desktop runs (HeadlessChrome UA)
+  run('admin.purgeBySubmissionIdPrefix', { prefix: PREFIX }); // mobile runs (iPhone UA)
   run('funnel.purgeAllEvents');
-  t('browser-created rows removed', typeof purged === 'number', String(purged));
+  const left = run('admin.listLeads', { limit: 200 })
+    .filter((l) => l.createdAt >= RUN_STARTED_AT &&
+                   String(l.normalisedEmail).endsWith('@adscade-test.com'));
+  t('every row this run created was cleaned up', left.length === 0,
+    left.map((l) => l.normalisedEmail).join(','));
 }
 
 console.log(fails === 0
