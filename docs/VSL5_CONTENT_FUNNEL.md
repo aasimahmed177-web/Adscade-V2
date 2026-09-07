@@ -416,8 +416,11 @@ A green test suite is not proof the live funnel works. These are the checks that
 - Sheets: the **same row** updates to booked — **the row count must not increase**
 - `getSyncState`: `lastRunOk`, no `lastError`, and `calendlyTargets` lists both event types
 
-**C — unqualified** (1–4 + yes): stored with `contentQualified=false`, polite not-fit
-state, **no redirect**, and the Sheet shows `FALSE` — not blank.
+**C — unqualified** (1–4 + yes): stored with `contentQualified=false`, and the Sheet
+shows `FALSE` — not blank. Calendar access is now open by default, so this application
+also redirects without firing a qualified-application conversion. Optional strict
+mode (`window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION = true`) restores the not-fit
+state and blocks this redirect. Failed submissions must never redirect in either mode.
 
 **D — cross-offer safety.** Submit both funnels with the same email, then book the content
 event: the booking must land on the **content** lead, not the acquisition one.

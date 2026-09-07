@@ -8,6 +8,9 @@ IMPORTANT:
 3) This content offer uses a SEPARATE backend variable:
       window.ADSCADE_CONTENT_LEAD_ENDPOINT
    Do not point it at the old VSL-4 endpoint until Convex accepts the new fields.
+4) Calendar access is open after every successfully stored application. Qualification
+   remains recorded for reporting. Set window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION
+   to true only when you want to reinstate the existing team-size AND monthly-shoot gate.
 -->
 
 <style>
@@ -1290,8 +1293,8 @@ body.modal-open{overflow:hidden}
       // throws otherwise, so nothing below can run on an unsaved application.
       sendTelemetry('lead_form_stored');
 
-      // The SERVER's verdict. Never recomputed here: the page must show the outcome
-      // Convex actually recorded, or the Sheet and the visitor would disagree.
+      // Preserve the SERVER's qualification verdict for Sheets and conversion tracking.
+      // Calendar access is a separate policy; opening it must not qualify every lead.
       var qualified = data.qualified === true;
 
       track(
@@ -1303,13 +1306,13 @@ body.modal-open{overflow:hidden}
         true
       );
 
-      if (qualified){
+      if (qualified || window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION !== true){
         track('content_calendly_redirect', null, true);
         window.location.assign(calendlyUrl(payload));
         return;
       }
 
-      /* unqualified: stored, but do not push straight to the calendar */
+      /* Optional strict mode: stored but unqualified, so show the not-fit state. */
       btn.textContent = 'Application received';
       btn.disabled = true;
 
