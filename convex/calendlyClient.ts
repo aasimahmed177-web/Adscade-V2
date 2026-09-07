@@ -61,6 +61,10 @@ export interface CalendlyEventType {
   uri: string;
   name: string;
   active: boolean;
+  /** The public booking path, e.g. "brokerage-content-system-call". */
+  slug?: string;
+  /** The full public booking URL, e.g. "https://calendly.com/user/slug". */
+  scheduling_url?: string;
 }
 
 /** One page cap is enough for a Free-plan account's event type list. */

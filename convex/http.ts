@@ -170,36 +170,56 @@ function normalisePhone(raw: string): string | null {
 }
 
 /**
- * International-first normalisation, used by offers that are not India-specific.
+ * Strict international normalisation, used by offers that are not India-specific.
+ * Always returns E.164 (`+` followed by 8-15 digits), or null.
  *
  * normalisePhone() above maps a bare ten-digit number to +91 because /submit-lead was
- * built for Indian developers, and its historical rows depend on that. Reusing it here
- * would stamp +91 onto a Gulf brokerage's 05x number. A WRONG country code is worse than
- * none: it corrupts normalisedPhone matching and makes every outbound WhatsApp attempt
- * fail while looking perfectly valid in the Sheet.
+ * built for Indian developers, and its historical rows depend on that. It is untouched.
+ * Reusing it here would stamp +91 onto a Gulf brokerage's 05x number, and a WRONG
+ * country code is worse than a rejected form: it corrupts normalisedPhone matching and
+ * makes every outbound WhatsApp attempt fail while looking perfectly valid in the Sheet.
  *
- * So the rule is: honour a country code when the visitor gives one, never invent one
- * when they don't.
+ * The rule is therefore: REQUIRE a country code, never invent one.
  *
- * A bare national number is kept as digits rather than rejected. The field does ask for
- * a country code, but losing a genuine brokerage over a formatting habit costs more than
- * storing an unprefixed number that a human can still read and dial.
+ * An earlier version accepted a bare national number and stored it as digits, on the
+ * reasoning that losing a lead to a formatting habit costs more than an unprefixed row.
+ * That was the wrong trade for this funnel: an unprefixed Gulf number is not reliably
+ * dialable or WhatsApp-reachable, so the "saved" lead is often uncontactable anyway,
+ * and it silently breaks phone-based dedup. The form asks for a country code and says
+ * so; the frontend enforces the same rule before submit, so a visitor is corrected on
+ * the spot rather than rejected after the fact.
  */
 function normalisePhoneInternational(raw: string): string | null {
   const trimmed = raw.trim();
+  if (trimmed.length === 0) return null;
+
+  // Only characters that legitimately appear in a written phone number. This rejects
+  // letters outright, so "call me on 0501234567" cannot be silently reduced to digits.
+  if (!/^[+0-9()\-.\s]+$/.test(trimmed)) return null;
+
+  // "+" is a prefix, and there is only ever one.
+  const plusCount = (trimmed.match(/\+/g) ?? []).length;
+  if (plusCount > 1) return null;
+  if (plusCount === 1 && !trimmed.startsWith("+")) return null;
+
   const digits = trimmed.replace(/\D/g, "");
 
-  // "+971 50 123 4567" — explicit. Trust the country code given.
+  let e164Digits: string;
   if (trimmed.startsWith("+")) {
-    return digits.length >= 8 && digits.length <= 15 ? "+" + digits : null;
+    e164Digits = digits;                 // "+971 50 123 4567"
+  } else if (digits.startsWith("00")) {
+    e164Digits = digits.slice(2);        // "00971501234567" — ITU prefix, same meaning
+  } else {
+    return null;                         // no country code, and we will not guess one
   }
-  // "00971501234567" — the ITU international prefix means exactly what "+" means.
-  if (digits.startsWith("00")) {
-    const rest = digits.slice(2);
-    return rest.length >= 8 && rest.length <= 15 ? "+" + rest : null;
-  }
-  // No country code offered. Keep the digits; do NOT guess a country.
-  return digits.length >= 8 && digits.length <= 15 ? digits : null;
+
+  // E.164 allows 8-15 digits including the country code, and no country code begins
+  // with 0 — so a leading zero here means the prefix was stripped from a national
+  // number rather than a real international one being given.
+  if (e164Digits.length < 8 || e164Digits.length > 15) return null;
+  if (e164Digits.startsWith("0")) return null;
+
+  return "+" + e164Digits;
 }
 
 /**

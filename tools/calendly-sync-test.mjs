@@ -103,6 +103,111 @@ t('finds the lead by normalised email',
 t('an unknown email matches nothing',
   run('calendly.findEligibleLeadByEmail', { normalisedEmail: 'nobody-' + Date.now() + '@nowhere.test' }) === null);
 
+/* ── offer-aware matching ─────────────────────────────────────────────
+   THE BUG THIS BLOCK EXISTS FOR. Matching used to key on email + unbooked only. One
+   person who applies to BOTH funnels with the same address — the owner running an
+   acceptance test being the obvious case — could have a booking on the CONTENT calendar
+   attached to their ACQUISITION lead, purely because that row was newer. The booking
+   then looks healthy while sitting on the wrong row and mirroring to the wrong Sheet
+   line, and the content lead stays forever "not_booked".
+
+   Both submission orders are exercised, because the failure only appears in one of them.
+─────────────────────────────────────────────────────────────────────── */
+console.log('\n— matching is offer-aware —');
+const ACQ = ['real_estate_acquisition'];
+const CONTENT = ['brokerage_content_engine'];
+const BOTH = ['real_estate_acquisition', 'brokerage_content_engine'];
+
+async function submitContentLead(over = {}) {
+  const submissionId = 'calendly-test-content-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const res = await fetch(ENDPOINT.replace('/submit-lead', '/submit-content-lead'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: 'https://adscade.com' },
+    body: JSON.stringify({
+      submissionId,
+      name: over.name ?? 'Content Lead',
+      email: over.email,
+      companyName: 'Test Brokerage',
+      phone: over.phone ?? '+971501234567',
+      teamSize: '10_19',
+      monthlyShoot: 'yes',
+      consent: true,
+      landingPage: 'https://adscade.com/vsl-5-2/',
+      device: 'desktop',
+      attribution: {},
+    }),
+  });
+  const data = await res.json();
+  if (!data.stored) throw new Error('content seed lead not stored: ' + JSON.stringify(data));
+  return submissionId;
+}
+
+// Order 1: acquisition first, then content (content is the NEWER row).
+{
+  const email = `both-order1-${Date.now()}@adscade-test.com`;
+  const acqSub = await submitLead({ email, name: 'Both One' });
+  const conSub = await submitContentLead({ email, name: 'Both One' });
+  const acqLead = leadBySubmissionId(acqSub);
+  const conLead = leadBySubmissionId(conSub);
+
+  t('content event matches the CONTENT lead, not the newer-or-older acquisition one',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: CONTENT })?._id === conLead._id);
+  t('acquisition event matches the ACQUISITION lead',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: ACQ })?._id === acqLead._id);
+}
+
+// Order 2: content first, then acquisition (acquisition is the NEWER row). Without the
+// offer filter this is the case that silently mis-attributes a content booking.
+{
+  const email = `both-order2-${Date.now()}@adscade-test.com`;
+  const conSub = await submitContentLead({ email, name: 'Both Two' });
+  const acqSub = await submitLead({ email, name: 'Both Two' });
+  const acqLead = leadBySubmissionId(acqSub);
+  const conLead = leadBySubmissionId(conSub);
+
+  t('content event STILL matches the content lead when acquisition is newer',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: CONTENT })?._id === conLead._id,
+    'would have picked the acquisition row without the offer filter');
+  t('acquisition event still matches the acquisition lead',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: ACQ })?._id === acqLead._id);
+
+  // A shared event type genuinely serves both, so it may match either — the ambiguity is
+  // represented, not hidden.
+  const shared = run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: BOTH });
+  t('a SHARED event type may match either offer',
+    shared?._id === acqLead._id || shared?._id === conLead._id, shared?._id);
+}
+
+// An offer with no lead for that email must match nothing rather than falling back.
+{
+  const email = `content-only-${Date.now()}@adscade-test.com`;
+  await submitContentLead({ email, name: 'Content Only' });
+  t('an acquisition event finds NOTHING when only a content lead exists',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: ACQ }) === null);
+  t('and the content event finds it',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: CONTENT }) !== null);
+}
+
+// Legacy rows have no offer field at all and ARE acquisition leads.
+{
+  const email = `legacy-${Date.now()}@adscade-test.com`;
+  const sub = await submitLead({ email, name: 'Legacy Row' });
+  const lead = leadBySubmissionId(sub);
+  run('debug.clearOfferForTest', { leadId: lead._id });
+  t('a lead with NO offer field is treated as acquisition',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: ACQ })?._id === lead._id);
+  t('and is NOT matchable by a content event',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email, offers: CONTENT }) === null);
+}
+
+// Omitting offers keeps the old behaviour for callers that do not care.
+{
+  const email = `no-filter-${Date.now()}@adscade-test.com`;
+  await submitContentLead({ email, name: 'No Filter' });
+  t('omitting the offers filter matches regardless of offer',
+    run('calendly.findEligibleLeadByEmail', { normalisedEmail: email }) !== null);
+}
+
 console.log('\n— booking: markBooked —');
 const eventTypeUri = CAL('event_types/target');
 const evA = CAL('scheduled_events/evA'), invA = CAL('invitees/invA');

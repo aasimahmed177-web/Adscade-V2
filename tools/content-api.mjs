@@ -173,15 +173,56 @@ console.log('\n— phone normalisation is country-aware, never +91 by default �
 
   // The regression this endpoint exists to avoid. VSL-4 maps a bare 10-digit number to
   // +91; doing that to a Gulf brokerage would silently corrupt every match and every
-  // outbound message while looking perfectly valid in the Sheet.
-  for (const bare of ['0501234567', '9876543210', '501234567']) {
+  // outbound message while looking perfectly valid in the Sheet. So a number with no
+  // country code is REFUSED here rather than guessed at — the form asks for one, and
+  // the page enforces the same rule before submitting.
+  for (const bare of ['0501234567', '9876543210', '501234567', '050 123 4567']) {
     const b = body({ phone: bare });
     const r = await post(b);
-    const row = leadBySubmissionId(b.submissionId);
-    t(`bare ${bare} is stored without an invented country code`,
-      r.status === 200 && row?.normalisedPhone === bare.replace(/\D/g, '') &&
-      !row?.normalisedPhone.startsWith('+'),
-      `${r.status} ${row?.normalisedPhone}`);
+    const j = await r.json();
+    t(`bare "${bare}" is refused, not assigned a country code`,
+      r.status === 422 && (j.fields || []).includes('phone'), `${r.status} ${JSON.stringify(j)}`);
+    t(`  and no row was written for "${bare}"`, leadBySubmissionId(b.submissionId) === null);
+  }
+
+  // Junk, letters and malformed international numbers.
+  for (const junk of ['call me on +971501234567', 'abcdefghij', '+++971501234567',
+                      '+971-50-ABC-4567', '971+501234567', '+0501234567',
+                      '+9715012345678901234', '+123', '<script>']) {
+    const r = await post(body({ phone: junk }));
+    const j = await r.json();
+    t(`rejects ${JSON.stringify(junk)}`,
+      r.status === 422 && (j.fields || []).includes('phone'), `${r.status}`);
+  }
+
+  // A KNOWN, IRREDUCIBLE AMBIGUITY, pinned here so it is a documented decision rather
+  // than an accident. "00501234567" is a valid international number (+501, Belize) AND
+  // what a UAE visitor produces by prepending 00 to their national 0501234567. Nothing
+  // in the string distinguishes the two, so the ITU prefix is honoured as written. The
+  // form asking for a country code is what keeps this rare.
+  {
+    const b = body({ phone: '00501234567' });
+    const r = await post(b);
+    t('00-prefixed input is treated as ITU international, as written',
+      r.status === 200 &&
+      leadBySubmissionId(b.submissionId)?.normalisedPhone === '+501234567',
+      `${r.status} ${leadBySubmissionId(b.submissionId)?.normalisedPhone}`);
+  }
+
+  // Everything accepted comes back as clean E.164 — never half-normalised.
+  {
+    const b = body({ phone: '+971 (50) 123-4567' });
+    await post(b);
+    t('punctuation is stripped to E.164',
+      leadBySubmissionId(b.submissionId)?.normalisedPhone === '+971501234567',
+      leadBySubmissionId(b.submissionId)?.normalisedPhone);
+  }
+  {
+    const rows = run('admin.listLeads', { limit: 200 })
+      .filter((l) => l.submissionId.startsWith(PREFIX) && l.offer === 'brokerage_content_engine');
+    const notE164 = rows.filter((l) => !/^\+[1-9]\d{7,14}$/.test(l.normalisedPhone));
+    t('EVERY stored content lead has an E.164 phone', notE164.length === 0,
+      notE164.map((l) => l.normalisedPhone).join(','));
   }
   {
     const b = body({ phone: '+971 50 123 4567' });
@@ -369,6 +410,9 @@ console.log('\n— regression: /submit-lead is unchanged —');
     (acj.fields || []).includes('companyName') &&
     (acj.fields || []).includes('teamSize'),
     JSON.stringify(acj));
+  // ...including its bare Indian number, which is valid for VSL-4 and not for this offer.
+  t('and refuses the acquisition funnel\'s bare phone format',
+    (acj.fields || []).includes('phone'), JSON.stringify(acj.fields));
 }
 
 /* ── telemetry: offer routing and the new PII keys ────────────────── */

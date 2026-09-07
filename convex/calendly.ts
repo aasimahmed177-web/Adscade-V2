@@ -1,7 +1,7 @@
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { calendlyQAValidator, calendlyStatusValidator, offerValidator } from "./schema";
+import { calendlyQAValidator, calendlyStatusValidator, offerOf, offerValidator } from "./schema";
 import {
   getCurrentUser,
   listEventTypes,
@@ -35,23 +35,26 @@ export const TARGET_EVENT_TYPE_NAME = "Real Estate Acquisition System Call";
  * API call filters server-side by event_type, so they would not even appear as unmatched.
  *
  * Each offer resolves in this order:
- *   1. its `uriEnv` environment variable, if set — pins the event type, immune to renames
- *   2. its `nameEnv` variable, or `defaultName`, looked up by exact name (case-insensitive)
- *   3. otherwise: not configured
+ *   1. its `uriEnv` variable — the API event-type URI. Pins it; immune to renames.
+ *   2. its `schedulingUrlEnv` variable — the PUBLIC booking URL, matched against each
+ *      event type's `scheduling_url`. This is the value a human actually has to hand,
+ *      and unlike a display name it cannot be changed by editing the event's title.
+ *   3. its `nameEnv` variable, or `defaultName`, by exact name (case-insensitive)
+ *   4. otherwise: not configured
  *
- * A `required: false` offer that resolves to nothing is skipped quietly rather than
- * failing the run. That is the state before the owner creates the VSL-5 event: VSL-4
- * bookings must keep syncing normally in the meantime.
+ * A public booking URL is NOT an API event-type URI and cannot be used as one. Step 2
+ * exists precisely so nobody has to hand-convert between them or invent a UUID.
  *
- * Note that the target's `offer` is DIAGNOSTIC ONLY. Bookings are matched to leads by
- * email, and the lead row already knows which offer it came from, so a booking is
- * attributed correctly even while both funnels point at one shared event type — which is
- * exactly the situation today.
+ * A `required: false` offer that resolves to nothing is skipped quietly. That is the
+ * state before the owner creates the VSL-5 event, and VSL-4 must keep syncing meanwhile.
+ * A `required: true` offer that fails is recorded as an error but does NOT abort the run
+ * — see resolveTargets.
  */
 const EVENT_TYPE_CONFIG = [
   {
     offer: "real_estate_acquisition",
     uriEnv: "CALENDLY_EVENT_TYPE_URI",
+    schedulingUrlEnv: "CALENDLY_SCHEDULING_URL",
     nameEnv: "CALENDLY_EVENT_TYPE_NAME",
     defaultName: TARGET_EVENT_TYPE_NAME as string | null,
     required: true,
@@ -59,6 +62,7 @@ const EVENT_TYPE_CONFIG = [
   {
     offer: "brokerage_content_engine",
     uriEnv: "CALENDLY_CONTENT_EVENT_TYPE_URI",
+    schedulingUrlEnv: "CALENDLY_CONTENT_SCHEDULING_URL",
     nameEnv: "CALENDLY_CONTENT_EVENT_TYPE_NAME",
     // No default name on purpose: inventing one would make the run log a scary "not
     // found" error for an event type the owner has not created yet.
@@ -67,12 +71,130 @@ const EVENT_TYPE_CONFIG = [
   },
 ] as const;
 
+type Offer = "real_estate_acquisition" | "brokerage_content_engine";
+
+/**
+ * One event type the sync watches, and the offers it can legitimately book for.
+ *
+ * `offers` is a LIST, not a single value, and it is load-bearing rather than diagnostic.
+ * When two offers resolve to the same event type — which is the case today, since both
+ * funnels point at one Calendly event — that event genuinely cannot tell them apart, and
+ * a booking on it may belong to either. Recording both offers states that ambiguity
+ * explicitly instead of silently attributing every booking to whichever offer happened
+ * to be listed first.
+ *
+ * Once the offers have distinct event types, each target carries exactly one offer and a
+ * content booking can no longer attach to an acquisition lead that shares an email.
+ */
 type SyncTarget = {
-  offer: "real_estate_acquisition" | "brokerage_content_engine";
+  offers: Offer[];
   uri: string;
   name?: string;
   source: string;
 };
+
+/** Does any offer still need the event-type list fetched? */
+export function needsEventTypeLookup(env: Record<string, string | undefined>): boolean {
+  return EVENT_TYPE_CONFIG.some((c) => {
+    if (env[c.uriEnv]?.trim()) return false; // pinned; no lookup needed
+    return Boolean(env[c.schedulingUrlEnv]?.trim() || env[c.nameEnv]?.trim() || c.defaultName);
+  });
+}
+
+/**
+ * Compare booking URLs by origin+path only: trailing slashes, query strings and casing
+ * differ harmlessly between what someone pastes and what Calendly returns.
+ */
+function sameBookingUrl(a: string, b: string): boolean {
+  const norm = (u: string) => {
+    try {
+      const parsed = new URL(u.trim());
+      return (parsed.origin + parsed.pathname).replace(/\/+$/, "").toLowerCase();
+    } catch {
+      return u.trim().replace(/\/+$/, "").toLowerCase();
+    }
+  };
+  return norm(a) === norm(b);
+}
+
+/**
+ * Work out which event types to watch, from configuration plus the account's event list.
+ *
+ * PURE, and exported, for two reasons. The Convex action sandbox blocks outbound requests
+ * to loopback addresses, so sync() cannot be driven end-to-end against a mock Calendly
+ * (see the note at the top of tools/calendly-sync-test.mjs) — and this is the branchiest
+ * logic in the file. Keeping it free of ctx and fetch means tools/calendly-targets-test.mjs
+ * can exercise every path, including the failure cases, outside Convex entirely.
+ *
+ * Failures are RETURNED, never thrown and never fatal. An unresolvable acquisition target
+ * must not stop a correctly configured content target from syncing.
+ */
+export function resolveSyncTargets(
+  env: Record<string, string | undefined>,
+  eventTypes: { uri: string; name: string; scheduling_url?: string }[],
+  userEmail: string,
+): { targets: SyncTarget[]; errors: string[] } {
+  const targets: SyncTarget[] = [];
+  const errors: string[] = [];
+  const byUri = new Map<string, SyncTarget>();
+
+  for (const config of EVENT_TYPE_CONFIG) {
+    const offer = config.offer as Offer;
+    let resolved: Omit<SyncTarget, "offers"> | null = null;
+    let failure: string | null = null;
+
+    const pinnedUri = env[config.uriEnv]?.trim();
+    const schedulingUrl = env[config.schedulingUrlEnv]?.trim();
+    const wantedName = env[config.nameEnv]?.trim() || config.defaultName;
+
+    if (pinnedUri) {
+      resolved = { uri: pinnedUri, source: "env" };
+    } else if (schedulingUrl) {
+      // Resolve the API event-type URI from the PUBLIC booking URL. They are different
+      // things and one cannot be substituted for the other, so this does the conversion
+      // properly instead of anyone guessing a UUID.
+      const match = eventTypes.find(
+        (t) => t.scheduling_url && sameBookingUrl(t.scheduling_url, schedulingUrl),
+      );
+      if (match) {
+        resolved = { uri: match.uri, name: match.name, source: "scheduling_url" };
+      } else {
+        failure = `No Calendly event type with booking URL "${schedulingUrl}" was found for ${userEmail}. Check ${config.schedulingUrlEnv}, or pin ${config.uriEnv} directly.`;
+      }
+    } else if (wantedName) {
+      const match = eventTypes.find(
+        (t) => t.name.trim().toLowerCase() === wantedName.toLowerCase(),
+      );
+      if (match) {
+        resolved = { uri: match.uri, name: match.name, source: "name_lookup" };
+      } else {
+        failure = `No Calendly event type named "${wantedName}" was found for ${userEmail}. Set ${config.uriEnv} or ${config.schedulingUrlEnv} to identify it explicitly.`;
+      }
+    }
+    // else: nothing configured for this offer. Not an error — it has no calendar yet.
+
+    if (!resolved) {
+      if (failure) errors.push(failure);
+      continue;
+    }
+
+    // Two offers may resolve to ONE shared event type. Listing it twice would double
+    // every API call in discovery, so merge — and merging the OFFERS rather than keeping
+    // the first is what makes the ambiguity explicit downstream: a shared event
+    // legitimately serves both, and the lead query is told exactly that.
+    const existing = byUri.get(resolved.uri);
+    if (existing) {
+      if (!existing.offers.includes(offer)) existing.offers.push(offer);
+      continue;
+    }
+
+    const target: SyncTarget = { ...resolved, offers: [offer] };
+    byUri.set(target.uri, target);
+    targets.push(target);
+  }
+
+  return { targets, errors };
+}
 
 const DISCOVERY_WINDOW_PAST_MS = 24 * 60 * 60 * 1000; // 1 day back — catch same-day bookings
 const DISCOVERY_WINDOW_FUTURE_MS = 90 * 24 * 60 * 60 * 1000; // 90 days ahead
@@ -84,17 +206,42 @@ const RECHECK_LIMIT_PER_STATUS = 50; // per run, per status — bounds API calls
    Queries — read-only, called by the action via ctx.runQuery
    ══════════════════════════════════════════════════════════════════ */
 
-/** The most recent lead with this email that has not already been matched to a booking. */
+/**
+ * The most recent unbooked lead with this email, restricted to the offers the booked
+ * event type can legitimately serve.
+ *
+ * The `offers` filter is the whole point. Without it, one person who applies to BOTH
+ * funnels with the same address — the owner running an acceptance test, most obviously —
+ * can have a content booking attached to their acquisition lead, or the reverse,
+ * depending only on which application happened to be submitted last. The booking would
+ * then look perfectly healthy while sitting on the wrong row and mirroring to the wrong
+ * Sheet line.
+ *
+ * `offers` is omitted for legacy callers and by the recheck paths, which already know
+ * exactly which lead they are looking at.
+ */
 export const findEligibleLeadByEmail = internalQuery({
-  args: { normalisedEmail: v.string() },
+  args: {
+    normalisedEmail: v.string(),
+    offers: v.optional(v.array(offerValidator)),
+  },
   returns: v.union(v.any(), v.null()),
-  handler: async (ctx, { normalisedEmail }) => {
+  handler: async (ctx, { normalisedEmail, offers }) => {
     const candidates = await ctx.db
       .query("leads")
       .withIndex("by_normalisedEmail", (q) => q.eq("normalisedEmail", normalisedEmail))
       .order("desc")
       .take(50);
-    return candidates.find((l) => !l.calendlyStatus || l.calendlyStatus === "not_booked") ?? null;
+    return (
+      candidates.find(
+        (l) =>
+          (!l.calendlyStatus || l.calendlyStatus === "not_booked") &&
+          // offerOf() resolves an absent offer to real_estate_acquisition, so leads
+          // written before the field existed are still matchable by the acquisition
+          // event type — they are acquisition leads.
+          (offers === undefined || offers.includes(offerOf(l))),
+      ) ?? null
+    );
   },
 });
 
@@ -155,6 +302,42 @@ export const findLeadsAwaitingRecheck = internalQuery({
       .order("asc") // oldest calendlyLastSyncedAt first — fair rotation across runs
       .take(limit * 4); // over-fetch before the in-JS time filter, still bounded
     return rows.filter((l) => (l.calendlyStartTime ?? 0) > notBeforeMs).slice(0, limit);
+  },
+});
+
+/**
+ * List this account's Calendly event types so the API event-type URI can be read off
+ * directly, without anyone pasting, printing or handling CALENDLY_PAT.
+ *
+ * A public booking URL (calendly.com/you/your-event) is NOT the API event-type URI
+ * (api.calendly.com/event_types/UUID) and cannot be substituted for it. This prints the
+ * pairing so the correct value can be copied rather than guessed:
+ *
+ *   npx convex run internal.calendly.listEventTypesForSetup --prod
+ *
+ * The token is read server-side by calendlyClient and never appears in the output.
+ */
+export const listEventTypesForSetup = internalAction({
+  args: {},
+  returns: v.any(),
+  handler: async () => {
+    if (!process.env.CALENDLY_PAT) {
+      return { ok: false, error: "CALENDLY_PAT is not set on this deployment." };
+    }
+    const me = await getCurrentUser();
+    const types = await listEventTypes(me.uri);
+    return {
+      ok: true,
+      user: me.email,
+      hint: "Set CALENDLY_CONTENT_EVENT_TYPE_URI to the `apiEventTypeUri` of the content event, " +
+            "or set CALENDLY_CONTENT_SCHEDULING_URL to its `publicBookingUrl` and let the sync resolve it.",
+      eventTypes: types.map((t) => ({
+        name: t.name,
+        active: t.active,
+        publicBookingUrl: t.scheduling_url ?? null,
+        apiEventTypeUri: t.uri,
+      })),
+    };
   },
 });
 
@@ -358,7 +541,8 @@ export const setSyncState = internalMutation({
     calendlyTargets: v.optional(
       v.array(
         v.object({
-          offer: offerValidator,
+          // A list: a shared event type legitimately serves more than one offer.
+          offers: v.array(offerValidator),
           uri: v.string(),
           name: v.optional(v.string()),
           source: v.string(),
@@ -399,88 +583,62 @@ export const sync = internalAction({
       const me = await getCurrentUser();
 
       /* ── Resolve every configured event type ────────────────────── */
-      const targets: SyncTarget[] = [];
-      const seenUris = new Set<string>();
-      // Only fetched if some offer actually needs a name lookup — a pinned URI for every
-      // offer means this API call never happens.
-      let eventTypes: { uri: string; name: string }[] | null = null;
-
-      for (const config of EVENT_TYPE_CONFIG) {
-        const pinnedUri = process.env[config.uriEnv]?.trim();
-        let resolved: SyncTarget | null = null;
-
-        if (pinnedUri) {
-          resolved = { offer: config.offer, uri: pinnedUri, source: "env" };
-        } else {
-          const wantedName = process.env[config.nameEnv]?.trim() || config.defaultName;
-          if (wantedName) {
-            if (eventTypes === null) eventTypes = await listEventTypes(me.uri);
-            const match = eventTypes.find(
-              (t) => t.name.trim().toLowerCase() === wantedName.toLowerCase(),
-            );
-            if (match) {
-              resolved = {
-                offer: config.offer,
-                uri: match.uri,
-                name: match.name,
-                source: "name_lookup",
-              };
-            } else if (config.required) {
-              const msg = `No Calendly event type named "${wantedName}" was found for ${me.email}. Set ${config.uriEnv} to pin it explicitly.`;
-              console.error("[calendly] " + msg);
-              await ctx.runMutation(internal.calendly.setSyncState, {
-                calendlyUserUri: me.uri,
-                calendlyOrganizationUri: me.organization,
-                lastRunOk: false,
-                lastError: msg,
-              });
-              return null;
-            } else {
-              console.warn(
-                `[calendly] optional event type "${wantedName}" for ${config.offer} was not found — skipping that offer this run.`,
-              );
-            }
-          }
-          // No URI and no name configured: this offer simply has no calendar yet.
-        }
-
-        if (!resolved) continue;
-        // Both funnels currently point at ONE shared Calendly event. Listing it twice
-        // would double every API call in Pass A for no benefit, so dedupe by URI and
-        // keep the first offer that claimed it.
-        if (seenUris.has(resolved.uri)) {
+      //
+      // Resolution failures are COLLECTED, never fatal. The previous version returned
+      // from the whole run the moment the required acquisition target failed to resolve,
+      // which meant a pre-existing VSL-4 misconfiguration silently prevented a perfectly
+      // healthy VSL-5 target from syncing and stopped the Pass B lifecycle rechecks along
+      // with it. One broken calendar must not take down the others.
+      const eventTypes = needsEventTypeLookup(process.env)
+        ? await listEventTypes(me.uri)
+        : [];
+      const { targets, errors: resolveErrors } =
+        resolveSyncTargets(process.env, eventTypes, me.email);
+      const targetErrors: string[] = [...resolveErrors];
+      for (const e of resolveErrors) console.error("[calendly] " + e);
+      for (const t of targets) {
+        if (t.offers.length > 1) {
           console.warn(
-            `[calendly] ${config.offer} resolves to the same event type as an earlier offer (${resolved.uri}); listing it once.`,
+            `[calendly] event type ${t.uri} is shared by ${t.offers.join(", ")}. ` +
+            `Bookings on it cannot be attributed to one offer by event type alone; ` +
+            `matching will accept any of them.`,
           );
-          continue;
         }
-        seenUris.add(resolved.uri);
-        targets.push(resolved);
       }
 
       if (targets.length === 0) {
-        const msg = "No Calendly event types are configured for any offer.";
+        const msg = targetErrors.length
+          ? `No Calendly event type could be resolved. ${targetErrors.join(" | ")}`
+          : "No Calendly event types are configured for any offer.";
         console.error("[calendly] " + msg);
-        await ctx.runMutation(internal.calendly.setSyncState, {
-          calendlyUserUri: me.uri,
-          calendlyOrganizationUri: me.organization,
-          lastRunOk: false,
-          lastError: msg,
-        });
-        return null;
+        // Pass B still runs below: rechecks work from invitee URIs already stored on
+        // leads and need no event type at all. Cancellations and reschedules must keep
+        // being detected even while discovery is misconfigured.
       }
 
       /* ── Pass A: discover new bookings, across every target ──────── */
       const now = Date.now();
-      const events: { uri: string; start_time: string; end_time: string; eventTypeUri: string }[] = [];
+      const events: {
+        uri: string; start_time: string; end_time: string;
+        eventTypeUri: string; offers: Offer[];
+      }[] = [];
       for (const target of targets) {
-        const found = await listActiveEvents(
-          me.uri,
-          target.uri,
-          new Date(now - DISCOVERY_WINDOW_PAST_MS),
-          new Date(now + DISCOVERY_WINDOW_FUTURE_MS),
-        );
-        for (const e of found) events.push({ ...e, eventTypeUri: target.uri });
+        try {
+          const found = await listActiveEvents(
+            me.uri,
+            target.uri,
+            new Date(now - DISCOVERY_WINDOW_PAST_MS),
+            new Date(now + DISCOVERY_WINDOW_FUTURE_MS),
+          );
+          for (const e of found) {
+            events.push({ ...e, eventTypeUri: target.uri, offers: target.offers });
+          }
+        } catch (e) {
+          // One unreachable or unauthorised event type must not cost us the others.
+          const msg = `Listing events for ${target.uri} failed: ${String(e)}`;
+          console.error("[calendly] " + msg);
+          targetErrors.push(msg);
+        }
       }
 
       let discovered = 0,
@@ -510,6 +668,10 @@ export const sync = internalAction({
             const normalisedEmail = invitee.email.trim().toLowerCase();
             const lead = await ctx.runQuery(internal.calendly.findEligibleLeadByEmail, {
               normalisedEmail,
+              // Only the offers this event type can legitimately book for. With
+              // distinct event types, a content booking can no longer land on an
+              // acquisition lead that happens to share the email.
+              offers: event.offers,
             });
 
             if (lead) {
@@ -598,11 +760,12 @@ export const sync = internalAction({
         }
       }
 
-      const acquisitionTarget = targets.find((t) => t.offer === "real_estate_acquisition");
+      const acquisitionTarget = targets.find((t) =>
+        t.offers.includes("real_estate_acquisition"));
       const summary =
         `targets=${targets.length} events=${events.length} discovered=${discovered} booked=${booked} ` +
         `unmatched=${unmatched} rechecked=${rechecked} canceled=${canceled} ` +
-        `rescheduled=${rescheduled} errors=${errors}`;
+        `rescheduled=${rescheduled} errors=${errors} targetErrors=${targetErrors.length}`;
       console.log("[calendly] " + summary);
       await ctx.runMutation(internal.calendly.setSyncState, {
         calendlyUserUri: me.uri,
@@ -612,8 +775,12 @@ export const sync = internalAction({
         calendlyEventTypeUri: acquisitionTarget?.uri,
         calendlyEventTypeName: acquisitionTarget?.name,
         calendlyTargets: targets,
-        lastRunOk: true,
+        // A resolution failure on ONE offer is reported without claiming the whole run
+        // failed — the healthy targets really did sync, and saying otherwise would hide
+        // that fact behind an unrelated misconfiguration.
+        lastRunOk: targetErrors.length === 0,
         lastRunSummary: summary,
+        lastError: targetErrors.length ? targetErrors.join(" | ").slice(0, 1000) : undefined,
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);

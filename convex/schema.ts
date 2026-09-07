@@ -366,10 +366,13 @@ export default defineSchema({
     calendlyTargets: v.optional(
       v.array(
         v.object({
-          offer: offerValidator,
+          // A LIST: when two offers share one Calendly event type, that event genuinely
+          // serves both and cannot distinguish their bookings. Recording both states the
+          // ambiguity rather than silently crediting whichever offer resolved first.
+          offers: v.array(offerValidator),
           uri: v.string(),
           name: v.optional(v.string()),
-          source: v.string(), // "env" | "name_lookup"
+          source: v.string(), // "env" | "scheduling_url" | "name_lookup"
         }),
       ),
     ),

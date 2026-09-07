@@ -178,6 +178,26 @@ function doPost(e) {
       submission_id: submissionId,
       lead_timestamp: clean_(payload.lead_timestamp || payload.timestamp),
       sheet_received_at: formatNow_(),
+
+      // Which funnel produced this row. A payload with no offer is a mirror written by
+      // an older Convex deploy, and every one of those was an acquisition lead.
+      offer: safeCell_(payload.offer || 'real_estate_acquisition'),
+
+      // Brokerage Content Engine answers. Blank on an acquisition row.
+      company_name: safeCell_(payload.company_name),
+      team_size: safeCell_(payload.team_size),
+      team_size_label: safeCell_(payload.team_size_label),
+      monthly_shoot: safeCell_(payload.monthly_shoot),
+
+      // Three-state on purpose, so the column can be read at a glance:
+      //   TRUE / FALSE  a gated offer's server-side verdict
+      //   blank         an offer with no qualification gate at all
+      // normalizeBoolean_ alone would turn "absent" into FALSE and make every
+      // acquisition row look like a rejected application.
+      content_qualified: (payload.content_qualified === undefined ||
+        payload.content_qualified === null || payload.content_qualified === '')
+        ? '' : normalizeBoolean_(payload.content_qualified),
+
       name: safeCell_(payload.name),
       email: safeCell_(clean_(payload.email).toLowerCase()),
       phone: safeCell_(payload.phone),

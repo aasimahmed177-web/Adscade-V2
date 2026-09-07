@@ -1092,6 +1092,33 @@ body.modal-open{overflow:hidden}
     else el.removeAttribute('aria-invalid');
   }
 
+  /* Must stay in step with normalisePhoneInternational() in convex/http.ts. If the two
+     ever disagree, a visitor gets a generic "could not save your details" after submit
+     instead of being corrected in the field they can actually fix.
+
+     A country code is REQUIRED and never guessed: an unprefixed Gulf number is not
+     reliably dialable or WhatsApp-reachable, and assuming one would be worse than
+     asking. Returns true when the number is acceptable. */
+  function validInternationalPhone(value){
+    var trimmed = (value || '').trim();
+    if (!trimmed) return false;
+    if (!/^[+0-9()\-.\s]+$/.test(trimmed)) return false;   // letters and junk out
+
+    var plusCount = (trimmed.match(/\+/g) || []).length;
+    if (plusCount > 1) return false;
+    if (plusCount === 1 && trimmed.charAt(0) !== '+') return false;
+
+    var digits = trimmed.replace(/[^\d]/g,'');
+    var e164;
+    if (trimmed.charAt(0) === '+')      e164 = digits;
+    else if (digits.indexOf('00') === 0) e164 = digits.slice(2);
+    else return false;                                      // no country code given
+
+    if (e164.length < 8 || e164.length > 15) return false;
+    if (e164.charAt(0) === '0') return false;               // no country code starts with 0
+    return true;
+  }
+
   function validate(){
     var ok = true;
 
@@ -1103,8 +1130,7 @@ body.modal-open{overflow:hidden}
         bad = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value);
       }
       if (el.type === 'tel'){
-        var digits = el.value.replace(/[^\d]/g,'');
-        bad = digits.length < 8 || digits.length > 15;
+        bad = !validInternationalPhone(el.value);
       }
 
       setFieldInvalid(el,bad);
@@ -1185,11 +1211,16 @@ body.modal-open{overflow:hidden}
 
        window.ADSCADE_CONTENT_CALENDLY_URL = 'https://calendly.com/<you>/<content-event>';
 
-     Until it is set, the page falls back to the event this page already pointed at, so
-     shipping the backend does not take the calendar away from a qualified brokerage.
-     The fallback is the URL that was already hardcoded here — nothing new was invented.
+     The fallback below is the CONTENT event, supplied by the owner. It used to be the
+     acquisition event this page originally pointed at; that was wrong once a dedicated
+     content event existed, because a brokerage applying to this offer would have been
+     booked onto an acquisition call — with acquisition questions — if the header
+     variable were ever missing or mistyped.
+
+     Server-side, the matching event type must also be configured, or the booking will
+     never sync back onto the lead. See docs/VSL5_CONTENT_FUNNEL.md.
   ─────────────────────────────────────────────────────────────────── */
-  var CALENDLY_FALLBACK_URL = 'https://calendly.com/aasim-ahmed177/realestate-growth-systems';
+  var CALENDLY_FALLBACK_URL = 'https://calendly.com/aasim-ahmed177/brokerage-content-system-call';
   var FORWARDED_PARAMS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
 
   function calendlyUrl(payload){

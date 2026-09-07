@@ -115,22 +115,34 @@ already acted on the first answer.
 VSL-4's `normalisePhone()` maps a bare ten-digit number to `+91`, because that funnel was
 built for Indian developers and its historical rows depend on it. **It is untouched.**
 
-VSL-5 uses `normalisePhoneInternational()`:
+VSL-5 uses `normalisePhoneInternational()`, which **requires a country code and never
+invents one**. It always returns E.164 or rejects.
 
-| Input | Stored as | Why |
-|---|---|---|
-| `+971 50 123 4567` | `+971501234567` | country code given, honoured |
-| `00971501234567` | `+971501234567` | ITU `00` prefix means `+` |
-| `+919876543210` | `+919876543210` | still country-aware |
-| `0501234567` | `0501234567` | **no country code invented** |
-| `123` | rejected | too short |
+| Input | Result |
+|---|---|
+| `+971 50 123 4567` | `+971501234567` |
+| `00971501234567` | `+971501234567` (ITU `00` prefix) |
+| `+919876543210` | `+919876543210` |
+| `+971 (50) 123-4567` | `+971501234567` |
+| `0501234567` | **rejected** — no country code |
+| `9876543210` | **rejected** — would have become `+91…` on VSL-4 |
+| `call me on +971…` | **rejected** — letters |
+| `+0501234567` | **rejected** — no country code starts with `0` |
+| `+123`, 20 digits | **rejected** — outside E.164's 8–15 |
 
-A *wrong* country code is worse than none: it corrupts `normalisedPhone` matching and
-makes every outbound WhatsApp attempt fail while looking perfectly valid in the Sheet. A
-bare number is kept as digits rather than rejected, because losing a real brokerage over
-a formatting habit costs more than an unprefixed row.
+An earlier revision accepted bare national numbers and stored them as digits, reasoning
+that losing a lead to a formatting habit costs more than an unprefixed row. That was the
+wrong trade here: an unprefixed Gulf number is not reliably dialable or WhatsApp-reachable,
+so the "saved" lead is often uncontactable anyway, and it silently breaks phone dedup.
 
----
+**The page enforces the identical rule before submit** (`validInternationalPhone()` in
+`site/vsl-5.html`), so a visitor is corrected in the field rather than getting a generic
+save error afterwards. If you change one, change both — there are tests on each side.
+
+One irreducible ambiguity, pinned by a test rather than left to chance: `00501234567` is
+both a valid `+501` (Belize) number and what a UAE visitor produces by prepending `00` to
+their national number. Nothing in the string distinguishes them, so the ITU prefix is
+honoured as written.
 
 ## Google Sheets — one tab, one `offer` column
 
@@ -145,8 +157,22 @@ Both offers mirror into the existing `Leads` sheet. This was chosen over a separ
 - the Calendly booking-status mirror stays one code path for all offers.
 
 New columns: `offer`, `company_name`, `team_size`, `monthly_shoot`, `content_qualified`,
-`team_size_label`. Acquisition rows leave the content columns blank and vice versa;
-`content_qualified` is blank (not `FALSE`) for offers with no qualification gate.
+`team_size_label`. Acquisition rows leave the content columns blank and vice versa.
+
+`content_qualified` is deliberately **three-state**: `TRUE` / `FALSE` for a gated offer,
+and **blank** for one with no gate. Collapsing blank into `FALSE` would make every
+acquisition lead read as a rejected application whenever the column is filtered.
+
+> **A bug worth recording.** The first version of this change added the six headers and
+> made Convex send the six values, but never added them to `doPost`'s `rowData` — and
+> `upsertLead_` writes `''` for any header it cannot find there. The result would have
+> been six permanently blank columns while Convex, the schema and every other test
+> passed, because nothing in this repo executed the receiver.
+>
+> `tools/appsscript-test.mjs` now runs the real `.gs` file in a Node VM with the Google
+> services faked, and asserts the mapping, the three-state qualification, formula
+> escaping, the shared secret, and that a later booking **updates the same row** instead
+> of appending a second one.
 
 For visual separation without touching the write path, add a tab with:
 
@@ -167,40 +193,64 @@ Sheets.
 would mean the second offer's bookings are never discovered at all — the API filters
 server-side by `event_type`, so they would not even show up as unmatched.
 
-It now resolves a list, one entry per offer, from `EVENT_TYPE_CONFIG`:
+`resolveSyncTargets()` now resolves a list, one entry per offer. It is a **pure exported
+function**, so `tools/calendly-targets-test.mjs` can exercise every branch outside Convex
+(the action sandbox blocks loopback, so `sync()` cannot be driven against a mock).
 
-| Offer | Pin by URI | Or look up by name |
+Each offer resolves in this order:
+
+| Order | Acquisition | Content |
 |---|---|---|
-| `real_estate_acquisition` | `CALENDLY_EVENT_TYPE_URI` | `CALENDLY_EVENT_TYPE_NAME`, default `"Real Estate Acquisition System Call"` |
-| `brokerage_content_engine` | `CALENDLY_CONTENT_EVENT_TYPE_URI` | `CALENDLY_CONTENT_EVENT_TYPE_NAME` |
+| 1. pinned API URI | `CALENDLY_EVENT_TYPE_URI` | `CALENDLY_CONTENT_EVENT_TYPE_URI` |
+| 2. public booking URL | `CALENDLY_SCHEDULING_URL` | `CALENDLY_CONTENT_SCHEDULING_URL` |
+| 3. display name | `CALENDLY_EVENT_TYPE_NAME`, default `"Real Estate Acquisition System Call"` | `CALENDLY_CONTENT_EVENT_TYPE_NAME` |
 
-- The content offer is **optional**: if nothing is configured it is skipped quietly, and
-  VSL-4 keeps syncing exactly as before. No scary "not found" error for an event that
-  does not exist yet.
-- Targets are **deduped by URI**, because both funnels currently point at the *same*
-  Calendly event. Listing it twice would double every API call for no benefit.
-- Matching is still **by email**, and the lead row already knows its own offer — so a
-  content booking attaches to the content lead correctly *even while both funnels share
-  one event type*.
+**A public booking URL is not an API event-type URI** (`calendly.com/you/event` vs
+`api.calendly.com/event_types/UUID`) and cannot be substituted for one. Option 2 exists
+so nobody has to hand-convert or guess a UUID — give it the URL you actually have and the
+sync resolves it. Comparison ignores trailing slashes, query strings and case.
 
-`calendlySyncState.calendlyTargets` records what each run resolved:
+To read the pairing directly, without anyone handling the token:
 
 ```bash
-npx convex run internal.calendly.getSyncState --prod
+npx convex run internal.calendly.listEventTypesForSetup --prod
 ```
 
-### ⚠ Pre-existing issue to check, unrelated to VSL-5
+It prints each event's name, `publicBookingUrl` and `apiEventTypeUri`. `CALENDLY_PAT` is
+read server-side and never appears in the output.
 
-Both pages currently point at `calendly.com/aasim-ahmed177/realestate-growth-systems`,
-but the acquisition sync looks for an event type **named** `"Real Estate Acquisition
-System Call"`. If that event's display name is not exactly that string, and
-`CALENDLY_EVENT_TYPE_URI` is not pinned in production, then every run has been logging
-`No Calendly event type named "..." was found` and **no VSL-4 booking has been syncing**.
+### Failures are isolated
 
-This could not be verified from here — it needs production env access. See "What to check
-in production" below.
+A resolution failure on one offer is **recorded and skipped, never fatal**. The earlier
+version returned from the whole run the moment the required acquisition target failed —
+so the pre-existing VSL-4 naming problem would silently have stopped VSL-5 from syncing
+too, and stopped the Pass B lifecycle rechecks with it.
 
----
+Now: healthy targets sync, `lastError` names the broken one and the variable that fixes
+it, and `lastRunOk` goes false so the failure is visible without hiding the work that did
+succeed. Pass B runs even when **no** target resolves, because rechecks work from invitee
+URIs already stored on leads — cancellations keep being detected while discovery is
+misconfigured.
+
+### Matching is offer-aware
+
+`findEligibleLeadByEmail` takes the `offers` a booked event type can legitimately serve,
+and will not match outside them.
+
+Without this, one person who applies to **both** funnels with the same address — the
+owner running an acceptance test, most obviously — could have a content booking attached
+to their acquisition lead purely because that row was newer. The booking would look
+healthy while sitting on the wrong row, mirroring to the wrong Sheet line, leaving the
+real lead forever `not_booked`. Both submission orders are covered by tests.
+
+A **shared** event type carries *both* offers in its target and may match either. That is
+the honest representation: today both funnels point at one event, which genuinely cannot
+tell their bookings apart. Merging the offers states the ambiguity instead of silently
+crediting whichever offer resolved first. Give the offers distinct event types and the
+ambiguity disappears on its own.
+
+Legacy leads with no `offer` field resolve as acquisition through `offerOf()`, so an
+acquisition event still matches them and a content event never will.
 
 ## Telemetry
 
@@ -255,27 +305,41 @@ Telemetry needs no second variable — it is derived from this one, and **fails 
 if the endpoint does not end in `/submit-content-lead`, telemetry disables itself rather
 than risk POSTing funnel events at the lead endpoint.
 
-### 2. The content Calendly event — once you create it
+### 2. The content Calendly event
 
-Add to the same snippet:
+The owner-supplied booking URL is:
+
+```
+https://calendly.com/aasim-ahmed177/brokerage-content-system-call
+```
+
+It is already the fallback in `site/vsl-5.html`, so the redirect works without the header
+variable. Setting it explicitly is still worthwhile — it means the URL can be changed
+without editing the widget:
 
 ```html
 <script>
   window.ADSCADE_CONTENT_CALENDLY_URL =
-    "https://calendly.com/<you>/<your-content-event>";
+    "https://calendly.com/aasim-ahmed177/brokerage-content-system-call";
 </script>
 ```
 
-and pin it server-side so the sync can see bookings on it:
+**The frontend URL alone does not configure syncing.** The page sends the visitor to the
+calendar; the backend still has to be told which event type to poll, or the booking will
+never come back onto the lead. Either let the sync resolve it from the same public URL:
 
 ```bash
+npx convex env set CALENDLY_CONTENT_SCHEDULING_URL https://calendly.com/aasim-ahmed177/brokerage-content-system-call --prod
+```
+
+or pin the API URI directly, which is immune to the event being renamed *or* re-slugged:
+
+```bash
+npx convex run internal.calendly.listEventTypesForSetup --prod   # read apiEventTypeUri
 npx convex env set CALENDLY_CONTENT_EVENT_TYPE_URI https://api.calendly.com/event_types/XXXXXXXX --prod
 ```
 
-Until both are set, qualified applicants go to the event this page already pointed at
-(`calendly.com/aasim-ahmed177/realestate-growth-systems`) — the existing URL, kept as the
-fallback so shipping the backend does not take the calendar away from a qualified
-brokerage. Nothing was invented.
+Pinning the URI is the more durable of the two.
 
 ### 3. Google Apps Script
 
@@ -293,8 +357,14 @@ blanks in the new columns.
 | `GOOGLE_SHEETS_WEBHOOK_URL` | existing | mirror fails closed without it |
 | `GOOGLE_SHEETS_SYNC_SECRET` | existing | |
 | `CALENDLY_EVENT_TYPE_URI` | optional | pin acquisition; immune to renames |
-| `CALENDLY_CONTENT_EVENT_TYPE_URI` | **new, optional** | pin the VSL-5 event once it exists |
-| `CALENDLY_CONTENT_EVENT_TYPE_NAME` | new, optional | alternative to pinning by URI |
+| `CALENDLY_SCHEDULING_URL` | **new, optional** | resolve acquisition from its public booking URL |
+| `CALENDLY_CONTENT_EVENT_TYPE_URI` | **new** | pin the VSL-5 event — most durable |
+| `CALENDLY_CONTENT_SCHEDULING_URL` | **new** | or resolve it from the public booking URL |
+| `CALENDLY_CONTENT_EVENT_TYPE_NAME` | new, optional | last resort; breaks if the event is renamed |
+
+Set **one** of the two content variables. Without either, VSL-5 bookings are never
+discovered and the lead stays `not_booked` forever, even though the visitor booked
+successfully.
 | `ADSCADE_DEV_ORIGIN` | dev only | **must NOT be set in production** — it widens the CORS allow-list |
 
 **VSL-5 introduces no new required variable.**
@@ -307,8 +377,10 @@ blanks in the new columns.
 npx convex dev                            # terminal 1
 npx --yes http-server site -p 8788 -s     # terminal 2
 
-node tools/content-api.mjs        # 117 assertions — endpoint, qualification, phone, regression
-node tools/content-browser.mjs    # real browser: qualified/unqualified/failure/mobile
+node tools/content-api.mjs                     # endpoint, qualification, phone, regression
+node tools/content-browser.mjs                # real browser: qualified/unqualified/failure/mobile
+node tools/appsscript-test.mjs                # the real .gs receiver, in a Node VM
+npx tsx tools/calendly-targets-test.mjs       # event-type resolution, incl. failure isolation
 ```
 
 Plus the full existing suite, which must stay green:
@@ -316,14 +388,42 @@ Plus the full existing suite, which must stay green:
 ```bash
 for t in integrity score responsive acceptance modal redirect \
          convex-api convex-e2e calendly-sync-test funnel-test \
-         content-api content-browser; do node tools/$t.mjs; done
+         content-api content-browser appsscript-test; do node tools/$t.mjs; done
 npx --yes tsx tools/calendlyClient-test.mjs
+npx --yes tsx tools/calendly-targets-test.mjs
 ```
 
 `content-browser.mjs` generates `site/.vsl-5-shell.html` at run time — the WordPress
 `<head>` the Elementor fragment normally sits inside. Without a viewport meta the mobile
 assertions would silently run at a 980px layout viewport and test nothing. It is
 gitignored and deleted after the run.
+
+---
+
+## Live acceptance evidence
+
+A green test suite is not proof the live funnel works. These are the checks that are:
+
+**A — qualified application** (5–9 team, yes to monthly shoot), using an address you control:
+- network: `POST /submit-content-lead` → `ok:true, stored:true, qualified:true`
+- Convex: exactly one lead, `offer=brokerage_content_engine`, answers correct
+- browser: redirects to `brokerage-content-system-call`, name + email prefilled, **no phone in the URL**
+- Sheets: one row for that `submission_id`, all six content columns filled, `calendly_status=not_booked`
+
+**B — then actually book it.** Allow one 5-minute sync cycle plus the async mirror:
+- Convex: the **same** lead becomes `booked`, with the content event-type URI and time
+- `bookedCallEvents`: exactly one row for that invitee, still one after a second poll
+- Sheets: the **same row** updates to booked — **the row count must not increase**
+- `getSyncState`: `lastRunOk`, no `lastError`, and `calendlyTargets` lists both event types
+
+**C — unqualified** (1–4 + yes): stored with `contentQualified=false`, polite not-fit
+state, **no redirect**, and the Sheet shows `FALSE` — not blank.
+
+**D — cross-offer safety.** Submit both funnels with the same email, then book the content
+event: the booking must land on the **content** lead, not the acquisition one.
+
+Proof of completion is one `submission_id` matching across Convex and Sheets, carrying the
+right Calendly invitee.
 
 ---
 

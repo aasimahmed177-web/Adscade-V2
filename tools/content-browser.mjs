@@ -463,6 +463,59 @@ console.log('\n— 20. mobile modal remains usable —');
   await context.close();
 }
 
+/* ── frontend phone rule matches the backend exactly ──────────────── */
+console.log('\n— the form enforces the same phone rule as the server —');
+{
+  // If these two ever disagree, a visitor gets a generic "could not save your details"
+  // after submit instead of being corrected in the field they can fix.
+  const { context, page, leadPosts } = await openPage();
+  await page.click('.hero__action .js-content-cta');
+  await page.waitForSelector('#content-modal:not([hidden])');
+
+  const fillRest = async (email) => {
+    await page.fill('#content-name', 'Phone Test');
+    await page.fill('#content-email', email);
+    await page.fill('#content-company', 'Phone Co');
+    await page.check('input[name="team_size"][value="5_9"]');
+    await page.check('input[name="monthly_shoot"][value="yes"]');
+    await page.check('#content-consent');
+  };
+  await fillRest(`phone-${Date.now()}@adscade-test.com`);
+
+  const rejected = ['0501234567', '9876543210', 'abcdefghij', '123',
+                    'call me on +971501234567', '+++971501234567', '+0501234567'];
+  for (const bad of rejected) {
+    await page.fill('#content-phone', bad);
+    await page.click('#content-lead-form button[type=submit]');
+    await page.waitForTimeout(120);
+    const marked = await page.locator('#content-phone').evaluate(
+      (el) => el.closest('.field').classList.contains('invalid'));
+    t(`form rejects ${JSON.stringify(bad)}`, marked && leadPosts.length === 0,
+      `invalid=${marked} posts=${leadPosts.length}`);
+  }
+  t('nothing was submitted while the phone was invalid', leadPosts.length === 0,
+    String(leadPosts.length));
+
+  for (const good of ['+971501234567', '+971 50 123 4567', '00971501234567',
+                      '+44 7700 900123']) {
+    await page.fill('#content-phone', good);
+    const marked = await page.locator('#content-phone').evaluate((el) => {
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      return el.closest('.field').classList.contains('invalid');
+    });
+    t(`form accepts ${JSON.stringify(good)}`, !marked);
+  }
+
+  // And the accepted one really does go through end to end.
+  await page.fill('#content-phone', '+971501234567');
+  await page.click('#content-lead-form button[type=submit]');
+  await page.waitForTimeout(2500);
+  t('a country-coded number submits successfully', leadPosts.length === 1,
+    String(leadPosts.length));
+
+  await context.close();
+}
+
 /* ── client-side validation still gates submission ────────────────── */
 console.log('\n— client-side validation still blocks an incomplete form —');
 {
