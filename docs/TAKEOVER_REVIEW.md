@@ -45,6 +45,15 @@ Those fixes are present in the checked-out repository, not merely in a report.
 
 `npm run typecheck`: passes. `git diff --check`: passes.
 
+### Module-loading follow-up
+
+The owner's Node 20.19.0 run passed the first three suites, but the workflow suite
+failed to import `internal` from generated `api.js`; typechecking was skipped by
+the shell's `&&` chain. Declare `type: module` explicitly in the root package and
+remove the test loader's CommonJS compatibility wrappers. The original error was
+reproduced on Node 20.19.0. With the fix, all four suites and typechecking pass on
+both Node 20.19.0 and Node 24.19.0 in the review environment.
+
 These are simulated-service tests, not production verification. The native Convex
 development server could not finish startup in this environment. Playwright's Chromium
 download failed with timeouts/502, so the existing browser/real-deployment suites were

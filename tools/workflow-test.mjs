@@ -5,19 +5,16 @@
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import { convexTest } from 'convex-test';
-import schemaModule from '../convex/schema.ts';
+import schema from '../convex/schema.ts';
 import { internal } from '../convex/_generated/api.js';
 import { startMockCalendly, mockFixtures } from './calendlyMockServer.mjs';
 import { makeSandbox, post, rows } from './lib/appsscript-harness.mjs';
 
 const modules = Object.fromEntries(readdirSync('convex').filter(f => f.endsWith('.ts')).map(f => [
-  './convex/' + f, async () => {
-    const m = await import('../convex/' + f);
-    return m.default?.default ? m.default : m; // tsx handles this CommonJS repo
-  },
+  './convex/' + f, () => import('../convex/' + f),
 ]));
 modules['./convex/_generated/server.js'] = () => import('../convex/_generated/server.js');
-const t = convexTest(schemaModule.default ?? schemaModule, modules);
+const t = convexTest(schema, modules);
 const { base, state, stop } = await startMockCalendly();
 const fx = mockFixtures(base);
 const sheet = makeSandbox({ scriptProperties: { ADSCADE_SYNC_SECRET: 'workflow-test-secret' } });
