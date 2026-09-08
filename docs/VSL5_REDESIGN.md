@@ -41,3 +41,22 @@ Update the page and clear the WordPress/cache-plugin cache.
 No Apps Script or Convex change is needed for this redesign. WordPress publishing
 is performed by the owner. The optional `ADSCADE_CONTENT_REQUIRE_QUALIFICATION`
 flag must stay unset or false while booking is open to everybody.
+
+
+## iPhone production clarification and image pack
+
+The owner clarified that the base content service is shot on iPhone. The page
+now says so in the hero support line, process, deliverables, package and shoot
+FAQ, and the page description reflects it. The booking contract is unchanged.
+
+The owner rejected the sample-video-cover collage. Replacement imagery consists
+of an illustrative iPhone shoot, content preparation and a photo-derived founder
+portrait, each with separate landscape desktop and portrait mobile compositions.
+Upload-ready WebP exports are 1280x960 desktop and 768x960 mobile.
+
+Media integration is pending the owner's six WordPress File URLs. Until then the
+HTML still references the old two images; do not describe them as replaced live.
+The next media change must use picture/source selection and display the full
+image proportions (the prior hero's portrait crop can cut off the iPhone). Update
+the header's hero preload/OG image at the same time. Add the compact founder
+introduction with the owner's existing name/role and no borrowed content results.
