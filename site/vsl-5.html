@@ -2,7 +2,7 @@
 Replace the ENTIRE existing VSL-5 HTML widget with this file. Keep the existing
 VSL-5 header snippet: it supplies ADSCADE_CONTENT_LEAD_ENDPOINT and the Calendly URL.
 All valid, stored applications can book. Qualified reporting stays server-owned.
-Optional prior gate: window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION = true.
+Release: 2026-09-08-open-booking. Legacy qualification flags are ignored.
 Styles are scoped; the dialog and booking bar escape Elementor transform clipping.
 Existing GTM / Google / Meta tags and backend payload contracts are preserved.
 -->
@@ -178,7 +178,7 @@ body.adscade-content-modal-open{overflow:hidden!important}
 
 </style>
 
-<div id="adscade-content">
+<div id="adscade-content" data-release="2026-09-08-open-booking">
 <a class="skip-link" href="#content-main">Skip to content</a>
 <div class="dark">
   <div class="wrap">
@@ -785,26 +785,11 @@ body.adscade-content-modal-open{overflow:hidden!important}
         true
       );
 
-      if (qualified || window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION !== true){
-        track('content_calendly_redirect', null, true);
-        window.location.assign(calendlyUrl(payload));
-        return;
-      }
-
-      /* Optional strict mode: stored but unqualified, so show the not-fit state. */
-      btn.textContent = 'Application received';
-      btn.disabled = true;
-
-      var note = document.createElement('div');
-      note.style.marginTop = '1rem';
-      note.style.padding = '1rem';
-      note.style.border = '1px solid rgba(226,185,91,.22)';
-      note.style.borderRadius = '8px';
-      note.style.color = 'var(--ink)';
-      note.style.fontSize = '1rem';
-      note.style.lineHeight = '1.5';
-      note.textContent = 'Thanks — we have your details. This programme is currently built around established brokerages with an active sales team that can commit to a monthly shoot.';
-      form.appendChild(note);
+      // Booking is open to every saved application. A stale WordPress header must
+      // never restore the old gate; qualification only controls reporting above.
+      track('content_calendly_redirect', null, true);
+      window.location.assign(calendlyUrl(payload));
+      return;
 
     }catch(errObj){
       err.classList.add('on');

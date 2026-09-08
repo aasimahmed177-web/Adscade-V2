@@ -253,6 +253,8 @@ export default defineSchema({
     // Google Sheets reporting mirror. Convex remains authoritative; these fields exist
     // only so operators can see whether the asynchronous mirror is healthy.
     googleSheetsSyncStatus: v.optional(googleSheetsSyncStatusValidator),
+    // Increment whenever mirrored business data changes. Older rows start at zero.
+    googleSheetsSyncVersion: v.optional(v.number()),
     googleSheetsSyncAttempts: v.optional(v.number()),
     googleSheetsLastSyncedAt: v.optional(v.number()),
     googleSheetsLastError: v.optional(v.string()),

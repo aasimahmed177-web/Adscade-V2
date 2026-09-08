@@ -42,7 +42,7 @@ let checks = 0;
 function check(value, message) { assert.ok(value, message); checks++; }
 const results = [];
 try {
-  for (const [width, scenario] of [[1440, 'qualified'], [1024, 'retry'], [768, 'strict'], [390, 'open'], [320, 'not-stored']]) {
+  for (const [width, scenario] of [[1440, 'qualified'], [1024, 'retry'], [768, 'stale-flag'], [390, 'small-team'], [320, 'not-stored']]) {
     const browser = await chromium.launch({
       headless: true,
       ...(process.env.ADSCADE_BROWSER_EXECUTABLE ? { executablePath: process.env.ADSCADE_BROWSER_EXECUTABLE } : {}),
@@ -88,7 +88,7 @@ try {
         window.dataLayer = [];
         window.dataLayer.push = function(event) { window.captureEvent(event); return Array.prototype.push.call(this, event); };
         if (strict) window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION = true;
-      }, { strict: scenario === 'strict' });
+      }, { strict: scenario === 'stale-flag' });
       await page.goto(origin + '/?utm_source=review&utm_campaign=content', { waitUntil: 'domcontentloaded' });
       await page.evaluate(() => document.fonts.ready);
       for (const img of await page.locator('#adscade-content img').all()) {
@@ -156,7 +156,7 @@ try {
       await page.locator('#content-email').fill('review@example.com');
       await page.locator('#content-phone').fill('501234567');
       await page.locator(`input[name=team_size][value="${scenario === 'qualified' ? '10_19' : '1_4'}"]`).check();
-      await page.locator(`input[name=monthly_shoot][value="${scenario === 'qualified' ? 'yes' : 'no'}"]`).check();
+      await page.locator(`input[name=monthly_shoot][value="${['qualified', 'small-team'].includes(scenario) ? 'yes' : 'no'}"]`).check();
       await page.locator('#content-consent').check();
       await submit.click();
       check(leads.length === 0, 'Unprefixed phone never submits');
@@ -176,8 +176,6 @@ try {
       }
       if (scenario === 'not-stored') {
         check(await page.locator('#submit-err').isVisible() && redirects.length === 0, 'ok:true without stored:true never redirects');
-      } else if (scenario === 'strict') {
-        check(redirects.length === 0 && await submit.isDisabled(), 'Optional strict gate still holds unqualified applications');
       } else {
         await page.waitForURL('https://calendly.com/**');
         check(redirects.length === 1, 'Stored application opens calendar once');

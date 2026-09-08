@@ -4,7 +4,7 @@
 
    Covers the brief's frontend requirements 14-20:
      14  stored + qualified          -> Calendly redirect
-     15  stored + unqualified        -> redirect by default; optional strict mode blocks
+     15  stored + unqualified        -> redirect for all stored applications, even with a stale gate flag
      16  failed Convex request       -> error shown, NO redirect
      17  double click                -> exactly one stored lead
      18  attribution preserved through to the stored row
@@ -94,7 +94,7 @@ async function openPage({ mobile = false, query = '', breakBackend = false, requ
   const dataLayer = [];
 
   // The page is an Elementor fragment with no <head> of its own, so the WordPress
-  // header snippet is simulated here, including the optional calendar access policy.
+  // header snippet is simulated here, including a stale calendar gate flag to verify it is ignored.
   //
   // dataLayer pushes are mirrored out to Node as they happen. Reading window.dataLayer
   // after the run would return [] for any journey that ends at Calendly: the redirect
@@ -248,35 +248,22 @@ console.log('— 14. stored + qualified -> Calendly redirect —');
   await context.close();
 }
 
-/* ── 15: strict mode -> polite state, no redirect ─────────────────── */
-console.log('\n— 15. optional strict mode blocks unqualified applications —');
+/* A stale WordPress flag cannot restore the removed booking gate. */
+console.log('\n— 15. stale gate flag does not block small teams —');
 {
   const email = `unqualified-${Date.now()}@adscade-test.com`;
   const { context, page, telemetry, redirects } = await openPage({ requireQualification: true });
   await fillForm(page, { email, teamSize: '1_4', monthlyShoot: 'yes' });
   await page.click('#content-lead-form button[type=submit]');
   await page.waitForTimeout(2500);
-
   const rows = leadByEmail(email);
-  t('the application is still stored', rows.length === 1, String(rows.length));
-  t('server recorded it as NOT qualified', rows[0]?.contentQualified === false);
-  t('no Calendly redirect happened', redirects.length === 0, JSON.stringify(redirects));
-  t('still on the landing page', page.url().includes('vsl-5'), page.url());
-
-  const text = await page.textContent('#content-lead-form');
-  t('the polite not-fit message is shown',
-    text.includes('established brokerages with an active sales team'), text.slice(-200));
-  t('submit button reads "Application received"',
-    (await page.textContent('#content-lead-form button[type=submit]')).trim() === 'Application received');
-  t('no error state is shown',
-    !(await page.locator('#submit-err').evaluate((el) => el.classList.contains('on'))));
-
-  const stages = telemetry.map((e) => e.eventName);
-  t('telemetry recorded lead_form_stored', stages.includes('lead_form_stored'));
-  t('telemetry did NOT record lead_qualified', !stages.includes('lead_qualified'),
-    JSON.stringify(stages));
-  t('telemetry did NOT record calendly_redirect', !stages.includes('calendly_redirect'));
-
+  t('the application is stored once', rows.length === 1);
+  t('reporting keeps the server classification', rows[0]?.contentQualified === false);
+  t('stale header flag cannot block Calendly', redirects.length === 1);
+  const stages = telemetry.map(e => e.eventName);
+  t('stored application is tracked', stages.includes('lead_form_stored'));
+  t('no false qualified conversion', !stages.includes('lead_qualified'));
+  t('calendar redirect is tracked', stages.includes('calendly_redirect'));
   await context.close();
 }
 
@@ -284,10 +271,10 @@ console.log('\n— 15. optional strict mode blocks unqualified applications —'
 console.log('\n— the page trusts the server, not its own arithmetic —');
 {
   const email = `verdict-${Date.now()}@adscade-test.com`;
-  const { context, page, redirects } = await openPage({ requireQualification: true });
+  const { context, page, redirects, telemetry } = await openPage({ requireQualification: true });
 
   // Answers that WOULD qualify (20_plus + yes), but the server is made to say otherwise.
-  // A page that recomputed the verdict locally would redirect anyway; this one must not.
+  // Reporting must honor this response even though calendar access stays open.
   await page.route('**/submit-content-lead', async (route) => {
     const res = await route.fetch();
     const body = await res.json();
@@ -299,10 +286,9 @@ console.log('\n— the page trusts the server, not its own arithmetic —');
   await page.click('#content-lead-form button[type=submit]');
   await page.waitForTimeout(2500);
 
-  t('no redirect when the SERVER says unqualified, despite qualifying answers',
-    redirects.length === 0, JSON.stringify(redirects));
-  t('the not-fit state is shown instead',
-    (await page.textContent('#content-lead-form')).includes('established brokerages'));
+  t('stored application still redirects with a false server classification', redirects.length === 1);
+  t('reporting does not recompute qualification from the answers',
+    !telemetry.some(e => e.eventName === 'lead_qualified'));
   t('the row itself was still stored, and by the real server verdict',
     leadByEmail(email)[0]?.contentQualified === true);
 

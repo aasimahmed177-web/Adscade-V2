@@ -6,15 +6,10 @@ Calendar access is now open to every valid, successfully stored VSL-5 applicatio
 including 1–4 people and a "no" monthly-shoot answer. Both questions remain required.
 The backend qualification formula and qualified conversion events are unchanged:
 open calendar access must not relabel unqualified leads as qualified in reporting.
-Only `site/vsl-5.html` needs replacing in WordPress for this policy change; no Apps
-Script, header, or Convex deployment is needed. To restore the previous gate later,
-set `window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION = true` in the page header. That
-restores BOTH the existing 5+ team-size and monthly-shoot conditions.
-
-The submit-success routing was checked with both server verdicts in open and strict
-modes. The browser regression suite was updated, but not run against a real backend
-for this policy change. Earlier references below to blocking unqualified applicants
-describe the previous policy or optional strict mode.
+The booking gate and rejection branch are now removed entirely; legacy header flags
+cannot restore them. This release also fixes ordered Sheet delivery and sync/reporting
+diagnostics. See [END_TO_END_AUDIT.md](END_TO_END_AUDIT.md) for the verified findings,
+current deployment order and remaining live checks.
 
 Base: `f563a64294f1027f4f8d9b6cff9a01c7f47b8edc` on
 `feature/brokerage-content-funnel`. Working branch: `fix/vsl5-takeover`.
@@ -22,8 +17,8 @@ Base: `f563a64294f1027f4f8d9b6cff9a01c7f47b8edc` on
 ## Scope and inherited state
 
 The active offer is the Brokerage Content Engine: one monthly shoot and 20 videos.
-Qualification remains 5+ salespeople AND monthly shoot availability. Convex owns the
-verdict. VSL-4 remains compatible, and both offers share leads, Sheets and telemetry.
+Reporting classification remains 5+ salespeople AND monthly shoot availability.
+Convex owns the verdict; it does not restrict booking. VSL-4 remains compatible, and both offers share leads, Sheets and telemetry.
 
 The prior Claude commit fixed the six missing Apps Script mappings, offer-aware email
 matching, target-resolution isolation, phone formatting and content Calendly URL.

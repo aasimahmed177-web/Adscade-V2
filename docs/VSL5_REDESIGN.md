@@ -10,7 +10,7 @@ visual and copy rewrite. `site/vsl-5.html` is the complete replacement HTML widg
 - Scoped forest-green/cream styling, simpler buttons, responsive editorial layouts,
   consistent spacing and typography, and deliberate image crops.
 - All team sizes are welcomed. Every valid, stored application can open Calendly
-  by default, including `1_4` / `no`. The backend qualification verdict still owns
+  including `1_4` / `no`. The backend qualification verdict still owns
   qualified conversion reporting; opening booking does not qualify every applicant.
 - Dialog and mobile booking bar are moved outside Elementor's transformed wrapper.
   The dialog scrolls internally, traps keyboard focus and restores the opener.
@@ -20,14 +20,14 @@ visual and copy rewrite. `site/vsl-5.html` is the complete replacement HTML widg
 
 ## Verification
 
-`node tools/content-ui-review.mjs` passed 213 browser assertions at widths 1440,
+`node tools/content-ui-review.mjs` passed 216 browser assertions at widths 1440,
 1024, 768, 390 and 320. The harness uses the actual widget and header in a simulated
 Elementor wrapper with competing theme CSS and a transformed ancestor. Screenshots
 were inspected at desktop, tablet and phone sizes with the page's fonts and images.
 
 Checks cover layout overflow, dialog fit, every CTA, FAQs, focus handling, the sticky
 bar, validation, duplicate submissions, failed-save retry with the same ID, Calendly
-destination/prefill, open access, optional strict mode and qualification telemetry.
+destination/prefill, open access despite a stale strict-mode flag, and qualification telemetry.
 Backend, telemetry and calendar requests were intercepted. These checks verify the
 frontend contract; they do not independently certify live Convex or Google Sheets.
 
@@ -38,9 +38,9 @@ Keep the working page-specific header. Use a full-width, zero-padding container
 and Elementor Canvas if the theme adds another header/footer around this page.
 Update the page and clear the WordPress/cache-plugin cache.
 
-No Apps Script or Convex change is needed for this redesign. WordPress publishing
-is performed by the owner. The optional `ADSCADE_CONTENT_REQUIRE_QUALIFICATION`
-flag must stay unset or false while booking is open to everybody.
+The visual redesign itself requires only the HTML widget. The subsequent end-to-end
+audit adds backend and Apps Script fixes; follow [END_TO_END_AUDIT.md](END_TO_END_AUDIT.md).
+WordPress publishing is performed by the owner. Legacy qualification flags are ignored.
 
 
 ## iPhone production clarification and image pack

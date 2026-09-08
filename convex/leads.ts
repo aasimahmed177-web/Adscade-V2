@@ -76,6 +76,7 @@ export const insertLead = internalMutation({
       // The intake path may write these three values and no others.
       status: suspect ? "suspect" : "submitted",
       calendlyStatus: "not_booked", // convex/calendly.ts owns every transition from here
+      googleSheetsSyncVersion: 1,
       googleSheetsSyncStatus: "pending",
       googleSheetsSyncAttempts: 0,
     });
@@ -94,7 +95,7 @@ export const insertLead = internalMutation({
  * Mirrors insertLead's idempotency and Sheets-queueing exactly. The one structural
  * difference is `contentQualified`: it is computed by http.ts from teamSize and
  * monthlyShoot and passed in here, never read from the browser's payload, and it is
- * returned to the caller so the page knows whether to open the calendar.
+ * returned to the caller for conversion reporting. All stored applications can book.
  */
 export const insertContentLead = internalMutation({
   args: {
@@ -158,6 +159,7 @@ export const insertContentLead = internalMutation({
       createdAt: Date.now(),
       status: suspect ? "suspect" : "submitted",
       calendlyStatus: "not_booked",
+      googleSheetsSyncVersion: 1,
       googleSheetsSyncStatus: "pending",
       googleSheetsSyncAttempts: 0,
     });

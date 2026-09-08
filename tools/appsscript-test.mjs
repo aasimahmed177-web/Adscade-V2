@@ -252,6 +252,22 @@ console.log('\n— header order and alignment —');
     rows(sheet)[0].email === 'broker@example.com', rows(sheet)[0].email);
 }
 
+console.log('\n— delayed snapshots cannot undo a booking —');
+{
+  const { sandbox, sheet } = makeSandbox();
+  const old = contentPayload({ convex_sync_version: 1 });
+  const booked = contentPayload({ convex_sync_version: 2, calendly_status: 'booked', booked_once: true });
+  post(sandbox, booked);
+  const late = post(sandbox, old);
+  t('late older snapshot is acknowledged without overwriting', late.ok && late.stored && late.action === 'ignored_stale');
+  t('booking survives out-of-order delivery', rows(sheet)[0].calendly_status === 'booked' && rows(sheet)[0].booked_once === 'TRUE');
+  t('legacy unversioned snapshot cannot undo versioned data', post(sandbox, contentPayload()).action === 'ignored_stale');
+  t('same-version retry is idempotent', post(sandbox, booked).stored && rows(sheet).length === 1);
+  post(sandbox, { ...booked, convex_sync_version: 3, calendly_status: 'canceled' });
+  t('newer cancellation is applied', rows(sheet)[0].calendly_status === 'canceled');
+  t('invalid version is refused', post(sandbox, { ...old, convex_sync_version: -1 }).error === 'INVALID_SYNC_VERSION');
+}
+
 console.log(fails === 0
   ? '\nall Apps Script receiver tests passed\n'
   : `\n${fails} FAILED\n`);

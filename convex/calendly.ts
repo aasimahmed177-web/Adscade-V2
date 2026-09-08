@@ -385,6 +385,7 @@ export const markBooked = internalMutation({
       calendlyEndTime: args.endTimeMs,
       calendlyQuestionsAndAnswers: args.questionsAndAnswers,
       calendlyLastSyncedAt: Date.now(),
+      googleSheetsSyncVersion: (lead.googleSheetsSyncVersion ?? 0) + 1,
       googleSheetsSyncStatus: "pending",
       googleSheetsSyncAttempts: 0,
     });
@@ -425,6 +426,8 @@ export const markCanceled = internalMutation({
   args: { leadId: v.id("leads"), canceledAtMs: v.number() },
   returns: v.null(),
   handler: async (ctx, { leadId, canceledAtMs }) => {
+    const lead = await ctx.db.get(leadId);
+    if (!lead) return null;
     // The historical booking record (event/invitee URIs, times) is left in place — a
     // canceled call still happened as an event; only the live status changes. The
     // matching bookedCallEvents row is likewise never deleted or edited.
@@ -432,6 +435,7 @@ export const markCanceled = internalMutation({
       calendlyStatus: "canceled",
       calendlyCanceledAt: canceledAtMs,
       calendlyLastSyncedAt: Date.now(),
+      googleSheetsSyncVersion: (lead.googleSheetsSyncVersion ?? 0) + 1,
       googleSheetsSyncStatus: "pending",
       googleSheetsSyncAttempts: 0,
     });
@@ -470,6 +474,7 @@ export const markRescheduled = internalMutation({
       calendlyEndTime: args.newEndTimeMs,
       calendlyQuestionsAndAnswers: args.newQuestionsAndAnswers,
       calendlyLastSyncedAt: Date.now(),
+      googleSheetsSyncVersion: (lead.googleSheetsSyncVersion ?? 0) + 1,
       googleSheetsSyncStatus: "pending",
       googleSheetsSyncAttempts: 0,
     });
@@ -560,7 +565,13 @@ export const setSyncState = internalMutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("calendlySyncState").first();
-    const patch = { ...args, lastRunAt: Date.now() };
+    const patch = {
+      ...args,
+      lastRunAt: Date.now(),
+      // Optional arguments are omitted in transport. Explicitly remove an old error
+      // after recovery instead of retaining a contradictory red diagnostic forever.
+      lastError: args.lastRunOk ? undefined : args.lastError,
+    };
     if (existing) await ctx.db.patch(existing._id, patch);
     else await ctx.db.insert("calendlySyncState", patch);
     return null;
@@ -576,10 +587,10 @@ export const sync = internalAction({
   returns: v.null(),
   handler: async (ctx) => {
     if (!process.env.CALENDLY_PAT) {
-      // Not an error: this is the expected state before the owner configures the token.
-      // Logging a warning (not throwing) keeps the Convex Health dashboard quiet rather
-      // than showing a failed action every five minutes pre-launch.
-      console.warn("[calendly] CALENDLY_PAT is not set — skipping this run.");
+      await ctx.runMutation(internal.calendly.setSyncState, {
+        lastRunOk: false,
+        lastError: "CALENDLY_PAT is not configured; bookings cannot sync.",
+      });
       return null;
     }
 

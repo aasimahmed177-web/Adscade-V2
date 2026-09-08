@@ -18,8 +18,7 @@ ad → /vsl-5-2/ → application modal
    → POST /submit-content-lead
    → Convex stores the lead and COMPUTES qualification
    → response { ok, stored, submissionId, qualified }
-   → qualified   → Calendly (name + email prefilled)
-     unqualified → polite not-fit state, no calendar
+   → every successfully stored application → Calendly (name + email prefilled)
    → booking syncs back onto the same lead (5-minute poll)
    → Google Sheets mirrors lead + booking state
 ```
@@ -100,10 +99,11 @@ qualified = teamSize ∈ {5_9, 10_19, 20_plus}  AND  monthlyShoot === "yes"
 
 Computed in `convex/http.ts` (`isContentQualified`), stored on the row as
 `contentQualified`, and returned as `qualified`. Stored rather than recomputed later so
-the Sheet, the funnel report and what the visitor actually saw can never disagree.
+the Sheet and qualified-conversion report use the same classification.
 
-**Everyone is stored**, qualified or not. Unqualified applicants see the not-fit message;
-their row is still in Convex and in the Sheet.
+**Every valid application is stored and can book**, regardless of team size or shoot
+availability. `contentQualified` is reporting only. The old gate and rejection message
+are removed, including the optional header switch.
 
 A retried submission returns the **stored** verdict, never a recomputed one — the visitor
 already acted on the first answer.
@@ -159,8 +159,8 @@ Both offers mirror into the existing `Leads` sheet. This was chosen over a separ
 New columns: `offer`, `company_name`, `team_size`, `monthly_shoot`, `content_qualified`,
 `team_size_label`. Acquisition rows leave the content columns blank and vice versa.
 
-`content_qualified` is deliberately **three-state**: `TRUE` / `FALSE` for a gated offer,
-and **blank** for one with no gate. Collapsing blank into `FALSE` would make every
+`content_qualified` is deliberately **three-state**: `TRUE` / `FALSE` for content classification,
+and **blank** for offers without this classification. Collapsing blank into `FALSE` would make every
 acquisition lead read as a rejected application whenever the column is filtered.
 
 > **A bug worth recording.** The first version of this change added the six headers and
@@ -213,7 +213,7 @@ sync resolves it. Comparison ignores trailing slashes, query strings and case.
 To read the pairing directly, without anyone handling the token:
 
 ```bash
-npx convex run internal.calendly.listEventTypesForSetup --prod
+npx convex run internal.calendly.listEventTypesForSetup --deployment-name pastel-minnow-203
 ```
 
 It prints each event's name, `publicBookingUrl` and `apiEventTypeUri`. `CALENDLY_PAT` is
@@ -261,9 +261,10 @@ landing_page_view → initial_cta_click → lead_modal_open → lead_form_start
 → lead_form_submit → lead_form_stored → [lead_qualified] → calendly_redirect
 ```
 
-`lead_qualified` is new and fires only for offers that gate the calendar.
-`admin:funnelSummary` inserts the `stored -> qualified` step only when the data contains
-it, so VSL-4 is never shown a 0% step for a gate it does not have.
+`lead_qualified` records the server-derived content classification, independently of
+calendar access. `admin:funnelSummary` includes this segment for content traffic,
+including 0% when none qualifies. Conversion rates intersect the sessions at both
+stages, so unqualified redirects cannot inflate qualified conversion above 100%.
 
 The page keeps its **own** GTM vocabulary (`content_cta_click`, `content_form_open`, …)
 untouched — anything already built in GTM or Ads keeps working — and maps those names
@@ -329,14 +330,14 @@ calendar; the backend still has to be told which event type to poll, or the book
 never come back onto the lead. Either let the sync resolve it from the same public URL:
 
 ```bash
-npx convex env set CALENDLY_CONTENT_SCHEDULING_URL https://calendly.com/aasim-ahmed177/brokerage-content-system-call --prod
+npx convex env set CALENDLY_CONTENT_SCHEDULING_URL https://calendly.com/aasim-ahmed177/brokerage-content-system-call --deployment-name pastel-minnow-203
 ```
 
 or pin the API URI directly, which is immune to the event being renamed *or* re-slugged:
 
 ```bash
-npx convex run internal.calendly.listEventTypesForSetup --prod   # read apiEventTypeUri
-npx convex env set CALENDLY_CONTENT_EVENT_TYPE_URI https://api.calendly.com/event_types/XXXXXXXX --prod
+npx convex run internal.calendly.listEventTypesForSetup --deployment-name pastel-minnow-203   # read apiEventTypeUri
+npx convex env set CALENDLY_CONTENT_EVENT_TYPE_URI https://api.calendly.com/event_types/XXXXXXXX --deployment-name pastel-minnow-203
 ```
 
 Pinning the URI is the more durable of the two.
@@ -417,10 +418,9 @@ A green test suite is not proof the live funnel works. These are the checks that
 - `getSyncState`: `lastRunOk`, no `lastError`, and `calendlyTargets` lists both event types
 
 **C — unqualified** (1–4 + yes): stored with `contentQualified=false`, and the Sheet
-shows `FALSE` — not blank. Calendar access is now open by default, so this application
-also redirects without firing a qualified-application conversion. Optional strict
-mode (`window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION = true`) restores the not-fit
-state and blocks this redirect. Failed submissions must never redirect in either mode.
+shows `FALSE` — not blank. This application also redirects without firing a
+qualified-application conversion, even if an old header still sets
+`window.ADSCADE_CONTENT_REQUIRE_QUALIFICATION = true`. Failed submissions never redirect.
 
 **D — cross-offer safety.** Submit both funnels with the same email, then book the content
 event: the booking must land on the **content** lead, not the acquisition one.
@@ -432,14 +432,10 @@ right Calendly invitee.
 
 ## Deployment order
 
-1. **Convex first.** `npx convex deploy` — adds `/submit-content-lead`, `/track-event`
-   and the schema. Additive; VSL-4 is unaffected.
-2. **Verify** with the production checks below.
-3. **Apps Script** — redeploy, run `setupAdscade()`.
-4. **WordPress last** — add `ADSCADE_CONTENT_LEAD_ENDPOINT`. The page starts capturing
-   the moment this lands, so do it only after step 1 succeeds.
-5. Later, when the content Calendly event exists: add
-   `ADSCADE_CONTENT_CALENDLY_URL` and set `CALENDLY_CONTENT_EVENT_TYPE_URI`.
+For the current release, follow [END_TO_END_AUDIT.md](END_TO_END_AUDIT.md): update the
+Apps Script receiver, deploy Convex to `pastel-minnow-203`, then replace the complete
+WordPress HTML widget and clear caches. The content Calendly URL already exists.
+Use the provided content header; do not point the content form at `/submit-lead`.
 
 ## Rollback
 
@@ -467,7 +463,7 @@ node tools/production-preflight.mjs
 - decide whether to pin `CALENDLY_EVENT_TYPE_URI`
 
 ```bash
-npx convex run internal.calendly.getSyncState --prod
+npx convex run internal.calendly.getSyncState --deployment-name pastel-minnow-203
 ```
 
 - `lastRunOk` is `true` and `lastError` is empty — if it says *No Calendly event type

@@ -88,7 +88,13 @@ export const migrateMediaBudgetsToAed = internalMutation({
       if (lead.monthlyMediaBudget === undefined) continue;
       const replacement = map[lead.monthlyMediaBudget];
       if (!replacement) continue;
-      await ctx.db.patch(lead._id, { monthlyMediaBudget: replacement });
+      await ctx.db.patch(lead._id, {
+        monthlyMediaBudget: replacement,
+        googleSheetsSyncVersion: (lead.googleSheetsSyncVersion ?? 0) + 1,
+        googleSheetsSyncStatus: "pending",
+        googleSheetsSyncAttempts: 0,
+      });
+      await ctx.scheduler.runAfter(updated * 750, internal.sheets.syncLead, { leadId: lead._id });
       updated += 1;
     }
 
@@ -252,7 +258,8 @@ export const funnelSummary = internalQuery({
     const pct = (from: string, to: string): number | null => {
       const a = uniqueSessions[from];
       if (a === 0) return null;
-      return Math.round((uniqueSessions[to] / a) * 1000) / 10;
+      const reached = [...sessionSets[from]].filter((id) => sessionSets[to].has(id)).length;
+      return Math.round((reached / a) * 1000) / 10;
     };
 
     const conversion: Record<string, number | null> = {
@@ -263,10 +270,10 @@ export const funnelSummary = internalQuery({
       "submit -> stored": pct("lead_form_submit", "lead_form_stored"),
     };
 
-    // The qualification step only exists for offers that gate the calendar. Showing
-    // "stored -> qualified: 0%" for real_estate_acquisition would describe a gate that
-    // does not exist, so the step is inserted only when the data actually contains it.
-    const hasQualificationStage = uniqueSessions.lead_qualified > 0;
+    // Qualification is a reporting segment, not a booking gate. Content traffic with
+    // zero qualified sessions should show 0%; acquisition has no such classification.
+    const hasQualificationStage = offer === "brokerage_content_engine" ||
+      rows.some((row) => offerOf(row) === "brokerage_content_engine");
     if (hasQualificationStage) {
       conversion["stored -> qualified"] = pct("lead_form_stored", "lead_qualified");
       conversion["qualified -> Calendly redirect"] = pct("lead_qualified", "calendly_redirect");
@@ -345,11 +352,13 @@ export const funnelBreakdown = internalQuery({
         const sessions: Record<string, number> = {};
         for (const name of FUNNEL_EVENT_NAMES) sessions[name] = bucket[name].size;
         const views = sessions.landing_page_view;
+        const storedAfterView = [...bucket.landing_page_view]
+          .filter((id) => bucket.lead_form_stored.has(id)).length;
         return {
           group,
           uniqueSessions: sessions,
           landingToStoredPct:
-            views === 0 ? null : Math.round((sessions.lead_form_stored / views) * 1000) / 10,
+            views === 0 ? null : Math.round((storedAfterView / views) * 1000) / 10,
         };
       })
       // Busiest first: the campaign with the most landing views is the one worth reading.
