@@ -43,8 +43,8 @@ const HEADERS = [
   'company_name',
   'team_size',
   'monthly_shoot',
-  // Convex's server-side qualification verdict for offers that gate the calendar.
-  // Blank on offers that have no gate; TRUE/FALSE on content rows.
+  // Convex's server-derived reporting classification; it does not restrict booking.
+  // Blank on acquisition rows; TRUE/FALSE on content rows.
   'content_qualified',
   'device',
   'landing_page',
@@ -60,6 +60,7 @@ const HEADERS = [
   'consent',
   'convex_status',
   'convex_updated_at',
+  'convex_sync_version',
   'source',
 
   // Convex / booking mirror fields
@@ -141,6 +142,7 @@ function doGet() {
   return jsonResponse_({
     ok: true,
     service: 'Adscade Convex → Google Sheets Mirror',
+    version: '2026-09-08-ordered-mirror',
     configured: Boolean(id),
     sheetName: SHEET_NAME,
     timestamp: new Date().toISOString()
@@ -190,8 +192,8 @@ function doPost(e) {
       monthly_shoot: safeCell_(payload.monthly_shoot),
 
       // Three-state on purpose, so the column can be read at a glance:
-      //   TRUE / FALSE  a gated offer's server-side verdict
-      //   blank         an offer with no qualification gate at all
+      //   TRUE / FALSE  content's server-derived reporting classification
+      //   blank         an offer without this classification
       // normalizeBoolean_ alone would turn "absent" into FALSE and make every
       // acquisition row look like a rejected application.
       content_qualified: (payload.content_qualified === undefined ||
@@ -219,6 +221,7 @@ function doPost(e) {
       consent: normalizeBoolean_(payload.consent),
       convex_status: safeCell_(payload.convex_status || 'stored'),
       convex_updated_at: clean_(payload.convex_updated_at || nowIso),
+      convex_sync_version: syncVersion_(payload.convex_sync_version),
       source: safeCell_(payload.source || 'convex_mirror'),
 
       lead_status: safeCell_(payload.lead_status),
@@ -324,6 +327,12 @@ function upsertLead_(sheet, headers, rowData) {
   }
 
   const current = sheet.getRange(rowNumber, 1, 1, headers.length).getValues()[0];
+  const versionIndex = headers.indexOf('convex_sync_version');
+  if (versionIndex >= 0 &&
+      syncVersion_(current[versionIndex]) > syncVersion_(rowData.convex_sync_version)) {
+    // A newer full snapshot is already stored. Acknowledge without overwriting it.
+    return 'ignored_stale';
+  }
   const next = current.slice();
 
   headers.forEach(function(header, i) {
@@ -372,6 +381,15 @@ function parseRequest_(e) {
 function clean_(value) {
   if (value === undefined || value === null) return '';
   return String(value).trim();
+}
+
+function syncVersion_(value) {
+  const version = Number(value);
+  // Unversioned legacy deployments/rows are version zero. Never let one overwrite
+  // a versioned booking; old rows need no backfill when this receiver is deployed.
+  if (value === undefined || value === null || value === '') return 0;
+  if (!Number.isSafeInteger(version) || version < 0) throw new Error('INVALID_SYNC_VERSION');
+  return version;
 }
 
 function safeCell_(value) {

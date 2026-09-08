@@ -49,7 +49,7 @@ export interface CalendlyUser {
   uri: string;
   name: string;
   email: string;
-  organization: string;
+  current_organization: string;
 }
 
 export async function getCurrentUser(): Promise<CalendlyUser> {
@@ -67,12 +67,11 @@ export interface CalendlyEventType {
   scheduling_url?: string;
 }
 
-/** One page cap is enough for a Free-plan account's event type list. */
+/** Fetch every event-type page, including accounts with archived event types. */
 export async function listEventTypes(userUri: string): Promise<CalendlyEventType[]> {
-  const { collection } = await calendlyFetch<{ collection: CalendlyEventType[] }>(
+  return paginate<CalendlyEventType>(
     `/event_types?user=${encodeURIComponent(userUri)}&count=100`,
   );
-  return collection;
 }
 
 export interface CalendlyScheduledEvent {
@@ -107,9 +106,9 @@ async function paginate<T>(firstUrl: string): Promise<T[]> {
 }
 
 /**
- * Active events of one event type, in a bounded upcoming window. Filtering by event_type
- * server-side (where the API supports it, which it does here) means events for any other
- * event type never come down the wire at all.
+ * Active events of one event type, in a bounded upcoming window. Always filter the
+ * returned event_type locally. The API may ignore unknown query parameters; trusting
+ * a requested filter would let another offer's bookings acquire the wrong offer.
  */
 export async function listActiveEvents(
   userUri: string,
@@ -119,14 +118,14 @@ export async function listActiveEvents(
 ): Promise<CalendlyScheduledEvent[]> {
   const params = new URLSearchParams({
     user: userUri,
-    event_type: eventTypeUri,
     status: "active",
     min_start_time: minStartTime.toISOString(),
     max_start_time: maxStartTime.toISOString(),
     count: "100",
     sort: "start_time:asc",
   });
-  return paginate<CalendlyScheduledEvent>(`/scheduled_events?${params.toString()}`);
+  const events = await paginate<CalendlyScheduledEvent>(`/scheduled_events?${params.toString()}`);
+  return events.filter((event) => event.event_type === eventTypeUri);
 }
 
 export interface CalendlyQA {

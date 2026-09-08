@@ -1,19 +1,25 @@
 {
   "name": "adscade-v2",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tools/run-local-tests.mjs",
+    "typecheck": "tsc --noEmit --target ESNext --module ESNext --moduleResolution Bundler --lib ESNext,DOM --types node --skipLibCheck --allowJs convex/*.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "playwright": "^1.62.0"
+    "@types/node": "^26.5.0",
+    "convex-test": "^0.0.54",
+    "playwright": "^1.62.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "convex": "^1.42.3"

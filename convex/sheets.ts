@@ -81,11 +81,12 @@ export const getLeadForSync = internalQuery({
 });
 
 export const markSuccess = internalMutation({
-  args: { leadId: v.id("leads") },
+  // Optional only for actions already in flight during deployment (legacy version 0).
+  args: { leadId: v.id("leads"), version: v.optional(v.number()) },
   returns: v.null(),
-  handler: async (ctx, { leadId }) => {
+  handler: async (ctx, { leadId, version }) => {
     const lead = await ctx.db.get(leadId);
-    if (!lead) return null;
+    if (!lead || (lead.googleSheetsSyncVersion ?? 0) !== (version ?? 0)) return null;
     await ctx.db.patch(leadId, {
       googleSheetsSyncStatus: "synced",
       googleSheetsLastSyncedAt: Date.now(),
@@ -96,11 +97,12 @@ export const markSuccess = internalMutation({
 });
 
 export const recordFailure = internalMutation({
-  args: { leadId: v.id("leads"), error: v.string() },
+  args: { leadId: v.id("leads"), version: v.optional(v.number()), error: v.string() },
   returns: v.null(),
-  handler: async (ctx, { leadId, error }) => {
+  handler: async (ctx, { leadId, version, error }) => {
     const lead = await ctx.db.get(leadId);
-    if (!lead) return null;
+    if (!lead || (lead.googleSheetsSyncVersion ?? 0) !== (version ?? 0) ||
+        lead.googleSheetsSyncStatus === "synced") return null;
 
     const attempts = (lead.googleSheetsSyncAttempts ?? 0) + 1;
     const retry = attempts < MAX_ATTEMPTS;
@@ -148,17 +150,18 @@ export const syncLead = internalAction({
   args: { leadId: v.id("leads") },
   returns: v.null(),
   handler: async (ctx, { leadId }) => {
+    const lead = await ctx.runQuery(internal.sheets.getLeadForSync, { leadId });
+    if (!lead) return null;
+    const version = lead.googleSheetsSyncVersion ?? 0;
     const webhook = process.env.GOOGLE_SHEETS_WEBHOOK_URL?.trim();
     if (!webhook) {
       await ctx.runMutation(internal.sheets.recordFailure, {
         leadId,
+        version,
         error: "GOOGLE_SHEETS_WEBHOOK_URL is not configured",
       });
       return null;
     }
-
-    const lead = await ctx.runQuery(internal.sheets.getLeadForSync, { leadId });
-    if (!lead) return null;
 
     const bookingStatus = lead.calendlyStatus ?? "not_booked";
     const payload = {
@@ -184,8 +187,8 @@ export const syncLead = internalAction({
       team_size: lead.teamSize ?? "",
       team_size_label: teamSizeLabel(lead.teamSize),
       monthly_shoot: lead.monthlyShoot ?? "",
-      // The server's verdict, mirrored so the Sheet shows what the visitor was actually
-      // shown. Empty (not "false") on offers that have no qualification gate at all.
+      // Server-derived reporting classification; it never restricts calendar access.
+      // Empty (not "false") on offers without this classification.
       content_qualified:
         typeof lead.contentQualified === "boolean" ? lead.contentQualified : "",
       device: lead.deviceCategory ?? "",
@@ -216,6 +219,8 @@ export const syncLead = internalAction({
       calendly_questions_and_answers: JSON.stringify(lead.calendlyQuestionsAndAnswers ?? []),
       calendly_last_synced_at: iso(lead.calendlyLastSyncedAt) ?? "",
       convex_status: "stored",
+      // Full snapshots can arrive out of order. The receiver keeps the newest version.
+      convex_sync_version: version,
       convex_updated_at: new Date().toISOString(),
     };
 
@@ -241,10 +246,11 @@ export const syncLead = internalAction({
         );
       }
 
-      await ctx.runMutation(internal.sheets.markSuccess, { leadId });
+      await ctx.runMutation(internal.sheets.markSuccess, { leadId, version });
     } catch (error) {
       await ctx.runMutation(internal.sheets.recordFailure, {
         leadId,
+        version,
         error: errText(error),
       });
     }

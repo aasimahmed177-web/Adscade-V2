@@ -3,9 +3,10 @@
      place. Installing it earlier just points a broken form at a route that does not
      exist yet.
 
-     Replaces this page's VSL-4 metadata and configuration. Does NOT touch global
-     GTM/GA/Meta tags — leave those alone. Do not install two competing title/canonical
-     /OG sets; if an SEO plugin already manages any of these, drop the duplicate here.
+     WordPress already emits title, description and canonical tags on the live page.
+     Set the page's SEO title and description using docs/END_TO_END_AUDIT.md; this
+     snippet deliberately leaves those three tags to WordPress to avoid duplicates.
+     Keep global GTM/GA/Meta tags. The social tags below were not duplicated live.
 
      Contains NO secrets. Both values below are public by nature: the endpoint is a
      public HTTP route, and the booking URL is on the page anyway. Never put
@@ -14,13 +15,10 @@
 
      Telemetry needs no third variable — it derives from the lead endpoint and disables
      itself if that value is not recognised. -->
-<title>One Shoot a Month. 20 Real Estate Videos. — Adscade</title>
-<meta name="description" content="Your team just shows up. Adscade researches, scripts, guides the shoot, edits, captions and publishes 20 real estate videos a month for established brokerages.">
 <meta name="robots" content="noindex, follow">
-<link rel="canonical" href="https://adscade.com/vsl-5-2/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="One Shoot a Month. 20 Real Estate Videos. — Adscade">
-<meta property="og:description" content="A managed monthly content system for established real estate brokerages. Your team provides the expertise. Adscade handles the content work.">
+<meta property="og:description" content="One planned iPhone shoot. 20 real estate videos a month. Your team provides the expertise. Adscade handles research, scripts, editing and publishing.">
 <meta property="og:image" content="https://adscade.com/wp-content/uploads/2026/09/ChatGPT-Image-Sep-5-2026-08_24_58-AM-1.png">
 <meta property="og:url" content="https://adscade.com/vsl-5-2/">
 <meta name="twitter:card" content="summary_large_image">
@@ -36,4 +34,3 @@
   window.ADSCADE_CONTENT_CALENDLY_URL =
     "https://calendly.com/aasim-ahmed177/brokerage-content-system-call";
 </script>
-
